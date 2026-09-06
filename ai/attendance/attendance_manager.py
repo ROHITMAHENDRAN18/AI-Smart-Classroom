@@ -2,73 +2,164 @@ import csv
 import os
 from datetime import datetime
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
-CSV_FILE = os.path.join(
-    BASE_DIR,
-    "attendance",
-    "attendance.csv"
-)
-
 
 class AttendanceManager:
 
     def __init__(self):
 
-        self.marked_students = set()
+        print("=" * 70)
+        print("Loading Attendance Manager...")
+        print("=" * 70)
 
-        if os.path.exists(CSV_FILE):
+        self.attendance_file = "attendance/attendance.csv"
 
-            with open(CSV_FILE, "r") as file:
+        self.present_students = set()
 
-                reader = csv.DictReader(file)
+        os.makedirs(
+            "attendance",
+            exist_ok=True
+        )
 
-                for row in reader:
+        print("Attendance Manager Loaded Successfully.")
+        print(
+            f"Attendance file: {self.attendance_file}"
+        )
+        print("=" * 70)
 
-                    self.marked_students.add(
-                        row["Student_ID"]
-                    )
+    # ========================================================
+    # MARK STUDENT PRESENT
+    # ========================================================
 
-        else:
+    def mark_present(
+        self,
+        student_id,
+        track_id,
+        similarity
+    ):
+        """
+        Mark a recognized student as present.
 
-            with open(CSV_FILE, "w", newline="") as file:
+        A student is recorded only once
+        during the current program session.
+        """
 
-                writer = csv.writer(file)
+        # ----------------------------------------------------
+        # Prevent duplicate attendance
+        # ----------------------------------------------------
 
-                writer.writerow(
-                    [
-                        "Student_ID",
-                        "Date",
-                        "Time",
-                        "Status"
-                    ]
-                )
-
-    def mark_attendance(self, student_id):
-
-        if student_id in self.marked_students:
+        if student_id in self.present_students:
 
             return False
 
+        # ----------------------------------------------------
+        # Current date and time
+        # ----------------------------------------------------
+
         now = datetime.now()
 
-        date = now.strftime("%Y-%m-%d")
+        date = now.strftime(
+            "%Y-%m-%d"
+        )
 
-        time = now.strftime("%H:%M:%S")
+        time = now.strftime(
+            "%H:%M:%S"
+        )
 
-        with open(CSV_FILE, "a", newline="") as file:
+        # ----------------------------------------------------
+        # Check whether CSV already exists
+        # ----------------------------------------------------
+
+        file_exists = os.path.exists(
+            self.attendance_file
+        )
+
+        # ----------------------------------------------------
+        # Write attendance record
+        # ----------------------------------------------------
+
+        with open(
+            self.attendance_file,
+            "a",
+            newline="",
+            encoding="utf-8"
+        ) as file:
 
             writer = csv.writer(file)
 
+            # Header
+            if not file_exists:
+
+                writer.writerow(
+                    [
+                        "student_id",
+                        "track_id",
+                        "similarity",
+                        "date",
+                        "time",
+                        "status"
+                    ]
+                )
+
+            # Attendance record
             writer.writerow(
                 [
                     student_id,
+                    track_id,
+                    f"{similarity:.3f}",
                     date,
                     time,
                     "Present"
                 ]
             )
 
-        self.marked_students.add(student_id)
+        # ----------------------------------------------------
+        # Store in memory
+        # ----------------------------------------------------
+
+        self.present_students.add(
+            student_id
+        )
+
+        print(
+            f"[ATTENDANCE] "
+            f"{student_id} marked PRESENT "
+            f"(Track ID: {track_id}, "
+            f"Similarity: {similarity:.3f})"
+        )
 
         return True
+
+    # ========================================================
+    # CHECK WHETHER STUDENT IS PRESENT
+    # ========================================================
+
+    def is_present(
+        self,
+        student_id
+    ):
+        """
+        Check whether a student has already
+        been marked present in this session.
+        """
+
+        return student_id in self.present_students
+
+    # ========================================================
+    # GET PRESENT STUDENTS
+    # ========================================================
+
+    def get_present_students(self):
+
+        return sorted(
+            self.present_students
+        )
+
+    # ========================================================
+    # GET PRESENT COUNT
+    # ========================================================
+
+    def get_present_count(self):
+
+        return len(
+            self.present_students
+        )
