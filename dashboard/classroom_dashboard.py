@@ -1,8 +1,10 @@
 import json
 import os
+
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
+from dashboard.session_manager import ClassroomSessionManager
 
 # ============================================================
 # CONFIGURATION
@@ -1687,34 +1689,51 @@ setInterval(
 </body>
 
 </html>
+
 """
+
+# ============================================================
+# STEP 11 - GLOBAL SESSION MANAGER
+# ============================================================
+
+SESSION_MANAGER = None
 
 
 # ============================================================
 # HTTP SERVER
 # ============================================================
 
-class DashboardHandler(
-    BaseHTTPRequestHandler
-):
-
+class DashboardHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
-        parsed_url = urlparse(
-            self.path
-        )
-
+        parsed_url = urlparse(self.path)
         path = parsed_url.path
 
-
         # ----------------------------------------------------
-        # API
+        # API: LIVE CLASSROOM STATE
         # ----------------------------------------------------
 
         if path == "/api/state":
 
             state = read_state()
+
+            # STEP 11:
+            # Record the current classroom state in the
+            # active classroom session, if a session exists.
+            if SESSION_MANAGER is not None:
+
+                try:
+
+                    SESSION_MANAGER.record_state(state)
+
+                except Exception as error:
+
+                    # Do not allow session logging failure
+                    # to break the live dashboard.
+                    print(
+                        f"Session record warning: {error}"
+                    )
 
             response = json.dumps(
                 state
@@ -1722,9 +1741,7 @@ class DashboardHandler(
                 "utf-8"
             )
 
-            self.send_response(
-                200
-            )
+            self.send_response(200)
 
             self.send_header(
                 "Content-Type",
@@ -1753,12 +1770,9 @@ class DashboardHandler(
 
             self.end_headers()
 
-            self.wfile.write(
-                response
-            )
+            self.wfile.write(response)
 
             return
-
 
         # ----------------------------------------------------
         # DASHBOARD PAGE
@@ -1770,13 +1784,26 @@ class DashboardHandler(
                 "utf-8"
             )
 
-            self.send_response(
-                200
-            )
+            self.send_response(200)
 
             self.send_header(
                 "Content-Type",
                 "text/html; charset=utf-8"
+            )
+
+            self.send_header(
+                "Cache-Control",
+                "no-cache, no-store, must-revalidate"
+            )
+
+            self.send_header(
+                "Pragma",
+                "no-cache"
+            )
+
+            self.send_header(
+                "Expires",
+                "0"
             )
 
             self.send_header(
@@ -1786,23 +1813,38 @@ class DashboardHandler(
 
             self.end_headers()
 
-            self.wfile.write(
-                response
-            )
+            self.wfile.write(response)
 
             return
-
 
         # ----------------------------------------------------
         # 404
         # ----------------------------------------------------
 
-        self.send_response(
-            404
+        response = json.dumps(
+            {
+                "error": "Not Found",
+                "path": path
+            }
+        ).encode(
+            "utf-8"
+        )
+
+        self.send_response(404)
+
+        self.send_header(
+            "Content-Type",
+            "application/json"
+        )
+
+        self.send_header(
+            "Content-Length",
+            str(len(response))
         )
 
         self.end_headers()
 
+        self.wfile.write(response)
 
     def log_message(
         self,
@@ -1820,72 +1862,85 @@ class DashboardHandler(
 
 def main():
 
-    print("=" * 60)
-
-    print(
-        "AI SMART CLASSROOM"
-    )
-
-    print(
-        "STEP 10 - CLASSROOM DASHBOARD"
-    )
+    global SESSION_MANAGER
 
     print("=" * 60)
-
-    print(
-        f"State file:"
-    )
-
-    print(
-        f"  {STATE_FILE}"
-    )
+    print("AI SMART CLASSROOM")
+    print("STEP 10 - CLASSROOM DASHBOARD")
+    print("STEP 11 - CLASSROOM SESSION MANAGER")
+    print("=" * 60)
 
     print()
-
-    print(
-        f"Dashboard URL:"
-    )
-
-    print(
-        f"  http://{HOST}:{PORT}"
-    )
+    print("State file:")
+    print(f"  {STATE_FILE}")
 
     print()
+    print("Dashboard URL:")
+    print(f"  http://{HOST}:{PORT}")
 
-    print(
-        "Waiting for STEP 9 live data..."
-    )
+    print()
+    print("Starting classroom session...")
 
-    print(
-        "Keep this terminal running."
-    )
+    # ========================================================
+    # STEP 11 - CREATE SESSION MANAGER
+    # ========================================================
 
-    print("=" * 60)
-
-
-    server = ThreadingHTTPServer(
-        (
-            HOST,
-            PORT
-        ),
-        DashboardHandler
-    )
-
+    session_manager = ClassroomSessionManager()
 
     try:
 
-        server.serve_forever()
+        session_manager.start_session()
 
-    except KeyboardInterrupt:
+        SESSION_MANAGER = session_manager
+
+        print("Session Manager: ACTIVE")
 
         print()
-        print(
-            "Dashboard stopped."
+        print("Waiting for STEP 9 live data...")
+        print("Keep this terminal running.")
+        print("=" * 60)
+
+        server = ThreadingHTTPServer(
+            (
+                HOST,
+                PORT
+            ),
+            DashboardHandler
         )
+
+        try:
+
+            server.serve_forever()
+
+        except KeyboardInterrupt:
+
+            print()
+            print("Stopping classroom session...")
+
+        finally:
+
+            server.server_close()
 
     finally:
 
-        server.server_close()
+        # Always stop the active session cleanly.
+        if SESSION_MANAGER is not None:
+
+            try:
+
+                SESSION_MANAGER.stop_session()
+
+            except Exception as error:
+
+                print(
+                    f"Session stop warning: {error}"
+                )
+
+            finally:
+
+                SESSION_MANAGER = None
+
+        print("Dashboard stopped.")
 
 
 # ============================================================
