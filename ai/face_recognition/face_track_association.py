@@ -1,8 +1,12 @@
 import cv2
 import numpy as np
 import pickle
+import json
+import os
+import time
 
 from collections import defaultdict, deque
+from datetime import datetime
 
 from ultralytics import YOLO
 import supervision as sv
@@ -42,19 +46,13 @@ FACE_RECOGNITION_THRESHOLD = 0.50
 # ATTENTION SETTINGS
 # ------------------------------------------------------------
 
-# Horizontal head movement.
-# Larger value = more tolerance.
 MAX_YAW_RATIO = 0.22
 
-# Vertical head movement.
 MIN_PITCH_RATIO = 0.25
 MAX_PITCH_RATIO = 0.72
 
-# Attention smoothing.
 ATTENTION_HISTORY_LENGTH = 7
 
-# Number of valid attention states required
-# before switching states.
 ATTENTION_MIN_VALID_FRAMES = 2
 
 # ------------------------------------------------------------
@@ -63,6 +61,15 @@ ATTENTION_MIN_VALID_FRAMES = 2
 
 MIN_FACE_WIDTH = 35
 MIN_FACE_HEIGHT = 35
+
+# ------------------------------------------------------------
+# DASHBOARD
+# ------------------------------------------------------------
+
+DASHBOARD_STATE_FILE = "dashboard/classroom_state.json"
+
+# Update dashboard file every 0.5 seconds.
+DASHBOARD_UPDATE_INTERVAL = 0.5
 
 
 # ============================================================
@@ -78,6 +85,83 @@ attention_history = defaultdict(
 last_attention_state = {}
 
 last_attention_values = {}
+
+
+# ============================================================
+# DASHBOARD STATE
+# ============================================================
+
+last_dashboard_update = 0.0
+
+
+def save_dashboard_state(
+    tracked_persons,
+    present_students,
+    students
+):
+    """
+    Save live classroom information.
+
+    This file is consumed by STEP 10
+    Classroom Dashboard.
+    """
+
+    try:
+
+        dashboard_data = {
+            "timestamp": datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+
+            "tracked_persons": int(
+                tracked_persons
+            ),
+
+            "present_students": int(
+                present_students
+            ),
+
+            "students": students
+        }
+
+        directory = os.path.dirname(
+            DASHBOARD_STATE_FILE
+        )
+
+        if directory:
+
+            os.makedirs(
+                directory,
+                exist_ok=True
+            )
+
+        temp_file = (
+            DASHBOARD_STATE_FILE
+            + ".tmp"
+        )
+
+        with open(
+            temp_file,
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            json.dump(
+                dashboard_data,
+                file,
+                indent=4
+            )
+
+        os.replace(
+            temp_file,
+            DASHBOARD_STATE_FILE
+        )
+
+    except Exception as error:
+
+        print(
+            f"[DASHBOARD] State update failed: {error}"
+        )
 
 
 # ============================================================
@@ -187,19 +271,32 @@ def clip_box(
     return x1, y1, x2, y2
 
 
-def calculate_distance(point1, point2):
+def calculate_distance(
+    point1,
+    point2
+):
     """
     Euclidean distance between two points.
     """
 
     return float(
         np.linalg.norm(
-            np.asarray(point1, dtype=np.float32)
+            np.asarray(
+                point1,
+                dtype=np.float32
+            )
             -
-            np.asarray(point2, dtype=np.float32)
+            np.asarray(
+                point2,
+                dtype=np.float32
+            )
         )
     )
 
+
+# ============================================================
+# ATTENTION SMOOTHING
+# ============================================================
 
 def smooth_attention(
     track_id,
@@ -208,9 +305,9 @@ def smooth_attention(
     """
     Smooth attention state.
 
-    UNKNOWN states are not inserted into history.
-    This prevents one bad frame from destroying
-    an already valid attention state.
+    UNKNOWN states are ignored so one bad
+    frame does not immediately change the
+    student's attention state.
     """
 
     if new_state in (
@@ -231,10 +328,14 @@ def smooth_attention(
         for state in history:
 
             counts[state] = (
-                counts.get(state, 0) + 1
+                counts.get(
+                    state,
+                    0
+                ) + 1
             )
 
         if not counts:
+
             return last_attention_state.get(
                 track_id,
                 "UNKNOWN"
@@ -245,8 +346,6 @@ def smooth_attention(
             key=counts.get
         )
 
-        # Only switch after enough
-        # valid observations.
         if len(history) >= ATTENTION_MIN_VALID_FRAMES:
 
             last_attention_state[
@@ -260,8 +359,6 @@ def smooth_attention(
             best_state
         )
 
-    # If current frame is unusable,
-    # keep previous valid state.
     return last_attention_state.get(
         track_id,
         "UNKNOWN"
@@ -276,8 +373,7 @@ def normalize_embedding(
     embedding
 ):
     """
-    Convert embedding into a
-    normalized 1D vector.
+    Convert embedding into a normalized 1D vector.
     """
 
     embedding = np.asarray(
@@ -292,6 +388,7 @@ def normalize_embedding(
     )
 
     if norm == 0:
+
         return None
 
     return embedding / norm
@@ -362,18 +459,8 @@ def recognize_face(
     face_embedding
 ):
     """
-    Compare detected face embedding
-    with stored student embeddings.
-
-    Returns:
-
-        student_id
-        similarity
-
-    or:
-
-        None
-        similarity
+    Compare detected face against all
+    stored student embeddings.
     """
 
     query = normalize_embedding(
@@ -385,6 +472,7 @@ def recognize_face(
         return None, 0.0
 
     best_student = None
+
     best_similarity = -1.0
 
     for student_id, embeddings in known_embeddings.items():
@@ -409,6 +497,7 @@ def recognize_face(
             if similarity > best_similarity:
 
                 best_similarity = similarity
+
                 best_student = student_id
 
     if (
@@ -439,17 +528,6 @@ def estimate_attention(
     """
     Estimate attention using InsightFace
     five facial keypoints.
-
-    Keypoints:
-
-        0 -> left eye
-        1 -> right eye
-        2 -> nose
-        3 -> left mouth
-        4 -> right mouth
-
-    Instead of relying completely on solvePnP,
-    this method uses normalized facial geometry.
 
     Returns:
 
@@ -503,13 +581,17 @@ def estimate_attention(
             )
 
         # ----------------------------------------------------
-        # FIVE LANDMARKS
+        # FIVE FACIAL LANDMARKS
         # ----------------------------------------------------
 
         left_eye = points[0]
+
         right_eye = points[1]
+
         nose = points[2]
+
         left_mouth = points[3]
+
         right_mouth = points[4]
 
         # ----------------------------------------------------
@@ -527,7 +609,7 @@ def estimate_attention(
         ) / 2.0
 
         # ----------------------------------------------------
-        # BASIC DISTANCES
+        # DISTANCES
         # ----------------------------------------------------
 
         eye_distance = calculate_distance(
@@ -557,14 +639,8 @@ def estimate_attention(
             )
 
         # ----------------------------------------------------
-        # YAW ESTIMATION
+        # YAW
         # ----------------------------------------------------
-
-        # How far the nose moves horizontally
-        # away from the eye center.
-        #
-        # Normalize using eye distance so
-        # different face sizes work similarly.
 
         horizontal_offset = abs(
             float(
@@ -579,19 +655,12 @@ def estimate_attention(
         )
 
         # ----------------------------------------------------
-        # PITCH ESTIMATION
+        # PITCH
         # ----------------------------------------------------
 
-        # Distance from eye line to nose.
-        #
-        # Normalize using the vertical
-        # distance from eyes to mouth.
-
-        vertical_offset = (
-            float(
-                nose[1] -
-                eye_center[1]
-            )
+        vertical_offset = float(
+            nose[1] -
+            eye_center[1]
         )
 
         pitch_ratio = (
@@ -603,21 +672,14 @@ def estimate_attention(
         # ROLL
         # ----------------------------------------------------
 
-        # We calculate roll only for information.
-        # It is not directly used for attention.
-
-        eye_delta_y = (
-            float(
-                right_eye[1] -
-                left_eye[1]
-            )
+        eye_delta_y = float(
+            right_eye[1] -
+            left_eye[1]
         )
 
-        eye_delta_x = (
-            float(
-                right_eye[0] -
-                left_eye[0]
-            )
+        eye_delta_x = float(
+            right_eye[0] -
+            left_eye[0]
         )
 
         roll_angle = np.degrees(
@@ -628,7 +690,7 @@ def estimate_attention(
         )
 
         # ----------------------------------------------------
-        # SANITY CHECK
+        # VALIDATION
         # ----------------------------------------------------
 
         if not np.isfinite(
@@ -675,9 +737,6 @@ def estimate_attention(
         else:
 
             state = "NOT ATTENTIVE"
-
-        # Keep roll calculation available
-        # for future improvements.
 
         _ = roll_angle
 
@@ -833,6 +892,14 @@ print(
 )
 
 print(
+    "Dashboard state will be updated at:"
+)
+
+print(
+    DASHBOARD_STATE_FILE
+)
+
+print(
     "Press Q to exit."
 )
 
@@ -841,6 +908,7 @@ print("=" * 60)
 
 tracked_person_count = 0
 
+present_students = 0
 
 while True:
 
@@ -907,6 +975,12 @@ while True:
     # --------------------------------------------------------
 
     current_tracks = set()
+
+    # --------------------------------------------------------
+    # DASHBOARD STUDENT LIST
+    # --------------------------------------------------------
+
+    dashboard_students = []
 
     # --------------------------------------------------------
     # PROCESS EACH PERSON
@@ -1014,6 +1088,7 @@ while True:
         # ----------------------------------------------------
 
         best_face = None
+
         best_face_area = 0
 
         for face in faces:
@@ -1043,10 +1118,6 @@ while True:
 
                     continue
 
-                # ------------------------------------------------
-                # FACE CENTER
-                # ------------------------------------------------
-
                 face_center_x = (
                     fx1 + fx2
                 ) / 2.0
@@ -1062,10 +1133,6 @@ while True:
                 crop_height = (
                     person_crop.shape[0]
                 )
-
-                # ------------------------------------------------
-                # FACE MUST BE INSIDE PERSON
-                # ------------------------------------------------
 
                 if not (
                     0 <= face_center_x
@@ -1085,6 +1152,7 @@ while True:
                 if area > best_face_area:
 
                     best_face = face
+
                     best_face_area = area
 
             except Exception:
@@ -1104,17 +1172,12 @@ while True:
                     "embedding"
                 ):
 
-                    newly_recognized_id, newly_similarity = (
-                        recognize_face(
-                            best_face.embedding
-                        )
+                    (
+                        newly_recognized_id,
+                        newly_similarity
+                    ) = recognize_face(
+                        best_face.embedding
                     )
-
-                    # ------------------------------------------------
-                    # IMPORTANT:
-                    # If current face recognition succeeds,
-                    # update identity.
-                    # ------------------------------------------------
 
                     if newly_recognized_id is not None:
 
@@ -1177,6 +1240,7 @@ while True:
         raw_attention_state = "UNKNOWN"
 
         yaw_ratio = None
+
         pitch_ratio = None
 
         if best_face is not None:
@@ -1198,7 +1262,10 @@ while True:
             raw_attention_state
         )
 
-        # Store latest numeric values.
+        # ----------------------------------------------------
+        # STORE LAST NUMERIC VALUES
+        # ----------------------------------------------------
+
         if (
             yaw_ratio is not None
             and
@@ -1212,13 +1279,76 @@ while True:
                 pitch_ratio
             )
 
+        elif track_id in last_attention_values:
+
+            (
+                yaw_ratio,
+                pitch_ratio
+            ) = last_attention_values[
+                track_id
+            ]
+
+        # ----------------------------------------------------
+        # DASHBOARD STUDENT DATA
+        # ----------------------------------------------------
+
+        dashboard_student_id = None
+
+        if recognized_id is not None:
+
+            dashboard_student_id = str(
+                recognized_id
+            )
+
+        student_record = {
+            "track_id": int(
+                track_id
+            ),
+
+            "student_id": dashboard_student_id,
+
+            "recognized": (
+                recognized_id is not None
+            ),
+
+            "similarity": round(
+                float(similarity),
+                3
+            ),
+
+            "attention": str(
+                attention_state
+            ),
+
+            "yaw_ratio": (
+                round(
+                    float(yaw_ratio),
+                    3
+                )
+                if yaw_ratio is not None
+                else None
+            ),
+
+            "pitch_ratio": (
+                round(
+                    float(pitch_ratio),
+                    3
+                )
+                if pitch_ratio is not None
+                else None
+            )
+        }
+
+        dashboard_students.append(
+            student_record
+        )
+
         # ----------------------------------------------------
         # PERSON BOX COLOR
         # ----------------------------------------------------
 
         if recognized_id is not None:
 
-            # Cyan
             person_box_color = (
                 255,
                 220,
@@ -1227,7 +1357,6 @@ while True:
 
         else:
 
-            # Orange
             person_box_color = (
                 0,
                 165,
@@ -1240,7 +1369,6 @@ while True:
 
         if attention_state == "ATTENTIVE":
 
-            # Bright green
             attention_color = (
                 0,
                 255,
@@ -1255,7 +1383,6 @@ while True:
 
         elif attention_state == "NOT ATTENTIVE":
 
-            # Bright red
             attention_color = (
                 0,
                 0,
@@ -1270,7 +1397,6 @@ while True:
 
         else:
 
-            # White / orange
             attention_color = (
                 255,
                 255,
@@ -1312,10 +1438,6 @@ while True:
                 f"ID {track_id} | UNKNOWN"
             )
 
-        # ----------------------------------------------------
-        # LABEL POSITION
-        # ----------------------------------------------------
-
         label_x = max(
             8,
             x1
@@ -1325,10 +1447,6 @@ while True:
             30,
             y1 + 28
         )
-
-        # ----------------------------------------------------
-        # IDENTITY LABEL
-        # ----------------------------------------------------
 
         draw_text_box(
             frame,
@@ -1357,7 +1475,8 @@ while True:
         # ----------------------------------------------------
 
         attention_text = (
-            f"Attention: {attention_state}"
+            f"Attention: "
+            f"{attention_state}"
         )
 
         attention_y = (
@@ -1391,9 +1510,6 @@ while True:
                     best_face.bbox
                 )
 
-                # Convert person crop coordinates
-                # back to original frame coordinates.
-
                 fx1 += x1
                 fx2 += x1
 
@@ -1409,10 +1525,6 @@ while True:
                     frame_height
                 )
 
-                # ------------------------------------------------
-                # FACE BOX
-                # ------------------------------------------------
-
                 cv2.rectangle(
                     frame,
                     (fx1, fy1),
@@ -1424,10 +1536,6 @@ while True:
                     ),
                     2
                 )
-
-                # ------------------------------------------------
-                # FACE LABEL
-                # ------------------------------------------------
 
                 if recognized_id is not None:
 
@@ -1477,8 +1585,6 @@ while True:
     # PRESENT STUDENTS
     # ========================================================
 
-    present_students = 0
-
     try:
 
         present_students = len(
@@ -1491,14 +1597,34 @@ while True:
         present_students = 0
 
     # ========================================================
-    # DASHBOARD
+    # UPDATE DASHBOARD STATE
     # ========================================================
 
-    # --------------------------------------------------------
-    # Dashboard background
-    # --------------------------------------------------------
+    current_time = time.time()
+
+    if (
+        current_time -
+        last_dashboard_update
+        >=
+        DASHBOARD_UPDATE_INTERVAL
+    ):
+
+        save_dashboard_state(
+            tracked_person_count,
+            present_students,
+            dashboard_students
+        )
+
+        last_dashboard_update = (
+            current_time
+        )
+
+    # ========================================================
+    # DASHBOARD HEADER
+    # ========================================================
 
     dashboard_height = 118
+
     dashboard_width = 410
 
     cv2.rectangle(
@@ -1515,8 +1641,6 @@ while True:
         ),
         -1
     )
-
-    # Border around dashboard
 
     cv2.rectangle(
         frame,
@@ -1558,7 +1682,8 @@ while True:
 
     cv2.putText(
         frame,
-        f"Tracked Persons: {tracked_person_count}",
+        f"Tracked Persons: "
+        f"{tracked_person_count}",
         (15, 63),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.62,
@@ -1577,7 +1702,8 @@ while True:
 
     cv2.putText(
         frame,
-        f"Present Students: {present_students}",
+        f"Present Students: "
+        f"{present_students}",
         (15, 94),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.60,
@@ -1624,7 +1750,11 @@ cv2.destroyAllWindows()
 # ============================================================
 
 print("=" * 60)
-print("STEP 9 STOPPED")
+
+print(
+    "STEP 9 STOPPED"
+)
+
 print("=" * 60)
 
 print(
@@ -1635,6 +1765,11 @@ print(
 print(
     f"Present students: "
     f"{present_students}"
+)
+
+print(
+    f"Dashboard state: "
+    f"{DASHBOARD_STATE_FILE}"
 )
 
 print("=" * 60)

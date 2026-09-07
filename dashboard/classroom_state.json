@@ -1,0 +1,16 @@
+{
+    "timestamp": "2026-09-07 19:28:48",
+    "tracked_persons": 1,
+    "present_students": 1,
+    "students": [
+        {
+            "track_id": 2,
+            "student_id": "24AD095",
+            "recognized": true,
+            "similarity": 0.7,
+            "attention": "ATTENTIVE",
+            "yaw_ratio": 0.079,
+            "pitch_ratio": 0.461
+        }
+    ]
+}
