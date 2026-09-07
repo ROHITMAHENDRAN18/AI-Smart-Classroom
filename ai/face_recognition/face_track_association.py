@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import pickle
 
+from collections import defaultdict, deque
+
 from ultralytics import YOLO
 import supervision as sv
 
@@ -21,118 +23,325 @@ EMBEDDINGS_FILE = "embeddings/face_embeddings.pkl"
 
 CAMERA_INDEX = 0
 
-FRAME_WIDTH = 1280
-FRAME_HEIGHT = 720
+# ------------------------------------------------------------
+# YOLO SETTINGS
+# ------------------------------------------------------------
 
-YOLO_CONFIDENCE = 0.35
-YOLO_IOU = 0.50
-YOLO_IMAGE_SIZE = 960
+PERSON_CONFIDENCE = 0.35
+PERSON_IOU = 0.50
+PERSON_IMAGE_SIZE = 960
+MAX_PERSONS = 100
 
-FACE_DETECTION_SIZE = (640, 640)
+# ------------------------------------------------------------
+# FACE RECOGNITION
+# ------------------------------------------------------------
 
-FACE_MATCH_THRESHOLD = 0.45
+FACE_RECOGNITION_THRESHOLD = 0.50
 
+# ------------------------------------------------------------
+# ATTENTION SETTINGS
+# ------------------------------------------------------------
 
-# ============================================================
-# 1. LOAD YOLO PERSON DETECTOR
-# ============================================================
+# Horizontal head movement.
+# Larger value = more tolerance.
+MAX_YAW_RATIO = 0.22
 
-print("=" * 70)
-print("Loading YOLO Person Detector...")
-print("=" * 70)
+# Vertical head movement.
+MIN_PITCH_RATIO = 0.25
+MAX_PITCH_RATIO = 0.72
 
-model = YOLO(YOLO_MODEL)
+# Attention smoothing.
+ATTENTION_HISTORY_LENGTH = 7
 
-print("YOLO Loaded Successfully.")
+# Number of valid attention states required
+# before switching states.
+ATTENTION_MIN_VALID_FRAMES = 2
 
+# ------------------------------------------------------------
+# FACE SIZE
+# ------------------------------------------------------------
 
-# ============================================================
-# 2. LOAD BYTE TRACK
-# ============================================================
-
-print("=" * 70)
-print("Loading ByteTrack...")
-print("=" * 70)
-
-tracker = sv.ByteTrack()
-
-print("ByteTrack Loaded Successfully.")
-
-
-# ============================================================
-# 3. LOAD ATTENDANCE MANAGER
-# ============================================================
-
-print("=" * 70)
-print("Loading Attendance Manager...")
-print("=" * 70)
-
-attendance_manager = AttendanceManager()
-
-print("Attendance Manager Loaded Successfully.")
+MIN_FACE_WIDTH = 35
+MIN_FACE_HEIGHT = 35
 
 
 # ============================================================
-# 4. LOAD STUDENT TRACKER
+# GLOBAL ATTENTION STATE
 # ============================================================
 
-print("=" * 70)
-print("Loading Student Tracker...")
-print("=" * 70)
-
-student_tracker = StudentTracker()
-
-print("Student Tracker Loaded Successfully.")
-
-
-# ============================================================
-# 5. LOAD INSIGHTFACE
-# ============================================================
-
-print("=" * 70)
-print("Loading InsightFace...")
-print("=" * 70)
-
-face_app = FaceAnalysis(
-    name="buffalo_l",
-    providers=[
-        "CPUExecutionProvider"
-    ]
+attention_history = defaultdict(
+    lambda: deque(
+        maxlen=ATTENTION_HISTORY_LENGTH
+    )
 )
 
-face_app.prepare(
-    ctx_id=0,
-    det_size=FACE_DETECTION_SIZE
-)
+last_attention_state = {}
 
-print("InsightFace Loaded Successfully.")
+last_attention_values = {}
 
 
 # ============================================================
-# 6. LOAD FACE EMBEDDINGS
+# UTILITY FUNCTIONS
 # ============================================================
 
-print("=" * 70)
-print("Loading Face Embeddings...")
-print("=" * 70)
+def draw_text_box(
+    frame,
+    text,
+    position,
+    text_color=(255, 255, 255),
+    background_color=(30, 30, 30),
+    font_scale=0.60,
+    thickness=2,
+    padding=6
+):
+    """
+    Draw highly visible text with a filled background.
+    """
 
-try:
+    x, y = position
 
-    with open(
-        EMBEDDINGS_FILE,
-        "rb"
-    ) as file:
+    font = cv2.FONT_HERSHEY_SIMPLEX
 
-        known_embeddings = pickle.load(file)
-
-except FileNotFoundError:
-
-    print(
-        f"ERROR: Embedding file not found: "
-        f"{EMBEDDINGS_FILE}"
+    (
+        text_width,
+        text_height
+    ), baseline = cv2.getTextSize(
+        text,
+        font,
+        font_scale,
+        thickness
     )
 
-    raise SystemExit
+    x1 = max(
+        0,
+        int(x - padding)
+    )
+
+    y1 = max(
+        0,
+        int(y - text_height - padding)
+    )
+
+    x2 = min(
+        frame.shape[1] - 1,
+        int(x + text_width + padding)
+    )
+
+    y2 = min(
+        frame.shape[0] - 1,
+        int(y + baseline + padding)
+    )
+
+    cv2.rectangle(
+        frame,
+        (x1, y1),
+        (x2, y2),
+        background_color,
+        -1
+    )
+
+    cv2.putText(
+        frame,
+        text,
+        (int(x), int(y)),
+        font,
+        font_scale,
+        text_color,
+        thickness,
+        cv2.LINE_AA
+    )
+
+
+def clip_box(
+    x1,
+    y1,
+    x2,
+    y2,
+    width,
+    height
+):
+    """
+    Keep bounding box inside image.
+    """
+
+    x1 = max(
+        0,
+        min(int(x1), width - 1)
+    )
+
+    y1 = max(
+        0,
+        min(int(y1), height - 1)
+    )
+
+    x2 = max(
+        0,
+        min(int(x2), width - 1)
+    )
+
+    y2 = max(
+        0,
+        min(int(y2), height - 1)
+    )
+
+    return x1, y1, x2, y2
+
+
+def calculate_distance(point1, point2):
+    """
+    Euclidean distance between two points.
+    """
+
+    return float(
+        np.linalg.norm(
+            np.asarray(point1, dtype=np.float32)
+            -
+            np.asarray(point2, dtype=np.float32)
+        )
+    )
+
+
+def smooth_attention(
+    track_id,
+    new_state
+):
+    """
+    Smooth attention state.
+
+    UNKNOWN states are not inserted into history.
+    This prevents one bad frame from destroying
+    an already valid attention state.
+    """
+
+    if new_state in (
+        "ATTENTIVE",
+        "NOT ATTENTIVE"
+    ):
+
+        history = attention_history[
+            track_id
+        ]
+
+        history.append(
+            new_state
+        )
+
+        counts = {}
+
+        for state in history:
+
+            counts[state] = (
+                counts.get(state, 0) + 1
+            )
+
+        if not counts:
+            return last_attention_state.get(
+                track_id,
+                "UNKNOWN"
+            )
+
+        best_state = max(
+            counts,
+            key=counts.get
+        )
+
+        # Only switch after enough
+        # valid observations.
+        if len(history) >= ATTENTION_MIN_VALID_FRAMES:
+
+            last_attention_state[
+                track_id
+            ] = best_state
+
+            return best_state
+
+        return last_attention_state.get(
+            track_id,
+            best_state
+        )
+
+    # If current frame is unusable,
+    # keep previous valid state.
+    return last_attention_state.get(
+        track_id,
+        "UNKNOWN"
+    )
+
+
+# ============================================================
+# FACE EMBEDDING NORMALIZATION
+# ============================================================
+
+def normalize_embedding(
+    embedding
+):
+    """
+    Convert embedding into a
+    normalized 1D vector.
+    """
+
+    embedding = np.asarray(
+        embedding,
+        dtype=np.float32
+    )
+
+    embedding = embedding.reshape(-1)
+
+    norm = np.linalg.norm(
+        embedding
+    )
+
+    if norm == 0:
+        return None
+
+    return embedding / norm
+
+
+# ============================================================
+# LOAD FACE EMBEDDINGS
+# ============================================================
+
+print("=" * 60)
+print("Loading Face Embeddings...")
+print("=" * 60)
+
+with open(
+    EMBEDDINGS_FILE,
+    "rb"
+) as file:
+
+    raw_embeddings = pickle.load(
+        file
+    )
+
+
+known_embeddings = {}
+
+
+for student_id, embeddings in raw_embeddings.items():
+
+    student_vectors = []
+
+    for embedding in embeddings:
+
+        normalized = normalize_embedding(
+            embedding
+        )
+
+        if normalized is not None:
+
+            student_vectors.append(
+                normalized
+            )
+
+    if student_vectors:
+
+        known_embeddings[
+            student_id
+        ] = np.asarray(
+            student_vectors,
+            dtype=np.float32
+        )
 
 
 print("Known Students:")
@@ -146,272 +355,445 @@ for student_id, embeddings in known_embeddings.items():
 
 
 # ============================================================
-# 7. NORMALIZE EMBEDDING
-# ============================================================
-
-def normalize_embedding(embedding):
-
-    embedding = np.asarray(
-        embedding,
-        dtype=np.float32
-    )
-
-    norm = np.linalg.norm(
-        embedding
-    )
-
-    if norm == 0:
-
-        return embedding
-
-    return embedding / norm
-
-
-# ============================================================
-# 8. PREPARE KNOWN EMBEDDINGS
-# ============================================================
-
-def prepare_known_embeddings(
-    embeddings_dict
-):
-
-    prepared = {}
-
-    for student_id, embeddings in embeddings_dict.items():
-
-        normalized_embeddings = []
-
-        for embedding in embeddings:
-
-            normalized = normalize_embedding(
-                embedding
-            )
-
-            normalized_embeddings.append(
-                normalized
-            )
-
-        if normalized_embeddings:
-
-            prepared[student_id] = np.vstack(
-                normalized_embeddings
-            )
-
-    return prepared
-
-
-known_embeddings = prepare_known_embeddings(
-    known_embeddings
-)
-
-
-# ============================================================
-# 9. FACE RECOGNITION
+# FACE RECOGNITION
 # ============================================================
 
 def recognize_face(
     face_embedding
 ):
+    """
+    Compare detected face embedding
+    with stored student embeddings.
 
-    query_embedding = normalize_embedding(
+    Returns:
+
+        student_id
+        similarity
+
+    or:
+
+        None
+        similarity
+    """
+
+    query = normalize_embedding(
         face_embedding
     )
 
-    best_student_id = None
+    if query is None:
 
-    best_score = -1.0
+        return None, 0.0
 
-    # --------------------------------------------------------
-    # Compare against every student
-    # --------------------------------------------------------
+    best_student = None
+    best_similarity = -1.0
 
-    for student_id, student_embeddings in known_embeddings.items():
+    for student_id, embeddings in known_embeddings.items():
 
-        similarities = np.dot(
-            student_embeddings,
-            query_embedding
-        )
+        for stored_embedding in embeddings:
 
-        student_best_score = float(
-            np.max(similarities)
-        )
+            stored_embedding = normalize_embedding(
+                stored_embedding
+            )
 
-        if student_best_score > best_score:
+            if stored_embedding is None:
 
-            best_score = student_best_score
+                continue
 
-            best_student_id = student_id
+            similarity = float(
+                np.dot(
+                    query,
+                    stored_embedding
+                )
+            )
 
-    # --------------------------------------------------------
-    # Apply recognition threshold
-    # --------------------------------------------------------
+            if similarity > best_similarity:
 
-    if best_score >= FACE_MATCH_THRESHOLD:
+                best_similarity = similarity
+                best_student = student_id
+
+    if (
+        best_student is not None
+        and
+        best_similarity >=
+        FACE_RECOGNITION_THRESHOLD
+    ):
 
         return (
-            best_student_id,
-            best_score
+            best_student,
+            best_similarity
         )
 
     return (
         None,
-        best_score
+        best_similarity
     )
 
 
 # ============================================================
-# 10. FIND TRACK FOR FACE
+# ATTENTION ESTIMATION
 # ============================================================
 
-def find_track_for_face(
-    face,
-    detections
+def estimate_attention(
+    face
 ):
     """
-    Match an InsightFace face to the
-    closest ByteTrack person.
+    Estimate attention using InsightFace
+    five facial keypoints.
 
-    The center of the face must be
-    inside the person bounding box.
+    Keypoints:
+
+        0 -> left eye
+        1 -> right eye
+        2 -> nose
+        3 -> left mouth
+        4 -> right mouth
+
+    Instead of relying completely on solvePnP,
+    this method uses normalized facial geometry.
+
+    Returns:
+
+        state
+        yaw_ratio
+        pitch_ratio
     """
 
-    if len(detections) == 0:
+    if face is None:
 
-        return None
+        return (
+            "UNKNOWN",
+            None,
+            None
+        )
 
-
-    # --------------------------------------------------------
-    # Face bounding box
-    # --------------------------------------------------------
-
-    face_x1 = float(
-        face.bbox[0]
-    )
-
-    face_y1 = float(
-        face.bbox[1]
-    )
-
-    face_x2 = float(
-        face.bbox[2]
-    )
-
-    face_y2 = float(
-        face.bbox[3]
-    )
-
-
-    # --------------------------------------------------------
-    # Face center
-    # --------------------------------------------------------
-
-    face_center_x = (
-        face_x1 + face_x2
-    ) / 2.0
-
-    face_center_y = (
-        face_y1 + face_y2
-    ) / 2.0
-
-
-    best_track_id = None
-
-    best_distance = float("inf")
-
-
-    # --------------------------------------------------------
-    # Check every tracked person
-    # --------------------------------------------------------
-
-    for i in range(
-        len(detections)
+    if not hasattr(
+        face,
+        "kps"
     ):
 
-        x1, y1, x2, y2 = detections.xyxy[i]
-
-        x1 = float(x1)
-        y1 = float(y1)
-        x2 = float(x2)
-        y2 = float(y2)
-
-
-        # ----------------------------------------------------
-        # Face center must be inside person box
-        # ----------------------------------------------------
-
-        inside_person = (
-            x1 <= face_center_x <= x2
-            and
-            y1 <= face_center_y <= y2
+        return (
+            "UNKNOWN",
+            None,
+            None
         )
 
-        if not inside_person:
+    kps = face.kps
 
-            continue
+    if kps is None:
 
+        return (
+            "UNKNOWN",
+            None,
+            None
+        )
+
+    try:
+
+        points = np.asarray(
+            kps,
+            dtype=np.float32
+        )
+
+        if points.shape[0] < 5:
+
+            return (
+                "UNKNOWN",
+                None,
+                None
+            )
 
         # ----------------------------------------------------
-        # Person box center
+        # FIVE LANDMARKS
         # ----------------------------------------------------
 
-        person_center_x = (
-            x1 + x2
+        left_eye = points[0]
+        right_eye = points[1]
+        nose = points[2]
+        left_mouth = points[3]
+        right_mouth = points[4]
+
+        # ----------------------------------------------------
+        # MIDPOINTS
+        # ----------------------------------------------------
+
+        eye_center = (
+            left_eye +
+            right_eye
         ) / 2.0
 
-        person_center_y = (
-            y1 + y2
+        mouth_center = (
+            left_mouth +
+            right_mouth
         ) / 2.0
 
+        # ----------------------------------------------------
+        # BASIC DISTANCES
+        # ----------------------------------------------------
+
+        eye_distance = calculate_distance(
+            left_eye,
+            right_eye
+        )
+
+        face_vertical_distance = calculate_distance(
+            eye_center,
+            mouth_center
+        )
+
+        if eye_distance < 5:
+
+            return (
+                "UNKNOWN",
+                None,
+                None
+            )
+
+        if face_vertical_distance < 5:
+
+            return (
+                "UNKNOWN",
+                None,
+                None
+            )
 
         # ----------------------------------------------------
-        # Distance
+        # YAW ESTIMATION
         # ----------------------------------------------------
 
-        distance = np.sqrt(
-            (
-                face_center_x
-                - person_center_x
-            ) ** 2
-            +
-            (
-                face_center_y
-                - person_center_y
-            ) ** 2
+        # How far the nose moves horizontally
+        # away from the eye center.
+        #
+        # Normalize using eye distance so
+        # different face sizes work similarly.
+
+        horizontal_offset = abs(
+            float(
+                nose[0] -
+                eye_center[0]
+            )
+        )
+
+        yaw_ratio = (
+            horizontal_offset /
+            eye_distance
+        )
+
+        # ----------------------------------------------------
+        # PITCH ESTIMATION
+        # ----------------------------------------------------
+
+        # Distance from eye line to nose.
+        #
+        # Normalize using the vertical
+        # distance from eyes to mouth.
+
+        vertical_offset = (
+            float(
+                nose[1] -
+                eye_center[1]
+            )
+        )
+
+        pitch_ratio = (
+            vertical_offset /
+            face_vertical_distance
+        )
+
+        # ----------------------------------------------------
+        # ROLL
+        # ----------------------------------------------------
+
+        # We calculate roll only for information.
+        # It is not directly used for attention.
+
+        eye_delta_y = (
+            float(
+                right_eye[1] -
+                left_eye[1]
+            )
+        )
+
+        eye_delta_x = (
+            float(
+                right_eye[0] -
+                left_eye[0]
+            )
+        )
+
+        roll_angle = np.degrees(
+            np.arctan2(
+                eye_delta_y,
+                eye_delta_x
+            )
+        )
+
+        # ----------------------------------------------------
+        # SANITY CHECK
+        # ----------------------------------------------------
+
+        if not np.isfinite(
+            yaw_ratio
+        ):
+
+            return (
+                "UNKNOWN",
+                None,
+                None
+            )
+
+        if not np.isfinite(
+            pitch_ratio
+        ):
+
+            return (
+                "UNKNOWN",
+                None,
+                None
+            )
+
+        # ----------------------------------------------------
+        # ATTENTION DECISION
+        # ----------------------------------------------------
+
+        yaw_ok = (
+            yaw_ratio <=
+            MAX_YAW_RATIO
+        )
+
+        pitch_ok = (
+            MIN_PITCH_RATIO
+            <=
+            pitch_ratio
+            <=
+            MAX_PITCH_RATIO
+        )
+
+        if yaw_ok and pitch_ok:
+
+            state = "ATTENTIVE"
+
+        else:
+
+            state = "NOT ATTENTIVE"
+
+        # Keep roll calculation available
+        # for future improvements.
+
+        _ = roll_angle
+
+        return (
+            state,
+            yaw_ratio,
+            pitch_ratio
+        )
+
+    except Exception as error:
+
+        print(
+            f"[ATTENTION] Estimation error: {error}"
+        )
+
+        return (
+            "UNKNOWN",
+            None,
+            None
         )
 
 
-        # ----------------------------------------------------
-        # Select closest person
-        # ----------------------------------------------------
+# ============================================================
+# YOLO PERSON DETECTOR
+# ============================================================
 
-        if distance < best_distance:
+print("=" * 60)
+print("Loading YOLO Person Detector...")
+print("=" * 60)
 
-            best_distance = distance
+model = YOLO(
+    YOLO_MODEL
+)
 
-            if detections.tracker_id is not None:
-
-                best_track_id = int(
-                    detections.tracker_id[i]
-                )
-
-
-    return best_track_id
+print(
+    "YOLO Loaded Successfully."
+)
 
 
 # ============================================================
-# 11. TRACK → SIMILARITY CACHE
+# BYTE TRACK
 # ============================================================
 
-track_similarity = {}
+print("=" * 60)
+print("Loading ByteTrack...")
+print("=" * 60)
+
+tracker = sv.ByteTrack()
+
+print(
+    "ByteTrack Loaded Successfully."
+)
 
 
 # ============================================================
-# 12. OPEN CAMERA
+# ATTENDANCE MANAGER
 # ============================================================
 
-print("=" * 70)
+print("=" * 60)
+print("Loading Attendance Manager...")
+print("=" * 60)
+
+attendance_manager = AttendanceManager()
+
+print(
+    "Attendance Manager Loaded Successfully."
+)
+
+
+# ============================================================
+# STUDENT TRACKER
+# ============================================================
+
+print("=" * 60)
+print("Loading Student Tracker...")
+print("=" * 60)
+
+student_tracker = StudentTracker()
+
+print(
+    "Student Tracker Loaded Successfully."
+)
+
+
+# ============================================================
+# INSIGHTFACE
+# ============================================================
+
+print("=" * 60)
+print("Loading InsightFace...")
+print("=" * 60)
+
+face_app = FaceAnalysis(
+    name="buffalo_l",
+    providers=[
+        "CPUExecutionProvider"
+    ]
+)
+
+face_app.prepare(
+    ctx_id=0,
+    det_size=(640, 640)
+)
+
+print(
+    "InsightFace Loaded Successfully."
+)
+
+
+# ============================================================
+# CAMERA
+# ============================================================
+
+print("=" * 60)
 print("Opening Camera...")
-print("=" * 70)
+print("=" * 60)
 
 camera = cv2.VideoCapture(
     CAMERA_INDEX
@@ -419,92 +801,86 @@ camera = cv2.VideoCapture(
 
 camera.set(
     cv2.CAP_PROP_FRAME_WIDTH,
-    FRAME_WIDTH
+    1280
 )
 
 camera.set(
     cv2.CAP_PROP_FRAME_HEIGHT,
-    FRAME_HEIGHT
+    720
 )
-
 
 if not camera.isOpened():
 
-    print("ERROR: Cannot open camera.")
+    print(
+        "ERROR: Cannot open camera."
+    )
 
-    raise SystemExit
+    raise SystemExit(1)
 
 
 # ============================================================
-# 13. START STEP 8
+# MAIN LOOP
 # ============================================================
 
-print("=" * 70)
+print("=" * 60)
 print("AI SMART CLASSROOM")
-print("STEP 8 - STUDENT TRACKING + ATTENDANCE")
-print("=" * 70)
+print("STEP 9 - ATTENTION DETECTION")
+print("=" * 60)
 
 print(
     "Face + Person + ByteTrack + "
-    "Student Association + Attendance"
+    "Student Association + Attendance + Attention"
 )
 
-print("Press Q to exit.")
+print(
+    "Press Q to exit."
+)
 
-print("=" * 70)
+print("=" * 60)
 
 
-# ============================================================
-# 14. MAIN LOOP
-# ============================================================
+tracked_person_count = 0
+
 
 while True:
 
     success, frame = camera.read()
 
-
     if not success:
 
         print(
-            "ERROR: Failed to read camera frame."
+            "Camera frame read failed."
         )
 
         break
 
+    frame_height, frame_width = (
+        frame.shape[:2]
+    )
 
-    # ========================================================
-    # PERSON DETECTION
-    # ========================================================
+    # --------------------------------------------------------
+    # YOLO PERSON DETECTION
+    # --------------------------------------------------------
 
     results = model(
         frame,
-
         classes=[0],
-
-        conf=YOLO_CONFIDENCE,
-
-        iou=YOLO_IOU,
-
-        imgsz=YOLO_IMAGE_SIZE,
-
-        max_det=100,
-
+        conf=PERSON_CONFIDENCE,
+        iou=PERSON_IOU,
+        imgsz=PERSON_IMAGE_SIZE,
+        max_det=MAX_PERSONS,
         verbose=False
     )[0]
 
-
-    # ========================================================
-    # YOLO → SUPERVISION
-    # ========================================================
-
-    detections = sv.Detections.from_ultralytics(
-        results
+    detections = (
+        sv.Detections.from_ultralytics(
+            results
+        )
     )
 
-
-    # ========================================================
-    # PERSON ONLY
-    # ========================================================
+    # --------------------------------------------------------
+    # PERSON CLASS ONLY
+    # --------------------------------------------------------
 
     if len(detections) > 0:
 
@@ -512,125 +888,88 @@ while True:
             detections.class_id == 0
         ]
 
-
-    # ========================================================
+    # --------------------------------------------------------
     # BYTE TRACK
-    # ========================================================
+    # --------------------------------------------------------
 
-    detections = tracker.update_with_detections(
-        detections
+    detections = (
+        tracker.update_with_detections(
+            detections
+        )
     )
-
-
-    # ========================================================
-    # FACE DETECTION
-    # ========================================================
-
-    faces = face_app.get(
-        frame
-    )
-
-
-    # ========================================================
-    # TRACKED PERSON COUNT
-    # ========================================================
 
     tracked_person_count = len(
         detections
     )
 
+    # --------------------------------------------------------
+    # CURRENT TRACKS
+    # --------------------------------------------------------
 
-    cv2.putText(
-        frame,
+    current_tracks = set()
 
-        f"Tracked Persons: "
-        f"{tracked_person_count}",
+    # --------------------------------------------------------
+    # PROCESS EACH PERSON
+    # --------------------------------------------------------
 
-        (20, 45),
+    for index in range(
+        len(detections)
+    ):
 
-        cv2.FONT_HERSHEY_SIMPLEX,
-
-        1.0,
-
-        (0, 255, 0),
-
-        3
-    )
-
-
-    # ========================================================
-    # ATTENDANCE COUNT
-    # ========================================================
-
-    attendance_count = (
-        attendance_manager.get_present_count()
-    )
-
-
-    cv2.putText(
-        frame,
-
-        f"Present: {attendance_count}",
-
-        (20, 85),
-
-        cv2.FONT_HERSHEY_SIMPLEX,
-
-        0.9,
-
-        (0, 255, 255),
-
-        3
-    )
-
-
-    # ========================================================
-    # 15. PROCESS FACES
-    # ========================================================
-
-    for face in faces:
-
-
-        # ----------------------------------------------------
-        # Check embedding
-        # ----------------------------------------------------
-
-        if not hasattr(
-            face,
-            "embedding"
-        ):
+        if detections.tracker_id is None:
 
             continue
 
-
-        # ----------------------------------------------------
-        # Find ByteTrack ID
-        # ----------------------------------------------------
-
-        track_id = find_track_for_face(
-            face,
-            detections
+        track_id = int(
+            detections.tracker_id[index]
         )
 
+        current_tracks.add(
+            track_id
+        )
 
         # ----------------------------------------------------
-        # Face coordinates
+        # PERSON BOX
         # ----------------------------------------------------
 
-        fx1, fy1, fx2, fy2 = map(
+        x1, y1, x2, y2 = map(
             int,
-            face.bbox
+            detections.xyxy[index]
         )
 
+        x1, y1, x2, y2 = clip_box(
+            x1,
+            y1,
+            x2,
+            y2,
+            frame_width,
+            frame_height
+        )
 
-        # ====================================================
-        # CASE A
-        # TRACK ALREADY ASSOCIATED
-        # ====================================================
+        if x2 <= x1 or y2 <= y1:
+
+            continue
+
+        # ----------------------------------------------------
+        # PERSON CROP
+        # ----------------------------------------------------
+
+        person_crop = frame[
+            y1:y2,
+            x1:x2
+        ]
+
+        if person_crop.size == 0:
+
+            continue
+
+        # ----------------------------------------------------
+        # EXISTING STUDENT ASSOCIATION
+        # ----------------------------------------------------
 
         known_student = None
 
-        if track_id is not None:
+        try:
 
             known_student = (
                 student_tracker.update_track(
@@ -638,411 +977,633 @@ while True:
                 )
             )
 
+        except Exception as error:
 
-        if known_student is not None:
-
-            recognized_id = known_student
-
-            similarity = track_similarity.get(
-                track_id,
-                0.0
+            print(
+                f"[TRACKER] update error: {error}"
             )
 
+            known_student = None
 
-            # ------------------------------------------------
-            # Mark attendance
-            # ------------------------------------------------
+        recognized_id = known_student
 
-            attendance_manager.mark_present(
-                recognized_id,
-                track_id,
-                similarity
+        similarity = 0.0
+
+        # ----------------------------------------------------
+        # FACE DETECTION
+        # ----------------------------------------------------
+
+        faces = []
+
+        try:
+
+            faces = face_app.get(
+                person_crop
             )
 
+        except Exception as error:
 
-            # ------------------------------------------------
-            # Display
-            # ------------------------------------------------
-
-            label = (
-                f"{recognized_id} | "
-                f"Track {track_id} | "
-                f"{similarity:.2f} | "
-                f"PRESENT"
+            print(
+                f"[FACE] Detection error: {error}"
             )
 
+            faces = []
 
-            cv2.rectangle(
-                frame,
+        # ----------------------------------------------------
+        # FIND BEST FACE
+        # ----------------------------------------------------
 
-                (fx1, fy1),
+        best_face = None
+        best_face_area = 0
 
-                (fx2, fy2),
+        for face in faces:
 
-                (255, 0, 0),
+            try:
 
-                2
-            )
+                fx1, fy1, fx2, fy2 = map(
+                    int,
+                    face.bbox
+                )
 
+                face_width = (
+                    fx2 - fx1
+                )
 
-            cv2.putText(
-                frame,
+                face_height = (
+                    fy2 - fy1
+                )
 
-                label,
+                if (
+                    face_width <
+                    MIN_FACE_WIDTH
+                    or
+                    face_height <
+                    MIN_FACE_HEIGHT
+                ):
 
-                (
-                    fx1,
-                    max(
-                        fy1 - 10,
-                        20
+                    continue
+
+                # ------------------------------------------------
+                # FACE CENTER
+                # ------------------------------------------------
+
+                face_center_x = (
+                    fx1 + fx2
+                ) / 2.0
+
+                face_center_y = (
+                    fy1 + fy2
+                ) / 2.0
+
+                crop_width = (
+                    person_crop.shape[1]
+                )
+
+                crop_height = (
+                    person_crop.shape[0]
+                )
+
+                # ------------------------------------------------
+                # FACE MUST BE INSIDE PERSON
+                # ------------------------------------------------
+
+                if not (
+                    0 <= face_center_x
+                    <= crop_width
+                    and
+                    0 <= face_center_y
+                    <= crop_height
+                ):
+
+                    continue
+
+                area = (
+                    face_width *
+                    face_height
+                )
+
+                if area > best_face_area:
+
+                    best_face = face
+                    best_face_area = area
+
+            except Exception:
+
+                continue
+
+        # ----------------------------------------------------
+        # FACE RECOGNITION
+        # ----------------------------------------------------
+
+        if best_face is not None:
+
+            try:
+
+                if hasattr(
+                    best_face,
+                    "embedding"
+                ):
+
+                    newly_recognized_id, newly_similarity = (
+                        recognize_face(
+                            best_face.embedding
+                        )
                     )
-                ),
 
-                cv2.FONT_HERSHEY_SIMPLEX,
+                    # ------------------------------------------------
+                    # IMPORTANT:
+                    # If current face recognition succeeds,
+                    # update identity.
+                    # ------------------------------------------------
 
-                0.60,
+                    if newly_recognized_id is not None:
 
-                (255, 0, 0),
+                        recognized_id = (
+                            newly_recognized_id
+                        )
 
-                2
+                        similarity = (
+                            newly_similarity
+                        )
+
+            except Exception as error:
+
+                print(
+                    f"[RECOGNITION] Error: {error}"
+                )
+
+        # ----------------------------------------------------
+        # STUDENT ASSOCIATION
+        # ----------------------------------------------------
+
+        if recognized_id is not None:
+
+            try:
+
+                student_tracker.associate(
+                    track_id,
+                    recognized_id,
+                    similarity
+                )
+
+            except Exception as error:
+
+                print(
+                    f"[TRACKER] Association error: {error}"
+                )
+
+            # ------------------------------------------------
+            # ATTENDANCE
+            # ------------------------------------------------
+
+            try:
+
+                attendance_manager.mark_present(
+                    recognized_id,
+                    track_id,
+                    similarity
+                )
+
+            except Exception as error:
+
+                print(
+                    f"[ATTENDANCE] Error: {error}"
+                )
+
+        # ----------------------------------------------------
+        # ATTENTION
+        # ----------------------------------------------------
+
+        raw_attention_state = "UNKNOWN"
+
+        yaw_ratio = None
+        pitch_ratio = None
+
+        if best_face is not None:
+
+            (
+                raw_attention_state,
+                yaw_ratio,
+                pitch_ratio
+            ) = estimate_attention(
+                best_face
             )
 
+        # ----------------------------------------------------
+        # SMOOTH ATTENTION
+        # ----------------------------------------------------
 
-            continue
-
-
-        # ====================================================
-        # CASE B
-        # NEW TRACK → PERFORM FACE RECOGNITION
-        # ====================================================
-
-        student_id, similarity = recognize_face(
-            face.embedding
+        attention_state = smooth_attention(
+            track_id,
+            raw_attention_state
         )
 
-
-        # ====================================================
-        # RECOGNIZED + TRACKED
-        # ====================================================
-
+        # Store latest numeric values.
         if (
-            student_id is not None
+            yaw_ratio is not None
             and
-            track_id is not None
+            pitch_ratio is not None
         ):
 
-
-            # ------------------------------------------------
-            # Store association
-            # ------------------------------------------------
-
-            student_tracker.associate(
-                track_id,
-
-                student_id,
-
-                similarity
-            )
-
-
-            # ------------------------------------------------
-            # Store similarity locally
-            # ------------------------------------------------
-
-            track_similarity[
+            last_attention_values[
                 track_id
-            ] = similarity
-
-
-            # ------------------------------------------------
-            # Mark attendance
-            # ------------------------------------------------
-
-            attendance_manager.mark_present(
-                student_id,
-
-                track_id,
-
-                similarity
+            ] = (
+                yaw_ratio,
+                pitch_ratio
             )
 
+        # ----------------------------------------------------
+        # PERSON BOX COLOR
+        # ----------------------------------------------------
 
-            # ------------------------------------------------
-            # Display label
-            # ------------------------------------------------
+        if recognized_id is not None:
 
-            label = (
-                f"{student_id} | "
-                f"Track {track_id} | "
-                f"{similarity:.2f} | "
-                f"PRESENT"
+            # Cyan
+            person_box_color = (
+                255,
+                220,
+                0
             )
-
-
-            cv2.rectangle(
-                frame,
-
-                (fx1, fy1),
-
-                (fx2, fy2),
-
-                (255, 0, 0),
-
-                2
-            )
-
-
-            cv2.putText(
-                frame,
-
-                label,
-
-                (
-                    fx1,
-                    max(
-                        fy1 - 10,
-                        20
-                    )
-                ),
-
-                cv2.FONT_HERSHEY_SIMPLEX,
-
-                0.60,
-
-                (255, 0, 0),
-
-                2
-            )
-
-
-        # ====================================================
-        # RECOGNIZED BUT NO TRACK
-        # ====================================================
-
-        elif student_id is not None:
-
-
-            label = (
-                f"{student_id} | "
-                f"No Track | "
-                f"{similarity:.2f}"
-            )
-
-
-            cv2.rectangle(
-                frame,
-
-                (fx1, fy1),
-
-                (fx2, fy2),
-
-                (0, 255, 255),
-
-                2
-            )
-
-
-            cv2.putText(
-                frame,
-
-                label,
-
-                (
-                    fx1,
-                    max(
-                        fy1 - 10,
-                        20
-                    )
-                ),
-
-                cv2.FONT_HERSHEY_SIMPLEX,
-
-                0.60,
-
-                (0, 255, 255),
-
-                2
-            )
-
-
-        # ====================================================
-        # UNKNOWN FACE
-        # ====================================================
 
         else:
 
-
-            label = (
-                f"Unknown | "
-                f"{similarity:.2f}"
+            # Orange
+            person_box_color = (
+                0,
+                165,
+                255
             )
-
-
-            cv2.rectangle(
-                frame,
-
-                (fx1, fy1),
-
-                (fx2, fy2),
-
-                (0, 0, 255),
-
-                2
-            )
-
-
-            cv2.putText(
-                frame,
-
-                label,
-
-                (
-                    fx1,
-                    max(
-                        fy1 - 10,
-                        20
-                    )
-                ),
-
-                cv2.FONT_HERSHEY_SIMPLEX,
-
-                0.60,
-
-                (0, 0, 255),
-
-                2
-            )
-
-
-    # ========================================================
-    # 16. DRAW ALL TRACKED PERSONS
-    # ========================================================
-
-    for i in range(
-        len(detections)
-    ):
-
-
-        x1, y1, x2, y2 = map(
-            int,
-            detections.xyxy[i]
-        )
-
-
-        if detections.tracker_id is None:
-
-            continue
-
-
-        track_id = int(
-            detections.tracker_id[i]
-        )
-
 
         # ----------------------------------------------------
-        # Get associated student
+        # ATTENTION COLOR
         # ----------------------------------------------------
 
-        associated_student = (
-            student_tracker.update_track(
-                track_id
-            )
-        )
+        if attention_state == "ATTENTIVE":
 
-
-        # ====================================================
-        # ASSOCIATED TRACK
-        # ====================================================
-
-        if associated_student is not None:
-
-            similarity = track_similarity.get(
-                track_id,
-                0.0
+            # Bright green
+            attention_color = (
+                0,
+                255,
+                0
             )
 
-
-            track_label = (
-                f"Track {track_id} | "
-                f"{associated_student} | "
-                f"{similarity:.2f}"
+            attention_background = (
+                20,
+                90,
+                20
             )
 
+        elif attention_state == "NOT ATTENTIVE":
 
-        # ====================================================
-        # UNASSOCIATED TRACK
-        # ====================================================
+            # Bright red
+            attention_color = (
+                0,
+                0,
+                255
+            )
+
+            attention_background = (
+                90,
+                20,
+                20
+            )
 
         else:
 
-            track_label = (
-                f"Track {track_id} | "
-                f"Unidentified"
+            # White / orange
+            attention_color = (
+                255,
+                255,
+                255
             )
 
+            attention_background = (
+                70,
+                55,
+                20
+            )
 
         # ----------------------------------------------------
-        # Draw person box
+        # DRAW PERSON BOX
         # ----------------------------------------------------
 
         cv2.rectangle(
             frame,
-
             (x1, y1),
-
             (x2, y2),
-
-            (0, 255, 0),
-
+            person_box_color,
             2
         )
 
+        # ----------------------------------------------------
+        # IDENTITY LABEL
+        # ----------------------------------------------------
+
+        if recognized_id is not None:
+
+            identity_text = (
+                f"ID {track_id} | "
+                f"{recognized_id}"
+            )
+
+        else:
+
+            identity_text = (
+                f"ID {track_id} | UNKNOWN"
+            )
 
         # ----------------------------------------------------
-        # Draw track label
+        # LABEL POSITION
         # ----------------------------------------------------
 
-        cv2.putText(
+        label_x = max(
+            8,
+            x1
+        )
+
+        label_y = max(
+            30,
+            y1 + 28
+        )
+
+        # ----------------------------------------------------
+        # IDENTITY LABEL
+        # ----------------------------------------------------
+
+        draw_text_box(
             frame,
-
-            track_label,
-
+            identity_text,
             (
-                x1,
-                max(
-                    y1 - 10,
-                    20
-                )
+                label_x,
+                label_y
             ),
-
-            cv2.FONT_HERSHEY_SIMPLEX,
-
-            0.60,
-
-            (0, 255, 0),
-
-            2
+            text_color=(
+                255,
+                255,
+                255
+            ),
+            background_color=(
+                25,
+                35,
+                40
+            ),
+            font_scale=0.58,
+            thickness=2,
+            padding=6
         )
 
+        # ----------------------------------------------------
+        # ATTENTION LABEL
+        # ----------------------------------------------------
+
+        attention_text = (
+            f"Attention: {attention_state}"
+        )
+
+        attention_y = (
+            label_y + 38
+        )
+
+        draw_text_box(
+            frame,
+            attention_text,
+            (
+                label_x,
+                attention_y
+            ),
+            text_color=attention_color,
+            background_color=attention_background,
+            font_scale=0.58,
+            thickness=2,
+            padding=6
+        )
+
+        # ----------------------------------------------------
+        # FACE BOX
+        # ----------------------------------------------------
+
+        if best_face is not None:
+
+            try:
+
+                fx1, fy1, fx2, fy2 = map(
+                    int,
+                    best_face.bbox
+                )
+
+                # Convert person crop coordinates
+                # back to original frame coordinates.
+
+                fx1 += x1
+                fx2 += x1
+
+                fy1 += y1
+                fy2 += y1
+
+                fx1, fy1, fx2, fy2 = clip_box(
+                    fx1,
+                    fy1,
+                    fx2,
+                    fy2,
+                    frame_width,
+                    frame_height
+                )
+
+                # ------------------------------------------------
+                # FACE BOX
+                # ------------------------------------------------
+
+                cv2.rectangle(
+                    frame,
+                    (fx1, fy1),
+                    (fx2, fy2),
+                    (
+                        255,
+                        80,
+                        0
+                    ),
+                    2
+                )
+
+                # ------------------------------------------------
+                # FACE LABEL
+                # ------------------------------------------------
+
+                if recognized_id is not None:
+
+                    face_text = (
+                        f"{recognized_id} "
+                        f"{similarity:.2f}"
+                    )
+
+                else:
+
+                    face_text = (
+                        "Unknown Face"
+                    )
+
+                face_label_y = max(
+                    25,
+                    fy1 - 8
+                )
+
+                draw_text_box(
+                    frame,
+                    face_text,
+                    (
+                        fx1,
+                        face_label_y
+                    ),
+                    text_color=(
+                        255,
+                        255,
+                        255
+                    ),
+                    background_color=(
+                        25,
+                        25,
+                        25
+                    ),
+                    font_scale=0.52,
+                    thickness=2,
+                    padding=5
+                )
+
+            except Exception:
+
+                pass
 
     # ========================================================
-    # 17. DISPLAY
+    # PRESENT STUDENTS
+    # ========================================================
+
+    present_students = 0
+
+    try:
+
+        present_students = len(
+            attendance_manager
+            .get_present_students()
+        )
+
+    except Exception:
+
+        present_students = 0
+
+    # ========================================================
+    # DASHBOARD
+    # ========================================================
+
+    # --------------------------------------------------------
+    # Dashboard background
+    # --------------------------------------------------------
+
+    dashboard_height = 118
+    dashboard_width = 410
+
+    cv2.rectangle(
+        frame,
+        (0, 0),
+        (
+            dashboard_width,
+            dashboard_height
+        ),
+        (
+            18,
+            18,
+            18
+        ),
+        -1
+    )
+
+    # Border around dashboard
+
+    cv2.rectangle(
+        frame,
+        (0, 0),
+        (
+            dashboard_width,
+            dashboard_height
+        ),
+        (
+            70,
+            70,
+            70
+        ),
+        1
+    )
+
+    # --------------------------------------------------------
+    # TITLE
+    # --------------------------------------------------------
+
+    cv2.putText(
+        frame,
+        "AI SMART CLASSROOM - STEP 9",
+        (15, 28),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.62,
+        (
+            255,
+            255,
+            255
+        ),
+        2,
+        cv2.LINE_AA
+    )
+
+    # --------------------------------------------------------
+    # TRACKED PERSONS
+    # --------------------------------------------------------
+
+    cv2.putText(
+        frame,
+        f"Tracked Persons: {tracked_person_count}",
+        (15, 63),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.62,
+        (
+            0,
+            255,
+            0
+        ),
+        2,
+        cv2.LINE_AA
+    )
+
+    # --------------------------------------------------------
+    # PRESENT STUDENTS
+    # --------------------------------------------------------
+
+    cv2.putText(
+        frame,
+        f"Present Students: {present_students}",
+        (15, 94),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.60,
+        (
+            0,
+            220,
+            255
+        ),
+        2,
+        cv2.LINE_AA
+    )
+
+    # ========================================================
+    # DISPLAY
     # ========================================================
 
     cv2.imshow(
-        "AI Smart Classroom - Step 8",
+        "AI Smart Classroom - Attention Detection",
         frame
     )
 
-
     # ========================================================
-    # 18. EXIT
+    # KEYBOARD
     # ========================================================
 
-    key = cv2.waitKey(
-        1
-    ) & 0xFF
-
+    key = cv2.waitKey(1) & 0xFF
 
     if key == ord("q"):
 
@@ -1050,7 +1611,7 @@ while True:
 
 
 # ============================================================
-# 19. CLEANUP
+# CLEANUP
 # ============================================================
 
 camera.release()
@@ -1059,21 +1620,21 @@ cv2.destroyAllWindows()
 
 
 # ============================================================
-# 20. FINAL RESULT
+# FINAL OUTPUT
 # ============================================================
 
-print("=" * 70)
-print("STEP 8 STOPPED")
-print("=" * 70)
+print("=" * 60)
+print("STEP 9 STOPPED")
+print("=" * 60)
 
 print(
-    f"Total Present Students: "
-    f"{attendance_manager.get_present_count()}"
+    f"Tracked persons in final frame: "
+    f"{tracked_person_count}"
 )
 
 print(
-    "Present Students:",
-    attendance_manager.get_present_students()
+    f"Present students: "
+    f"{present_students}"
 )
 
-print("=" * 70)
+print("=" * 60)
