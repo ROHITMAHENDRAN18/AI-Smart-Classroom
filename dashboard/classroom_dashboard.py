@@ -1,10 +1,21 @@
 import json
 import os
 
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from datetime import datetime
 
-from dashboard.session_manager import ClassroomSessionManager
+from http.server import (
+    BaseHTTPRequestHandler,
+    ThreadingHTTPServer
+)
+
+from urllib.parse import (
+    urlparse
+)
+
+from dashboard.session_manager import (
+    ClassroomSessionManager
+)
+
 
 # ============================================================
 # CONFIGURATION
@@ -12,11 +23,26 @@ from dashboard.session_manager import ClassroomSessionManager
 
 HOST = "127.0.0.1"
 
-PORT = 5000
+# IMPORTANT:
+# Port 5000 may already be used by macOS Control Center.
+# Therefore Step 12 uses 5050.
+PORT = 5050
+
+
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
 
 STATE_FILE = os.path.join(
-    os.path.dirname(__file__),
+    BASE_DIR,
     "classroom_state.json"
+)
+
+
+SESSIONS_DIR = os.path.join(
+    BASE_DIR,
+    "sessions"
 )
 
 
@@ -25,10 +51,19 @@ STATE_FILE = os.path.join(
 # ============================================================
 
 DEFAULT_STATE = {
-    "timestamp": "Waiting for STEP 9...",
-    "tracked_persons": 0,
-    "present_students": 0,
-    "students": []
+
+    "timestamp":
+        "Waiting for STEP 9...",
+
+    "tracked_persons":
+        0,
+
+    "present_students":
+        0,
+
+    "students":
+        []
+
 }
 
 
@@ -44,7 +79,8 @@ def read_state():
             STATE_FILE
         ):
 
-            return DEFAULT_STATE
+            return DEFAULT_STATE.copy()
+
 
         with open(
             STATE_FILE,
@@ -54,22 +90,48 @@ def read_state():
 
             data = json.load(file)
 
+
         if not isinstance(
             data,
             dict
         ):
 
-            return DEFAULT_STATE
+            return DEFAULT_STATE.copy()
 
-        return data
 
-    except Exception:
+        # ----------------------------------------------------
+        # Make sure required fields exist.
+        # ----------------------------------------------------
 
-        return DEFAULT_STATE
+        state = DEFAULT_STATE.copy()
+
+        state.update(
+            data
+        )
+
+
+        if not isinstance(
+            state.get("students"),
+            list
+        ):
+
+            state["students"] = []
+
+
+        return state
+
+
+    except Exception as error:
+
+        print(
+            f"[DASHBOARD] State read error: {error}"
+        )
+
+        return DEFAULT_STATE.copy()
 
 
 # ============================================================
-# DASHBOARD HTML
+# HTML DASHBOARD
 # ============================================================
 
 HTML = r"""
@@ -87,16 +149,24 @@ HTML = r"""
 >
 
 <title>
-AI Smart Classroom - Dashboard
+AI Smart Classroom
 </title>
 
 
 <style>
 
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
 * {
+
     box-sizing: border-box;
+
     margin: 0;
+
     padding: 0;
+
 }
 
 
@@ -127,13 +197,17 @@ body {
 
 .header {
 
-    height: 82px;
+    height:
+        82px;
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    justify-content: space-between;
+    justify-content:
+        space-between;
 
     padding:
         0 32px;
@@ -171,11 +245,14 @@ body {
 
 .live {
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    gap: 8px;
+    gap:
+        8px;
 
     color:
         #65ff8a;
@@ -188,9 +265,11 @@ body {
 
 .live-dot {
 
-    width: 10px;
+    width:
+        10px;
 
-    height: 10px;
+    height:
+        10px;
 
     border-radius:
         50%;
@@ -205,7 +284,7 @@ body {
 
 
 /* =========================================================
-   MAIN
+   MAIN CONTAINER
    ========================================================= */
 
 .container {
@@ -223,7 +302,7 @@ body {
 
 
 /* =========================================================
-   PAGE TITLE
+   TITLE
    ========================================================= */
 
 .page-title {
@@ -363,7 +442,7 @@ body {
 
 
 /* =========================================================
-   GRID
+   DASHBOARD GRID
    ========================================================= */
 
 .dashboard-grid {
@@ -438,7 +517,7 @@ body {
 
 
 /* =========================================================
-   STUDENT TABLE
+   TABLE
    ========================================================= */
 
 .table-wrapper {
@@ -604,7 +683,7 @@ tr:last-child td {
 
 
 /* =========================================================
-   RIGHT SIDE
+   METRICS
    ========================================================= */
 
 .metric {
@@ -775,6 +854,61 @@ tr:last-child td {
 
 
 /* =========================================================
+   SESSION PANEL
+   ========================================================= */
+
+.session-box {
+
+    margin-top:
+        25px;
+
+    padding:
+        18px;
+
+    background:
+        #0c121b;
+
+    border:
+        1px solid #202b3a;
+
+    border-radius:
+        12px;
+
+}
+
+
+.session-title {
+
+    font-size:
+        14px;
+
+    color:
+        #8e9bad;
+
+    margin-bottom:
+        10px;
+
+}
+
+
+.session-id {
+
+    font-size:
+        15px;
+
+    font-weight:
+        700;
+
+    color:
+        #00e5ff;
+
+    word-break:
+        break-all;
+
+}
+
+
+/* =========================================================
    FOOTER
    ========================================================= */
 
@@ -813,6 +947,7 @@ tr:last-child td {
 
     }
 
+
     .dashboard-grid {
 
         grid-template-columns:
@@ -834,6 +969,7 @@ tr:last-child td {
 
     }
 
+
     .logo {
 
         font-size:
@@ -841,12 +977,14 @@ tr:last-child td {
 
     }
 
+
     .container {
 
         padding:
             18px;
 
     }
+
 
     .stats {
 
@@ -910,7 +1048,7 @@ tr:last-child td {
 
 
     <!-- ==================================================
-         STAT CARDS
+         STATISTICS
          ================================================== -->
 
     <section class="stats">
@@ -1007,7 +1145,7 @@ tr:last-child td {
 
 
         <!-- ==============================================
-             STUDENT MONITOR
+             STUDENT MONITORING
              ============================================== -->
 
         <div class="panel">
@@ -1020,7 +1158,10 @@ tr:last-child td {
 
                 <span
                     id="lastUpdate"
-                    style="color:#7f8ca0;font-size:12px;"
+                    style="
+                        color:#7f8ca0;
+                        font-size:12px;
+                    "
                 >
                     Waiting...
                 </span>
@@ -1068,8 +1209,10 @@ tr:last-child td {
                                     style="
                                         text-align:center;
                                         color:#718096;
+                                        padding:30px;
                                     "
                                 >
+
                                     Waiting for STEP 9...
 
                                 </td>
@@ -1088,7 +1231,7 @@ tr:last-child td {
 
 
         <!-- ==============================================
-             CLASSROOM ANALYTICS
+             ANALYTICS
              ============================================== -->
 
         <div class="panel">
@@ -1215,8 +1358,8 @@ tr:last-child td {
 
                         <span
                             class="status-value"
-                            style="color:#63ff88"
                             id="systemStatus"
+                            style="color:#63ff88"
                         >
                             WAITING
                         </span>
@@ -1232,8 +1375,8 @@ tr:last-child td {
 
                         <span
                             class="status-value"
-                            style="color:#63ff88"
                             id="cameraStatus"
+                            style="color:#63ff88"
                         >
                             MONITORING
                         </span>
@@ -1260,6 +1403,26 @@ tr:last-child td {
                 </div>
 
 
+                <!-- ======================================
+                     SESSION INFORMATION
+                     ====================================== -->
+
+                <div class="session-box">
+
+                    <div class="session-title">
+                        CLASSROOM SESSION
+                    </div>
+
+                    <div
+                        class="session-id"
+                        id="sessionId"
+                    >
+                        Waiting...
+                    </div>
+
+                </div>
+
+
             </div>
 
         </div>
@@ -1270,8 +1433,10 @@ tr:last-child td {
 
     <div class="footer">
 
-        AI Smart Classroom · STEP 10 ·
-        Classroom Dashboard
+        AI Smart Classroom ·
+        STEP 10 Dashboard ·
+        STEP 11 Session Manager ·
+        STEP 12 Analytics Ready
 
     </div>
 
@@ -1290,17 +1455,22 @@ async function updateDashboard() {
 
     try {
 
-        const response = await fetch(
-            "/api/state?t=" + Date.now()
-        );
+        const response =
+            await fetch(
+                "/api/state?t=" +
+                Date.now()
+            );
+
 
         if (!response.ok) {
 
             throw new Error(
-                "State request failed"
+                "State request failed: " +
+                response.status
             );
 
         }
+
 
         const data =
             await response.json();
@@ -1321,12 +1491,26 @@ async function updateDashboard() {
         );
 
 
-    } catch (error) {
+        updateSessionInfo(
+            data
+        );
+
+
+        document.getElementById(
+            "systemStatus"
+        ).textContent =
+            "ACTIVE";
+
+
+    }
+
+    catch (error) {
 
         console.log(
             "Dashboard update error:",
             error
         );
+
 
         document.getElementById(
             "systemStatus"
@@ -1347,7 +1531,11 @@ function updateStatistics(
 ) {
 
     const students =
-        data.students || [];
+        Array.isArray(
+            data.students
+        )
+            ? data.students
+            : [];
 
 
     let attentive = 0;
@@ -1360,8 +1548,13 @@ function updateStatistics(
     students.forEach(
         student => {
 
+            const attention =
+                student.attention ||
+                "UNKNOWN";
+
+
             if (
-                student.attention ===
+                attention ===
                 "ATTENTIVE"
             ) {
 
@@ -1370,7 +1563,7 @@ function updateStatistics(
             }
 
             else if (
-                student.attention ===
+                attention ===
                 "NOT ATTENTIVE"
             ) {
 
@@ -1395,13 +1588,17 @@ function updateStatistics(
     document.getElementById(
         "trackedPersons"
     ).textContent =
-        data.tracked_persons ?? 0;
+        Number(
+            data.tracked_persons || 0
+        );
 
 
     document.getElementById(
         "presentStudents"
     ).textContent =
-        data.present_students ?? 0;
+        Number(
+            data.present_students || 0
+        );
 
 
     document.getElementById(
@@ -1427,17 +1624,28 @@ function updateStatistics(
 
         attentionRate =
             Math.round(
-                (attentive / total) * 100
+                (
+                    attentive /
+                    total
+                ) * 100
             );
+
 
         notAttentionRate =
             Math.round(
-                (notAttentive / total) * 100
+                (
+                    notAttentive /
+                    total
+                ) * 100
             );
+
 
         unknownRate =
             Math.round(
-                (unknown / total) * 100
+                (
+                    unknown /
+                    total
+                ) * 100
             );
 
     }
@@ -1478,14 +1686,6 @@ function updateStatistics(
     ).style.width =
         unknownRate + "%";
 
-
-    document.getElementById(
-        "systemStatus"
-    ).textContent =
-        total > 0
-            ? "ACTIVE"
-            : "WAITING";
-
 }
 
 
@@ -1504,7 +1704,10 @@ function updateStudentTable(
 
 
     if (
-        !students ||
+        !Array.isArray(
+            students
+        )
+        ||
         students.length === 0
     ) {
 
@@ -1540,7 +1743,6 @@ function updateStudentTable(
     students.forEach(
         student => {
 
-
             const row =
                 document.createElement(
                     "tr"
@@ -1548,12 +1750,13 @@ function updateStudentTable(
 
 
             const track =
-                student.track_id ?? "--";
+                student.track_id ??
+                "--";
 
 
             const studentId =
-                student.student_id
-                || "UNKNOWN";
+                student.student_id ||
+                "UNKNOWN";
 
 
             const confidence =
@@ -1567,8 +1770,8 @@ function updateStudentTable(
 
 
             const attention =
-                student.attention
-                || "UNKNOWN";
+                student.attention ||
+                "UNKNOWN";
 
 
             let statusClass =
@@ -1596,40 +1799,114 @@ function updateStudentTable(
             }
 
 
-            row.innerHTML = `
+            // ------------------------------------------------
+            // Use textContent instead of directly inserting
+            // untrusted student values into HTML.
+            // ------------------------------------------------
 
-                <td>
-                    #${track}
-                </td>
+            const trackCell =
+                document.createElement(
+                    "td"
+                );
 
-                <td>
-                    <strong>
-                        ${studentId}
-                    </strong>
-                </td>
 
-                <td>
-                    ${confidence}
-                </td>
+            trackCell.textContent =
+                "#" + track;
 
-                <td>
 
-                    <span
-                        class="status
-                        ${statusClass}"
-                    >
+            const studentCell =
+                document.createElement(
+                    "td"
+                );
 
-                        <span
-                            class="status-dot"
-                        ></span>
 
-                        ${attention}
+            const strong =
+                document.createElement(
+                    "strong"
+                );
 
-                    </span>
 
-                </td>
+            strong.textContent =
+                studentId;
 
-            `;
+
+            studentCell.appendChild(
+                strong
+            );
+
+
+            const confidenceCell =
+                document.createElement(
+                    "td"
+                );
+
+
+            confidenceCell.textContent =
+                confidence;
+
+
+            const attentionCell =
+                document.createElement(
+                    "td"
+                );
+
+
+            const status =
+                document.createElement(
+                    "span"
+                );
+
+
+            status.className =
+                "status " +
+                statusClass;
+
+
+            const dot =
+                document.createElement(
+                    "span"
+                );
+
+
+            dot.className =
+                "status-dot";
+
+
+            status.appendChild(
+                dot
+            );
+
+
+            status.appendChild(
+                document.createTextNode(
+                    attention
+                )
+            );
+
+
+            attentionCell.appendChild(
+                status
+            );
+
+
+            row.appendChild(
+                trackCell
+            );
+
+
+            row.appendChild(
+                studentCell
+            );
+
+
+            row.appendChild(
+                confidenceCell
+            );
+
+
+            row.appendChild(
+                attentionCell
+            );
 
 
             table.appendChild(
@@ -1650,28 +1927,47 @@ function updateTime(
     timestamp
 ) {
 
+    const value =
+        timestamp || "--";
+
+
     document.getElementById(
         "lastUpdate"
     ).textContent =
-        timestamp || "--";
+        value;
 
 
     document.getElementById(
         "dashboardTime"
     ).textContent =
-        timestamp || "--";
-
-
-    document.getElementById(
-        "systemStatus"
-    ).textContent =
-        "ACTIVE";
+        value;
 
 }
 
 
 // ==========================================================
-// START LIVE UPDATES
+// UPDATE SESSION INFORMATION
+// ==========================================================
+
+function updateSessionInfo(
+    data
+) {
+
+    const sessionId =
+        data.session_id ||
+        "SESSION ACTIVE";
+
+
+    document.getElementById(
+        "sessionId"
+    ).textContent =
+        sessionId;
+
+}
+
+
+// ==========================================================
+// START DASHBOARD
 // ==========================================================
 
 updateDashboard();
@@ -1689,78 +1985,170 @@ setInterval(
 </body>
 
 </html>
-
 """
 
 # ============================================================
-# STEP 11 - GLOBAL SESSION MANAGER
-# ============================================================
-
-SESSION_MANAGER = None
-
-
-# ============================================================
-# HTTP SERVER
+# HTTP REQUEST HANDLER
 # ============================================================
 
 class DashboardHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
-        parsed_url = urlparse(self.path)
-        path = parsed_url.path
+        try:
 
-        # ----------------------------------------------------
-        # API: LIVE CLASSROOM STATE
-        # ----------------------------------------------------
+            parsed_url = urlparse(self.path)
 
-        if path == "/api/state":
+            path = parsed_url.path
 
-            state = read_state()
+            # ------------------------------------------------
+            # API: CLASSROOM STATE
+            # ------------------------------------------------
 
-            # STEP 11:
-            # Record the current classroom state in the
-            # active classroom session, if a session exists.
-            if SESSION_MANAGER is not None:
+            if path == "/api/state":
 
-                try:
+                state = read_state()
 
-                    SESSION_MANAGER.record_state(state)
+                response = json.dumps(
+                    state,
+                    ensure_ascii=False
+                ).encode("utf-8")
 
-                except Exception as error:
+                self.send_response(200)
 
-                    # Do not allow session logging failure
-                    # to break the live dashboard.
-                    print(
-                        f"Session record warning: {error}"
+                self.send_header(
+                    "Content-Type",
+                    "application/json; charset=utf-8"
+                )
+
+                self.send_header(
+                    "Cache-Control",
+                    "no-cache, no-store, must-revalidate"
+                )
+
+                self.send_header(
+                    "Pragma",
+                    "no-cache"
+                )
+
+                self.send_header(
+                    "Expires",
+                    "0"
+                )
+
+                self.send_header(
+                    "Access-Control-Allow-Origin",
+                    "*"
+                )
+
+                self.send_header(
+                    "Content-Length",
+                    str(len(response))
+                )
+
+                self.end_headers()
+
+                self.wfile.write(response)
+
+                return
+
+            # ------------------------------------------------
+            # API: SESSION STATUS
+            # ------------------------------------------------
+
+            if path == "/api/session":
+
+                response_data = {
+                    "status": "ACTIVE",
+                    "dashboard": "ONLINE",
+                    "timestamp": datetime.now().isoformat(
+                        timespec="seconds"
                     )
+                }
 
-            response = json.dumps(
-                state
-            ).encode(
-                "utf-8"
-            )
+                response = json.dumps(
+                    response_data
+                ).encode("utf-8")
 
-            self.send_response(200)
+                self.send_response(200)
+
+                self.send_header(
+                    "Content-Type",
+                    "application/json; charset=utf-8"
+                )
+
+                self.send_header(
+                    "Cache-Control",
+                    "no-cache"
+                )
+
+                self.send_header(
+                    "Content-Length",
+                    str(len(response))
+                )
+
+                self.end_headers()
+
+                self.wfile.write(response)
+
+                return
+
+            # ------------------------------------------------
+            # DASHBOARD PAGE
+            # ------------------------------------------------
+
+            if (
+                path == "/"
+                or
+                path == "/index.html"
+            ):
+
+                response = HTML.encode("utf-8")
+
+                self.send_response(200)
+
+                self.send_header(
+                    "Content-Type",
+                    "text/html; charset=utf-8"
+                )
+
+                self.send_header(
+                    "Cache-Control",
+                    "no-cache, no-store, must-revalidate"
+                )
+
+                self.send_header(
+                    "Pragma",
+                    "no-cache"
+                )
+
+                self.send_header(
+                    "Expires",
+                    "0"
+                )
+
+                self.send_header(
+                    "Content-Length",
+                    str(len(response))
+                )
+
+                self.end_headers()
+
+                self.wfile.write(response)
+
+                return
+
+            # ------------------------------------------------
+            # 404
+            # ------------------------------------------------
+
+            response = b"404 - Not Found"
+
+            self.send_response(404)
 
             self.send_header(
                 "Content-Type",
-                "application/json"
-            )
-
-            self.send_header(
-                "Cache-Control",
-                "no-cache, no-store, must-revalidate"
-            )
-
-            self.send_header(
-                "Pragma",
-                "no-cache"
-            )
-
-            self.send_header(
-                "Expires",
-                "0"
+                "text/plain; charset=utf-8"
             )
 
             self.send_header(
@@ -1772,79 +2160,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
             self.wfile.write(response)
 
-            return
+        except Exception as error:
 
-        # ----------------------------------------------------
-        # DASHBOARD PAGE
-        # ----------------------------------------------------
-
-        if path == "/" or path == "/index.html":
-
-            response = HTML.encode(
-                "utf-8"
+            print(
+                f"[HTTP] Request error: {error}"
             )
-
-            self.send_response(200)
-
-            self.send_header(
-                "Content-Type",
-                "text/html; charset=utf-8"
-            )
-
-            self.send_header(
-                "Cache-Control",
-                "no-cache, no-store, must-revalidate"
-            )
-
-            self.send_header(
-                "Pragma",
-                "no-cache"
-            )
-
-            self.send_header(
-                "Expires",
-                "0"
-            )
-
-            self.send_header(
-                "Content-Length",
-                str(len(response))
-            )
-
-            self.end_headers()
-
-            self.wfile.write(response)
-
-            return
-
-        # ----------------------------------------------------
-        # 404
-        # ----------------------------------------------------
-
-        response = json.dumps(
-            {
-                "error": "Not Found",
-                "path": path
-            }
-        ).encode(
-            "utf-8"
-        )
-
-        self.send_response(404)
-
-        self.send_header(
-            "Content-Type",
-            "application/json"
-        )
-
-        self.send_header(
-            "Content-Length",
-            str(len(response))
-        )
-
-        self.end_headers()
-
-        self.wfile.write(response)
 
     def log_message(
         self,
@@ -1852,7 +2172,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
         *args
     ):
 
-        # Keep terminal clean.
         return
 
 
@@ -1862,85 +2181,110 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
 def main():
 
-    global SESSION_MANAGER
-
     print("=" * 60)
+
     print("AI SMART CLASSROOM")
+
     print("STEP 10 - CLASSROOM DASHBOARD")
+
     print("STEP 11 - CLASSROOM SESSION MANAGER")
+
+    print("STEP 12 - DASHBOARD SERVER FIX")
+
     print("=" * 60)
 
     print()
+
     print("State file:")
+
     print(f"  {STATE_FILE}")
 
     print()
+
+    print("Sessions directory:")
+
+    print(f"  {SESSIONS_DIR}")
+
+    print()
+
     print("Dashboard URL:")
+
     print(f"  http://{HOST}:{PORT}")
 
     print()
+
     print("Starting classroom session...")
 
-    # ========================================================
-    # STEP 11 - CREATE SESSION MANAGER
-    # ========================================================
+    # --------------------------------------------------------
+    # SESSION MANAGER
+    # --------------------------------------------------------
 
-    session_manager = ClassroomSessionManager()
+    session_manager = ClassroomSessionManager(
+        sessions_dir=SESSIONS_DIR
+    )
+
+    session_id = session_manager.start_session()
+
+    print(
+        f"Session Manager: ACTIVE"
+    )
+
+    print(
+        f"Session ID: {session_id}"
+    )
+
+    print()
+
+    print(
+        "Waiting for STEP 9 live data..."
+    )
+
+    print(
+        "Keep this terminal running."
+    )
+
+    print("=" * 60)
+
+    # --------------------------------------------------------
+    # SERVER
+    # --------------------------------------------------------
+
+    server = ThreadingHTTPServer(
+        (HOST, PORT),
+        DashboardHandler
+    )
 
     try:
 
-        session_manager.start_session()
+        server.serve_forever()
 
-        SESSION_MANAGER = session_manager
-
-        print("Session Manager: ACTIVE")
+    except KeyboardInterrupt:
 
         print()
-        print("Waiting for STEP 9 live data...")
-        print("Keep this terminal running.")
-        print("=" * 60)
 
-        server = ThreadingHTTPServer(
-            (
-                HOST,
-                PORT
-            ),
-            DashboardHandler
+        print(
+            "Stopping classroom session..."
         )
-
-        try:
-
-            server.serve_forever()
-
-        except KeyboardInterrupt:
-
-            print()
-            print("Stopping classroom session...")
-
-        finally:
-
-            server.server_close()
 
     finally:
 
-        # Always stop the active session cleanly.
-        if SESSION_MANAGER is not None:
+        server.server_close()
 
-            try:
+        try:
 
-                SESSION_MANAGER.stop_session()
+            if session_manager.active:
 
-            except Exception as error:
+                session_manager.stop_session()
 
-                print(
-                    f"Session stop warning: {error}"
-                )
+        except Exception as error:
 
-            finally:
+            print(
+                f"[SESSION] Stop error: {error}"
+            )
 
-                SESSION_MANAGER = None
-
-        print("Dashboard stopped.")
+        print(
+            "Dashboard stopped."
+        )
 
 
 # ============================================================

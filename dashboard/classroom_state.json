@@ -1,34 +1,16 @@
 {
-    "timestamp": "2026-09-08 12:19:37",
-    "tracked_persons": 3,
+    "timestamp": "2026-09-08 19:58:00",
+    "tracked_persons": 1,
     "present_students": 1,
     "students": [
         {
-            "track_id": 2,
+            "track_id": 1,
             "student_id": "24AD095",
             "recognized": true,
-            "similarity": 0.0,
-            "attention": "NOT ATTENTIVE",
-            "yaw_ratio": 0.461,
-            "pitch_ratio": 0.483
-        },
-        {
-            "track_id": 21,
-            "student_id": "24AD095",
-            "recognized": true,
-            "similarity": 0.736,
+            "similarity": 0.676,
             "attention": "ATTENTIVE",
-            "yaw_ratio": 0.076,
-            "pitch_ratio": 0.577
-        },
-        {
-            "track_id": 22,
-            "student_id": null,
-            "recognized": false,
-            "similarity": 0.0,
-            "attention": "UNKNOWN",
-            "yaw_ratio": null,
-            "pitch_ratio": null
+            "yaw_ratio": 0.144,
+            "pitch_ratio": 0.5
         }
     ]
 }

@@ -1,0 +1,50 @@
+{
+    "session_id": "SESSION_20260908_195536",
+    "started_at": "2026-09-08T19:55:36",
+    "ended_at": "2026-09-08T19:56:45",
+    "total_snapshots": 1,
+    "students_seen": [
+        {
+            "student_id": "24AD095",
+            "first_seen": "2026-09-08T19:55:49",
+            "last_seen": "2026-09-08T19:55:49",
+            "observations": 2
+        }
+    ],
+    "snapshots": [
+        {
+            "timestamp": "2026-09-08T19:55:49",
+            "tracked_persons": 3,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.461,
+                    "pitch_ratio": 0.483
+                },
+                {
+                    "track_id": 21,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.736,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.076,
+                    "pitch_ratio": 0.577
+                },
+                {
+                    "track_id": 22,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                }
+            ]
+        }
+    ]
+}
