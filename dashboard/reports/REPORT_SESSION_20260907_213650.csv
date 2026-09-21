@@ -1,0 +1,5 @@
+Session ID,Started At,Ended At,Duration Minutes,Total Snapshots,Unique Students,Average Tracked Persons,Maximum Tracked Persons,Attentive Rate,Not Attentive Rate,Unknown Rate
+SESSION_20260907_213650,2026-09-07T21:36:50,2026-09-07T21:38:06,1.27,45,1,1.0,1,100.0,0.0,0.0
+
+Student ID,First Seen,Last Seen,Observations
+24AD095,2026-09-07T21:37:21,2026-09-07T21:38:04,45
