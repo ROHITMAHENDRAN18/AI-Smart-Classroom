@@ -186,11 +186,181 @@
         "track_id": 1,
         "alert_type": "NOT_ATTENTIVE",
         "message": "Student 24AD095 is currently not attentive.",
-        "status": "ACTIVE"
+        "status": "ACKNOWLEDGED",
+        "acknowledged_at": "2026-09-21T19:09:07"
     },
     {
         "alert_id": "ALERT_20260921_190713_214400",
         "timestamp": "2026-09-21T19:07:13",
+        "student_id": "24AD095",
+        "track_id": 1,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "ACKNOWLEDGED",
+        "acknowledged_at": "2026-09-21T19:09:08"
+    },
+    {
+        "alert_id": "ALERT_20260921_190842_038275",
+        "timestamp": "2026-09-21T19:08:42",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T19:56:53"
+    },
+    {
+        "alert_id": "ALERT_20260921_190912_362107",
+        "timestamp": "2026-09-21T19:09:12",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T19:56:53"
+    },
+    {
+        "alert_id": "ALERT_20260921_191149_864638",
+        "timestamp": "2026-09-21T19:11:49",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T19:56:53"
+    },
+    {
+        "alert_id": "ALERT_20260921_191225_131445",
+        "timestamp": "2026-09-21T19:12:25",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T19:56:53"
+    },
+    {
+        "alert_id": "ALERT_20260921_191316_166834",
+        "timestamp": "2026-09-21T19:13:16",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T19:56:53"
+    },
+    {
+        "alert_id": "ALERT_20260921_191353_915627",
+        "timestamp": "2026-09-21T19:13:53",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T19:56:52"
+    },
+    {
+        "alert_id": "ALERT_20260921_191424_296781",
+        "timestamp": "2026-09-21T19:14:24",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "ACKNOWLEDGED",
+        "acknowledged_at": "2026-09-21T19:56:15"
+    },
+    {
+        "alert_id": "ALERT_20260921_195606_966054",
+        "timestamp": "2026-09-21T19:56:06",
+        "student_id": "24AD095",
+        "track_id": 1,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T19:56:12"
+    },
+    {
+        "alert_id": "ALERT_20260921_195639_968021",
+        "timestamp": "2026-09-21T19:56:39",
+        "student_id": "24AD095",
+        "track_id": 1,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T19:56:52"
+    },
+    {
+        "alert_id": "ALERT_20260921_195719_967102",
+        "timestamp": "2026-09-21T19:57:19",
+        "student_id": "24AD095",
+        "track_id": 1,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "ACKNOWLEDGED",
+        "acknowledged_at": "2026-09-21T19:57:29"
+    },
+    {
+        "alert_id": "ALERT_20260921_195811_970362",
+        "timestamp": "2026-09-21T19:58:11",
+        "student_id": "24AD095",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "ACKNOWLEDGED",
+        "acknowledged_at": "2026-09-21T20:15:49"
+    },
+    {
+        "alert_id": "ALERT_20260921_195840_971372",
+        "timestamp": "2026-09-21T19:58:40",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "ACKNOWLEDGED",
+        "acknowledged_at": "2026-09-21T19:58:56"
+    },
+    {
+        "alert_id": "ALERT_20260921_195850_970123",
+        "timestamp": "2026-09-21T19:58:50",
+        "student_id": "24AD095",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "ACKNOWLEDGED",
+        "acknowledged_at": "2026-09-21T19:58:54"
+    },
+    {
+        "alert_id": "ALERT_20260921_201613_477407",
+        "timestamp": "2026-09-21T20:16:13",
+        "student_id": "24AD095",
+        "track_id": 1,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T20:28:21"
+    },
+    {
+        "alert_id": "ALERT_20260921_201706_412494",
+        "timestamp": "2026-09-21T20:17:06",
+        "student_id": "24AD095",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-21T20:28:20"
+    },
+    {
+        "alert_id": "ALERT_20260921_203046_716992",
+        "timestamp": "2026-09-21T20:30:46",
+        "student_id": "24AD095",
+        "track_id": 1,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "ACTIVE"
+    },
+    {
+        "alert_id": "ALERT_20260921_203521_433228",
+        "timestamp": "2026-09-21T20:35:21",
         "student_id": "24AD095",
         "track_id": 1,
         "alert_type": "NOT_ATTENTIVE",

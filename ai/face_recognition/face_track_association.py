@@ -15,6 +15,7 @@ from insightface.app import FaceAnalysis
 
 from ai.attendance.attendance_manager import AttendanceManager
 from ai.tracking.student_tracker import StudentTracker
+from dashboard.camera_stream import CameraStream
 
 
 # ============================================================
@@ -854,6 +855,8 @@ print("=" * 60)
 print("Opening Camera...")
 print("=" * 60)
 
+camera_stream = CameraStream()
+
 camera = cv2.VideoCapture(
     CAMERA_INDEX
 )
@@ -1179,15 +1182,13 @@ while True:
                         best_face.embedding
                     )
 
-                    if newly_recognized_id is not None:
+                    recognized_id = (
+                        newly_recognized_id
+                    )
 
-                        recognized_id = (
-                            newly_recognized_id
-                        )
-
-                        similarity = (
-                            newly_similarity
-                        )
+                    similarity = (
+                        newly_similarity
+                    )
 
             except Exception as error:
 
@@ -1714,6 +1715,14 @@ while True:
         ),
         2,
         cv2.LINE_AA
+    )
+
+    # ========================================================
+    # CAMERA STREAM
+    # ========================================================
+
+    camera_stream.update_frame(
+        frame
     )
 
     # ========================================================

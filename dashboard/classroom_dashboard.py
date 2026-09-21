@@ -1,11 +1,13 @@
 import json
 import os
+import time
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
 from dashboard.session_manager import ClassroomSessionManager
 from dashboard.alert_manager import ClassroomAlertManager
+from dashboard.camera_stream import CameraStream
 
 
 HOST = "127.0.0.1"
@@ -33,6 +35,7 @@ DEFAULT_STATE = {
 
 SESSION_MANAGER = None
 ALERT_MANAGER = None
+CAMERA_STREAM = CameraStream()
 
 
 def load_state():
@@ -1175,6 +1178,45 @@ DASHBOARD_HTML = r"""
                 class="value red">
                 0
             </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div
+        class="panel"
+        style="
+            margin-top: 16px;
+        "
+    >
+
+        <div class="panel-title">
+            Live Camera Feed
+        </div>
+
+        <div
+            class="panel-body"
+            style="
+                padding: 0;
+                background: #05080d;
+            "
+        >
+
+            <img
+                src="/video"
+                alt="Live classroom camera"
+                style="
+                    display: block;
+                    width: 100%;
+                    height: auto;
+                    min-height: 360px;
+                    max-height: 620px;
+                    object-fit: contain;
+                    background: #05080d;
+                "
+            >
 
         </div>
 
@@ -2738,6 +2780,89 @@ class ClassroomDashboardHandler(
         print(
             f"[GET] {self.path}"
         )
+
+
+
+        if path == "/video":
+
+            try:
+
+                self.send_response(200)
+
+                self.send_header(
+                    "Content-Type",
+                    "multipart/x-mixed-replace; boundary=frame"
+                )
+
+                self.send_header(
+                    "Cache-Control",
+                    "no-cache, no-store, must-revalidate"
+                )
+
+                self.send_header(
+                    "Pragma",
+                    "no-cache"
+                )
+
+                self.send_header(
+                    "Expires",
+                    "0"
+                )
+
+                self.end_headers()
+
+                while True:
+
+                    frame = CAMERA_STREAM.get_jpeg()
+
+                    if frame is None:
+
+                        time.sleep(
+                            0.05
+                        )
+
+                        continue
+
+                    self.wfile.write(
+                        b"--frame\r\n"
+                    )
+
+                    self.wfile.write(
+                        b"Content-Type: image/jpeg\r\n"
+                    )
+
+                    self.wfile.write(
+                        (
+                            f"Content-Length: {len(frame)}\r\n\r\n"
+                        ).encode(
+                            "utf-8"
+                        )
+                    )
+
+                    self.wfile.write(
+                        frame
+                    )
+
+                    self.wfile.write(
+                        b"\r\n"
+                    )
+
+                    self.wfile.flush()
+
+                    time.sleep(
+                        0.03
+                    )
+
+            except (
+                BrokenPipeError,
+                ConnectionResetError,
+                ConnectionAbortedError,
+                OSError
+            ):
+
+                pass
+
+            return
 
 
         if path == "/":

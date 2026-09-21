@@ -1,0 +1,4531 @@
+{
+    "session_id": "SESSION_20260921_191306",
+    "started_at": "2026-09-21T19:13:06",
+    "ended_at": "2026-09-21T19:14:43",
+    "total_snapshots": 105,
+    "students_seen": [
+        {
+            "student_id": "24AD095",
+            "first_seen": "2026-09-21T19:13:16",
+            "last_seen": "2026-09-21T19:14:43",
+            "observations": 105
+        }
+    ],
+    "snapshots": [
+        {
+            "timestamp": "2026-09-21T19:13:16",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:16",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:17",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:18",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:19",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:20",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:21",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:22",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:23",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:24",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:25",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:26",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:27",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:28",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:31",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:32",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:33",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:34",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:35",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:36",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:37",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:37",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:38",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:38",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:39",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:40",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:40",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:41",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:42",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:43",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:43",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:53",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:53",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:57",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:57",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:58",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:59",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:13:59",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:00",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:00",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:01",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:02",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:05",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:05",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:06",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:07",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:07",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:08",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:08",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:09",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:09",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:10",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:10",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:11",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:11",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:12",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:12",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:13",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:13",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:14",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:14",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:15",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:15",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:16",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:16",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:17",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:17",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:18",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:19",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:19",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:20",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:20",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:20",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:21",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:21",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:22",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:22",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:23",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:23",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:24",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:25",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:25",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:28",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:28",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:29",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:29",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:30",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:30",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:31",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:31",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:32",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:32",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:32",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:33",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:33",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:34",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:34",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:35",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:35",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:36",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:37",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:40",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:41",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:42",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-21T19:14:43",
+            "tracked_persons": 4,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 2,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.084,
+                    "pitch_ratio": 0.486
+                },
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.761,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.01,
+                    "pitch_ratio": 0.596
+                },
+                {
+                    "track_id": 6,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "UNKNOWN",
+                    "yaw_ratio": null,
+                    "pitch_ratio": null
+                },
+                {
+                    "track_id": 3,
+                    "student_id": null,
+                    "recognized": false,
+                    "similarity": 0.0,
+                    "attention": "NOT ATTENTIVE",
+                    "yaw_ratio": 0.07,
+                    "pitch_ratio": 0.768
+                }
+            ]
+        }
+    ]
+}
