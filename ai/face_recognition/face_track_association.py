@@ -13,6 +13,13 @@ import supervision as sv
 
 from insightface.app import FaceAnalysis
 
+from configs.settings import (
+    YOLO_MODEL,
+    CAMERA_INDEX,
+    FACE_RECOGNITION_THRESHOLD,
+    DASHBOARD_UPDATE_INTERVAL,
+)
+
 from ai.attendance.attendance_manager import AttendanceManager
 from ai.tracking.student_tracker import StudentTracker
 from dashboard.camera_stream import CameraStream
@@ -22,11 +29,7 @@ from dashboard.camera_stream import CameraStream
 # CONFIGURATION
 # ============================================================
 
-YOLO_MODEL = "yolov8m.pt"
-
 EMBEDDINGS_FILE = "embeddings/face_embeddings.pkl"
-
-CAMERA_INDEX = 0
 
 # ------------------------------------------------------------
 # YOLO SETTINGS
@@ -36,12 +39,6 @@ PERSON_CONFIDENCE = 0.35
 PERSON_IOU = 0.50
 PERSON_IMAGE_SIZE = 960
 MAX_PERSONS = 100
-
-# ------------------------------------------------------------
-# FACE RECOGNITION
-# ------------------------------------------------------------
-
-FACE_RECOGNITION_THRESHOLD = 0.50
 
 # ------------------------------------------------------------
 # ATTENTION SETTINGS
@@ -68,9 +65,6 @@ MIN_FACE_HEIGHT = 35
 # ------------------------------------------------------------
 
 DASHBOARD_STATE_FILE = "dashboard/classroom_state.json"
-
-# Update dashboard file every 0.5 seconds.
-DASHBOARD_UPDATE_INTERVAL = 0.5
 
 
 # ============================================================

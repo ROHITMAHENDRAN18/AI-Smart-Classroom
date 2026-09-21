@@ -7,11 +7,12 @@ from urllib.parse import parse_qs, urlparse
 
 from dashboard.session_manager import ClassroomSessionManager
 from dashboard.alert_manager import ClassroomAlertManager
+from configs.settings import DASHBOARD_HOST, DASHBOARD_PORT
 from dashboard.camera_stream import CameraStream
 
 
-HOST = "127.0.0.1"
-PORT = 5050
+HOST = DASHBOARD_HOST
+PORT = DASHBOARD_PORT
 
 BASE_DIR = os.path.dirname(__file__)
 

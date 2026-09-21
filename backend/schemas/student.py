@@ -31,10 +31,3 @@ class StudentResponse(StudentBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-class StudentUpdate(BaseModel):
-    name: str
-    department: str
-    year: int
-    section: str
-    email: EmailStr
