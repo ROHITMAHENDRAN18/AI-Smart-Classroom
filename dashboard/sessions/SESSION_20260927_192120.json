@@ -1,0 +1,4374 @@
+{
+    "session_id": "SESSION_20260927_192120",
+    "started_at": "2026-09-27T19:21:20",
+    "ended_at": "2026-09-27T19:29:26",
+    "total_snapshots": 105,
+    "students_seen": [
+        {
+            "student_id": "24AD095",
+            "first_seen": "2026-09-27T19:21:40",
+            "last_seen": "2026-09-27T19:29:25",
+            "observations": 105
+        }
+    ],
+    "snapshots": [
+        {
+            "timestamp": "2026-09-27T19:21:40",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.757,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.001,
+                    "pitch_ratio": 0.535
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:21:50",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.757,
+                    "attention": "ATTENTIVE",
+                    "yaw_ratio": 0.001,
+                    "pitch_ratio": 0.535
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:43",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:44",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:45",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:46",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:47",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:48",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:49",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:50",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:51",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:52",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:53",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:54",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:55",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:56",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:57",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:58",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:27:59",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:00",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:01",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:02",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:03",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:04",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:05",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:06",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:07",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:08",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:09",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:10",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:11",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:12",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:13",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:14",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:15",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:16",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:17",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:18",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:19",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:20",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:21",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:22",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:23",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:24",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:25",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:26",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:27",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:28",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:29",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:30",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:31",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:32",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:33",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:34",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:35",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:36",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:37",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:38",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:39",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:40",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:41",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:42",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:43",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:44",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:45",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:46",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:47",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:48",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:49",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:50",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:51",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:52",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:53",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:54",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:55",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:56",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:57",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:58",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:28:59",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:00",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:01",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:02",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:03",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:04",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:05",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:06",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:07",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:08",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:09",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:10",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:11",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:12",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:13",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:14",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:15",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:16",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:17",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:18",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:19",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:20",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:22",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:23",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:23",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:24",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        },
+        {
+            "timestamp": "2026-09-27T19:29:25",
+            "tracked_persons": 1,
+            "present_students": 1,
+            "students": [
+                {
+                    "track_id": 1,
+                    "student_id": "24AD095",
+                    "recognized": true,
+                    "similarity": 0.654,
+                    "attention": "NOT ATTENTIVE",
+                    "fusion": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "eye_state": "UNKNOWN",
+                        "head_pose": "DOWN",
+                        "emotion": "UNKNOWN",
+                        "phone_detected": null,
+                        "hand_raised": null,
+                        "signal_scores": {
+                            "head_pose": 0.2
+                        },
+                        "signal_weights": {
+                            "head_pose": 0.3
+                        },
+                        "reasons": [
+                            "Head is not facing forward."
+                        ]
+                    },
+                    "temporal": {
+                        "attention_state": "NOT ATTENTIVE",
+                        "attention_score": 0.2,
+                        "confidence": 0.3,
+                        "sample_count": 5,
+                        "stable": true
+                    },
+                    "yaw_ratio": 0.066,
+                    "pitch_ratio": 0.599
+                }
+            ]
+        }
+    ]
+}

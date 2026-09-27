@@ -1,16 +1,42 @@
 {
-    "timestamp": "2026-09-27 13:51:44",
+    "timestamp": "2026-09-27 21:33:44",
     "tracked_persons": 1,
-    "present_students": 1,
+    "present_students": 0,
     "students": [
         {
             "track_id": 1,
-            "student_id": "24AD095",
-            "recognized": true,
-            "similarity": 0.757,
+            "student_id": null,
+            "recognized": false,
+            "similarity": 0.068,
             "attention": "ATTENTIVE",
-            "yaw_ratio": 0.001,
-            "pitch_ratio": 0.535
+            "fusion": {
+                "attention_state": "NOT ATTENTIVE",
+                "attention_score": 0.2,
+                "confidence": 0.3,
+                "eye_state": "UNKNOWN",
+                "head_pose": "DOWN",
+                "emotion": "UNKNOWN",
+                "phone_detected": null,
+                "hand_raised": null,
+                "signal_scores": {
+                    "head_pose": 0.2
+                },
+                "signal_weights": {
+                    "head_pose": 0.3
+                },
+                "reasons": [
+                    "Head is not facing forward."
+                ]
+            },
+            "temporal": {
+                "attention_state": "NOT ATTENTIVE",
+                "attention_score": 0.2,
+                "confidence": 0.3,
+                "sample_count": 5,
+                "stable": true
+            },
+            "yaw_ratio": 0.097,
+            "pitch_ratio": 0.675
         }
     ]
 }

@@ -163,3 +163,34 @@ class AttendanceManager:
         return len(
             self.present_students
         )
+
+    def get_today_count(self):
+        """Return the number of distinct students marked present today."""
+
+        if not os.path.exists(self.attendance_file):
+            return 0
+
+        today = datetime.now().strftime("%Y-%m-%d")
+        student_ids = set()
+
+        with open(
+            self.attendance_file,
+            "r",
+            newline="",
+            encoding="utf-8"
+        ) as file:
+
+            for record in csv.DictReader(file):
+
+                student_id = (record.get("student_id") or "").strip()
+                status = (record.get("status") or "").strip().casefold()
+
+                if (
+                    student_id
+                    and record.get("date") == today
+                    and status == "present"
+                ):
+
+                    student_ids.add(student_id)
+
+        return len(student_ids)

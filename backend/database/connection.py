@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql://rohitmahendran:YOUR_PASSWORD@localhost:5432/ai_smart_classroom"
+from configs.settings import DATABASE_URL
 
 engine = create_engine(
     DATABASE_URL,

@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+import math
 import os
 
 
@@ -141,6 +142,21 @@ DASHBOARD_UPDATE_INTERVAL = get_float(
     minimum=0.0,
     exclusive_minimum=True
 )
+
+DATABASE_ATTENTION_UPDATE_INTERVAL = float(
+    os.getenv(
+        "DATABASE_ATTENTION_UPDATE_INTERVAL",
+        "1.0"
+    )
+)
+
+if (
+    not math.isfinite(DATABASE_ATTENTION_UPDATE_INTERVAL)
+    or DATABASE_ATTENTION_UPDATE_INTERVAL <= 0.0
+):
+    raise ValueError(
+        "CONFIGURATION ERROR: 'DATABASE_ATTENTION_UPDATE_INTERVAL' must be a finite number greater than 0."
+    )
 
 DASHBOARD_HOST = get_required("DASHBOARD_HOST")
 

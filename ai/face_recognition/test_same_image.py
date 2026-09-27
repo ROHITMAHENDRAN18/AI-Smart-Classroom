@@ -1,59 +1,47 @@
-import warnings
+def main():
+    import pickle
+    import warnings
 
-warnings.filterwarnings("ignore", category=FutureWarning)
-import cv2
-import pickle
-import numpy as np
-from insightface.app import FaceAnalysis
+    import cv2
+    import numpy as np
+    from insightface.app import FaceAnalysis
 
-print("Loading InsightFace...")
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    print("Loading InsightFace...")
 
-app = FaceAnalysis(
-    name="buffalo_l",
-    providers=["CPUExecutionProvider"]
-)
+    app = FaceAnalysis(
+        name="buffalo_l",
+        providers=["CPUExecutionProvider"],
+    )
+    app.prepare(ctx_id=0, det_size=(640, 640))
 
-app.prepare(
-    ctx_id=0,
-    det_size=(640,640)
-)
+    print("Loading image...")
+    image = cv2.imread("datasets/students/24AD095/0.jpg")
+    if image is None:
+        raise FileNotFoundError("Could not read the face test image.")
 
-print("Loading image...")
+    faces = app.get(image)
+    if not faces:
+        raise RuntimeError("No face found in the test image.")
 
-image = cv2.imread("datasets/students/24AD095/0.jpg")
+    embedding_from_image = faces[0].embedding
+    print("Embedding from image")
+    print(type(embedding_from_image))
+    print(embedding_from_image.shape)
+    print(embedding_from_image[:10])
 
-faces = app.get(image)
+    with open("embeddings/face_embeddings.pkl", "rb") as file:
+        database = pickle.load(file)
+    embedding_from_database = database["24AD095"][0]
 
-print("Faces detected:", len(faces))
+    print("Embedding from pickle")
+    print(type(embedding_from_database))
+    print(embedding_from_database.shape)
+    print(embedding_from_database[:10])
+    print("Distance =", np.linalg.norm(embedding_from_image - embedding_from_database))
+    print("Arrays Equal =", np.array_equal(embedding_from_image, embedding_from_database))
+    print("All Close =", np.allclose(embedding_from_image, embedding_from_database))
 
-embedding1 = faces[0].embedding
 
-print("Embedding from image")
-print(type(embedding1))
-print(embedding1.shape)
-print(embedding1[:10])
-
-print()
-
-database = pickle.load(
-    open("embeddings/face_embeddings.pkl","rb")
-)
-
-embedding2 = database["24AD095"][0]
-
-print("Embedding from pickle")
-print(type(embedding2))
-print(embedding2.shape)
-print(embedding2[:10])
-
-print()
-
-print("Distance =", np.linalg.norm(embedding1 - embedding2))
-
-print()
-
-print("Arrays Equal =", np.array_equal(embedding1, embedding2))
-
-print()
-
-print("All Close =", np.allclose(embedding1, embedding2))
+if __name__ == "__main__":
+    main()

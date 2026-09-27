@@ -18,9 +18,14 @@ from configs.settings import (
     CAMERA_INDEX,
     FACE_RECOGNITION_THRESHOLD,
     DASHBOARD_UPDATE_INTERVAL,
+    DATABASE_ATTENTION_UPDATE_INTERVAL,
 )
 
 from ai.attendance.attendance_manager import AttendanceManager
+from ai.attention_fusion import AttentionFusionEngine
+from ai.attention_smoothing import AttentionTemporalSmoother
+from ai.head_pose.head_pose_detector import detect_head_pose
+from ai.student_attention import StudentAttentionScorer
 from ai.tracking.student_tracker import StudentTracker
 from dashboard.camera_stream import CameraStream
 from ai.database.classroom_database import ClassroomDatabase
@@ -80,11 +85,24 @@ attention_history = defaultdict(
 
 last_attention_state = {}
 
+last_fusion_result = {}
+
 last_attention_values = {}
 
 last_attention_database_write = {}
 
-ATTENTION_DATABASE_INTERVAL = 1.0
+ATTENTION_DATABASE_INTERVAL = DATABASE_ATTENTION_UPDATE_INTERVAL
+
+attention_fusion_engine = AttentionFusionEngine()
+
+attention_temporal_smoother = AttentionTemporalSmoother(
+    window_size=5,
+    minimum_samples=3,
+    state_threshold=0.60,
+    score_decay=0.80
+)
+
+student_attention_scorer = StudentAttentionScorer()
 
 
 # ============================================================
@@ -362,6 +380,34 @@ def smooth_attention(
         track_id,
         "UNKNOWN"
     )
+
+
+def fuse_student_attention(
+    eye_state="UNKNOWN",
+    head_pose="UNKNOWN",
+    emotion="UNKNOWN",
+    phone_detected=None,
+    hand_raised=None
+):
+    """Fuse known signals without interrupting the existing attention path."""
+
+    try:
+
+        return attention_fusion_engine.fuse(
+            eye_state=eye_state,
+            head_pose=head_pose,
+            emotion=emotion,
+            phone_detected=phone_detected,
+            hand_raised=hand_raised
+        )
+
+    except Exception as error:
+
+        print(
+            f"[FUSION] Attention fusion error: {error}"
+        )
+
+        return None
 
 
 # ============================================================
@@ -759,941 +805,971 @@ def estimate_attention(
 
 
 # ============================================================
-# YOLO PERSON DETECTOR
-# ============================================================
+def main():
+    global last_dashboard_update
 
-print("=" * 60)
-print("Loading YOLO Person Detector...")
-print("=" * 60)
+    # YOLO PERSON DETECTOR
+    # ============================================================
 
-model = YOLO(
-    YOLO_MODEL
-)
+    print("=" * 60)
+    print("Loading YOLO Person Detector...")
+    print("=" * 60)
 
-print(
-    "YOLO Loaded Successfully."
-)
-
-
-# ============================================================
-# BYTE TRACK
-# ============================================================
-
-print("=" * 60)
-print("Loading ByteTrack...")
-print("=" * 60)
-
-tracker = sv.ByteTrack()
-
-print(
-    "ByteTrack Loaded Successfully."
-)
-
-
-# ============================================================
-# ATTENDANCE MANAGER
-# ============================================================
-
-print("=" * 60)
-print("Loading Attendance Manager...")
-print("=" * 60)
-
-attendance_manager = AttendanceManager()
-
-print(
-    "Attendance Manager Loaded Successfully."
-)
-
-
-# ============================================================
-# STUDENT TRACKER
-# ============================================================
-
-print("=" * 60)
-print("Loading Student Tracker...")
-print("=" * 60)
-
-student_tracker = StudentTracker()
-
-print(
-    "Student Tracker Loaded Successfully."
-)
-
-
-# ============================================================
-# POSTGRESQL DATABASE
-# ============================================================
-
-print("=" * 60)
-print("Loading Classroom Database...")
-print("=" * 60)
-
-classroom_database = ClassroomDatabase()
-
-print(
-    "Classroom Database Loaded Successfully."
-)
-
-
-# ============================================================
-# INSIGHTFACE
-# ============================================================
-
-print("=" * 60)
-print("Loading InsightFace...")
-print("=" * 60)
-
-face_app = FaceAnalysis(
-    name="buffalo_l",
-    providers=[
-        "CPUExecutionProvider"
-    ]
-)
-
-face_app.prepare(
-    ctx_id=0,
-    det_size=(640, 640)
-)
-
-print(
-    "InsightFace Loaded Successfully."
-)
-
-
-# ============================================================
-# CAMERA
-# ============================================================
-
-print("=" * 60)
-print("Opening Camera...")
-print("=" * 60)
-
-camera_stream = CameraStream()
-
-camera = cv2.VideoCapture(
-    CAMERA_INDEX
-)
-
-camera.set(
-    cv2.CAP_PROP_FRAME_WIDTH,
-    1280
-)
-
-camera.set(
-    cv2.CAP_PROP_FRAME_HEIGHT,
-    720
-)
-
-if not camera.isOpened():
+    model = YOLO(
+        YOLO_MODEL
+    )
 
     print(
-        "ERROR: Cannot open camera."
+        "YOLO Loaded Successfully."
     )
 
-    raise SystemExit(1)
 
+    # ============================================================
+    # BYTE TRACK
+    # ============================================================
 
-# ============================================================
-# START POSTGRESQL CLASSROOM SESSION
-# ============================================================
+    print("=" * 60)
+    print("Loading ByteTrack...")
+    print("=" * 60)
 
-try:
-
-    database_session_id = (
-        "SESSION_"
-        + datetime.now().strftime(
-            "%Y%m%d_%H%M%S_%f"
-        )
-    )
-
-    database_session_id = (
-        classroom_database.start_session(
-            session_id=database_session_id
-        ).session_id
-    )
-
-except Exception as error:
+    tracker = sv.ByteTrack()
 
     print(
-        "[DATABASE] Could not start "
-        f"classroom session: {error}"
+        "ByteTrack Loaded Successfully."
     )
 
-    camera.release()
 
-    cv2.destroyAllWindows()
+    # ============================================================
+    # ATTENDANCE MANAGER
+    # ============================================================
 
-    raise SystemExit(1)
+    print("=" * 60)
+    print("Loading Attendance Manager...")
+    print("=" * 60)
 
+    attendance_manager = AttendanceManager()
 
-# ============================================================
-# MAIN LOOP
-# ============================================================
-
-print("=" * 60)
-print("AI SMART CLASSROOM")
-print("STEP 9 - ATTENTION DETECTION")
-print("=" * 60)
-
-print(
-    "Face + Person + ByteTrack + "
-    "Student Association + Attendance + Attention"
-)
-
-print(
-    "PostgreSQL attendance persistence: ENABLED"
-)
-
-print(
-    f"Database Session: {database_session_id}"
-)
-
-print(
-    "Dashboard state will be updated at:"
-)
-
-print(
-    DASHBOARD_STATE_FILE
-)
-
-print(
-    "Press Q to exit."
-)
-
-print("=" * 60)
+    print(
+        "Attendance Manager Loaded Successfully."
+    )
 
 
-tracked_person_count = 0
+    # ============================================================
+    # STUDENT TRACKER
+    # ============================================================
 
-present_students = 0
+    print("=" * 60)
+    print("Loading Student Tracker...")
+    print("=" * 60)
+
+    student_tracker = StudentTracker()
+
+    print(
+        "Student Tracker Loaded Successfully."
+    )
 
 
-while True:
+    # ============================================================
+    # POSTGRESQL DATABASE
+    # ============================================================
 
-    success, frame = camera.read()
+    print("=" * 60)
+    print("Loading Classroom Database...")
+    print("=" * 60)
 
-    if not success:
+    classroom_database = ClassroomDatabase()
+
+    print(
+        "Classroom Database Loaded Successfully."
+    )
+
+
+    # ============================================================
+    # INSIGHTFACE
+    # ============================================================
+
+    print("=" * 60)
+    print("Loading InsightFace...")
+    print("=" * 60)
+
+    face_app = FaceAnalysis(
+        name="buffalo_l",
+        providers=[
+            "CPUExecutionProvider"
+        ]
+    )
+
+    face_app.prepare(
+        ctx_id=0,
+        det_size=(640, 640)
+    )
+
+    print(
+        "InsightFace Loaded Successfully."
+    )
+
+
+    # ============================================================
+    # CAMERA
+    # ============================================================
+
+    print("=" * 60)
+    print("Opening Camera...")
+    print("=" * 60)
+
+    camera_stream = CameraStream()
+
+    camera = cv2.VideoCapture(
+        CAMERA_INDEX
+    )
+
+    camera.set(
+        cv2.CAP_PROP_FRAME_WIDTH,
+        1280
+    )
+
+    camera.set(
+        cv2.CAP_PROP_FRAME_HEIGHT,
+        720
+    )
+
+    if not camera.isOpened():
 
         print(
-            "Camera frame read failed."
+            "ERROR: Cannot open camera."
         )
 
-        break
+        raise SystemExit(1)
 
-    frame_height, frame_width = (
-        frame.shape[:2]
+
+    # ============================================================
+    # START POSTGRESQL CLASSROOM SESSION
+    # ============================================================
+
+    try:
+
+        database_session_id = (
+            "SESSION_"
+            + datetime.now().strftime(
+                "%Y%m%d_%H%M%S_%f"
+            )
+        )
+
+        database_session_id = (
+            classroom_database.start_session(
+                session_id=database_session_id
+            ).session_id
+        )
+
+    except Exception as error:
+
+        print(
+            "[DATABASE] Could not start "
+            f"classroom session: {error}"
+        )
+
+        camera.release()
+
+        cv2.destroyAllWindows()
+
+        raise SystemExit(1)
+
+
+    # ============================================================
+    # MAIN LOOP
+    # ============================================================
+
+    print("=" * 60)
+    print("AI SMART CLASSROOM")
+    print("STEP 9 - ATTENTION DETECTION")
+    print("=" * 60)
+
+    print(
+        "Face + Person + ByteTrack + "
+        "Student Association + Attendance + Attention"
     )
 
-    # --------------------------------------------------------
-    # YOLO PERSON DETECTION
-    # --------------------------------------------------------
-
-    results = model(
-        frame,
-        classes=[0],
-        conf=PERSON_CONFIDENCE,
-        iou=PERSON_IOU,
-        imgsz=PERSON_IMAGE_SIZE,
-        max_det=MAX_PERSONS,
-        verbose=False
-    )[0]
-
-    detections = (
-        sv.Detections.from_ultralytics(
-            results
-        )
+    print(
+        "PostgreSQL attendance persistence: ENABLED"
     )
 
-    # --------------------------------------------------------
-    # PERSON CLASS ONLY
-    # --------------------------------------------------------
-
-    if len(detections) > 0:
-
-        detections = detections[
-            detections.class_id == 0
-        ]
-
-    # --------------------------------------------------------
-    # BYTE TRACK
-    # --------------------------------------------------------
-
-    detections = (
-        tracker.update_with_detections(
-            detections
-        )
+    print(
+        f"Database Session: {database_session_id}"
     )
 
-    tracked_person_count = len(
-        detections
+    print(
+        "Dashboard state will be updated at:"
     )
 
-    # --------------------------------------------------------
-    # CURRENT TRACKS
-    # --------------------------------------------------------
+    print(
+        DASHBOARD_STATE_FILE
+    )
 
-    current_tracks = set()
+    print(
+        "Press Q to exit."
+    )
 
-    # --------------------------------------------------------
-    # DASHBOARD STUDENT LIST
-    # --------------------------------------------------------
+    print("=" * 60)
 
-    dashboard_students = []
 
-    # --------------------------------------------------------
-    # PROCESS EACH PERSON
-    # --------------------------------------------------------
+    tracked_person_count = 0
 
-    for index in range(
-        len(detections)
-    ):
+    present_students = 0
 
-        if detections.tracker_id is None:
 
-            continue
+    shutdown_status = "COMPLETED"
+    try:
+        while True:
 
-        track_id = int(
-            detections.tracker_id[index]
-        )
+            success, frame = camera.read()
 
-        current_tracks.add(
-            track_id
-        )
-
-        # ----------------------------------------------------
-        # PERSON BOX
-        # ----------------------------------------------------
-
-        x1, y1, x2, y2 = map(
-            int,
-            detections.xyxy[index]
-        )
-
-        x1, y1, x2, y2 = clip_box(
-            x1,
-            y1,
-            x2,
-            y2,
-            frame_width,
-            frame_height
-        )
-
-        if x2 <= x1 or y2 <= y1:
-
-            continue
-
-        # ----------------------------------------------------
-        # PERSON CROP
-        # ----------------------------------------------------
-
-        person_crop = frame[
-            y1:y2,
-            x1:x2
-        ]
-
-        if person_crop.size == 0:
-
-            continue
-
-        # ----------------------------------------------------
-        # EXISTING STUDENT ASSOCIATION
-        # ----------------------------------------------------
-
-        known_student = None
-
-        try:
-
-            known_student = (
-                student_tracker.update_track(
-                    track_id
-                )
-            )
-
-        except Exception as error:
-
-            print(
-                f"[TRACKER] update error: {error}"
-            )
-
-            known_student = None
-
-        recognized_id = known_student
-
-        similarity = 0.0
-
-        # ----------------------------------------------------
-        # FACE DETECTION
-        # ----------------------------------------------------
-
-        faces = []
-
-        try:
-
-            faces = face_app.get(
-                person_crop
-            )
-
-        except Exception as error:
-
-            print(
-                f"[FACE] Detection error: {error}"
-            )
-
-            faces = []
-
-        # ----------------------------------------------------
-        # FIND BEST FACE
-        # ----------------------------------------------------
-
-        best_face = None
-
-        best_face_area = 0
-
-        for face in faces:
-
-            try:
-
-                fx1, fy1, fx2, fy2 = map(
-                    int,
-                    face.bbox
-                )
-
-                face_width = (
-                    fx2 - fx1
-                )
-
-                face_height = (
-                    fy2 - fy1
-                )
-
-                if (
-                    face_width <
-                    MIN_FACE_WIDTH
-                    or
-                    face_height <
-                    MIN_FACE_HEIGHT
-                ):
-
-                    continue
-
-                face_center_x = (
-                    fx1 + fx2
-                ) / 2.0
-
-                face_center_y = (
-                    fy1 + fy2
-                ) / 2.0
-
-                crop_width = (
-                    person_crop.shape[1]
-                )
-
-                crop_height = (
-                    person_crop.shape[0]
-                )
-
-                if not (
-                    0 <= face_center_x
-                    <= crop_width
-                    and
-                    0 <= face_center_y
-                    <= crop_height
-                ):
-
-                    continue
-
-                area = (
-                    face_width *
-                    face_height
-                )
-
-                if area > best_face_area:
-
-                    best_face = face
-
-                    best_face_area = area
-
-            except Exception:
-
-                continue
-
-        # ----------------------------------------------------
-        # FACE RECOGNITION
-        # ----------------------------------------------------
-
-        if best_face is not None:
-
-            try:
-
-                if hasattr(
-                    best_face,
-                    "embedding"
-                ):
-
-                    (
-                        newly_recognized_id,
-                        newly_similarity
-                    ) = recognize_face(
-                        best_face.embedding
-                    )
-
-                    recognized_id = (
-                        newly_recognized_id
-                    )
-
-                    similarity = (
-                        newly_similarity
-                    )
-
-            except Exception as error:
+            if not success:
 
                 print(
-                    f"[RECOGNITION] Error: {error}"
+                    "Camera frame read failed."
                 )
 
-        # ----------------------------------------------------
-        # STUDENT ASSOCIATION
-        # ----------------------------------------------------
+                break
 
-        if recognized_id is not None:
-
-            try:
-
-                student_tracker.associate(
-                    track_id,
-                    recognized_id,
-                    similarity
-                )
-
-            except Exception as error:
-
-                print(
-                    f"[TRACKER] Association error: {error}"
-                )
-
-            # ------------------------------------------------
-            # EXISTING ATTENDANCE MANAGER
-            # ------------------------------------------------
-
-            try:
-
-                attendance_manager.mark_present(
-                    recognized_id,
-                    track_id,
-                    similarity
-                )
-
-            except Exception as error:
-
-                print(
-                    f"[ATTENDANCE] Error: {error}"
-                )
-
-            # ------------------------------------------------
-            # POSTGRESQL ATTENDANCE
-            # ------------------------------------------------
-
-            try:
-
-                classroom_database.record_attendance(
-                    session_id=database_session_id,
-                    student_id=str(
-                        recognized_id
-                    ),
-                    confidence=similarity
-                )
-
-            except Exception as error:
-
-                print(
-                    "[DATABASE ATTENDANCE] "
-                    f"Error: {error}"
-                )
-
-        # ----------------------------------------------------
-        # ATTENTION
-        # ----------------------------------------------------
-
-        raw_attention_state = "UNKNOWN"
-
-        yaw_ratio = None
-
-        pitch_ratio = None
-
-        if best_face is not None:
-
-            (
-                raw_attention_state,
-                yaw_ratio,
-                pitch_ratio
-            ) = estimate_attention(
-                best_face
+            frame_height, frame_width = (
+                frame.shape[:2]
             )
 
-        # ----------------------------------------------------
-        # SMOOTH ATTENTION
-        # ----------------------------------------------------
+            # --------------------------------------------------------
+            # YOLO PERSON DETECTION
+            # --------------------------------------------------------
 
-        attention_state = smooth_attention(
-            track_id,
-            raw_attention_state
-        )
+            results = model(
+                frame,
+                classes=[0],
+                conf=PERSON_CONFIDENCE,
+                iou=PERSON_IOU,
+                imgsz=PERSON_IMAGE_SIZE,
+                max_det=MAX_PERSONS,
+                verbose=False
+            )[0]
 
-        # ----------------------------------------------------
-        # POSTGRESQL ATTENTION PERSISTENCE
-        # ----------------------------------------------------
-
-        if (
-            recognized_id is not None
-            and
-            attention_state in (
-                "ATTENTIVE",
-                "NOT ATTENTIVE"
-            )
-        ):
-
-            database_student_id = str(
-                recognized_id
-            )
-
-            current_attention_time = time.time()
-
-            last_database_write = (
-                last_attention_database_write.get(
-                    database_student_id,
-                    0.0
+            detections = (
+                sv.Detections.from_ultralytics(
+                    results
                 )
             )
 
-            if (
-                current_attention_time
-                -
-                last_database_write
-                >=
-                ATTENTION_DATABASE_INTERVAL
+            # --------------------------------------------------------
+            # PERSON CLASS ONLY
+            # --------------------------------------------------------
+
+            if len(detections) > 0:
+
+                detections = detections[
+                    detections.class_id == 0
+                ]
+
+            # --------------------------------------------------------
+            # BYTE TRACK
+            # --------------------------------------------------------
+
+            detections = (
+                tracker.update_with_detections(
+                    detections
+                )
+            )
+
+            tracked_person_count = len(
+                detections
+            )
+
+            # --------------------------------------------------------
+            # CURRENT TRACKS
+            # --------------------------------------------------------
+
+            current_tracks = set()
+
+            # --------------------------------------------------------
+            # DASHBOARD STUDENT LIST
+            # --------------------------------------------------------
+
+            dashboard_students = []
+
+            # --------------------------------------------------------
+            # PROCESS EACH PERSON
+            # --------------------------------------------------------
+
+            for index in range(
+                len(detections)
             ):
 
-                last_attention_database_write[
-                    database_student_id
-                ] = current_attention_time
+                if detections.tracker_id is None:
+
+                    continue
+
+                track_id = int(
+                    detections.tracker_id[index]
+                )
+
+                current_tracks.add(
+                    track_id
+                )
+
+                # ----------------------------------------------------
+                # PERSON BOX
+                # ----------------------------------------------------
+
+                x1, y1, x2, y2 = map(
+                    int,
+                    detections.xyxy[index]
+                )
+
+                x1, y1, x2, y2 = clip_box(
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    frame_width,
+                    frame_height
+                )
+
+                if x2 <= x1 or y2 <= y1:
+
+                    continue
+
+                # ----------------------------------------------------
+                # PERSON CROP
+                # ----------------------------------------------------
+
+                person_crop = frame[
+                    y1:y2,
+                    x1:x2
+                ]
+
+                if person_crop.size == 0:
+
+                    continue
+
+                # ----------------------------------------------------
+                # EXISTING STUDENT ASSOCIATION
+                # ----------------------------------------------------
+
+                known_student = None
 
                 try:
 
-                    classroom_database.record_attention(
-                        session_id=database_session_id,
-                        student_id=database_student_id,
-                        track_id=int(
+                    known_student = (
+                        student_tracker.update_track(
                             track_id
-                        ),
-                        attention_state=attention_state,
-                        confidence=None
+                        )
                     )
 
                 except Exception as error:
 
                     print(
-                        f"[DATABASE] Attention persistence error: {error}"
+                        f"[TRACKER] update error: {error}"
                     )
 
-        # ----------------------------------------------------
-        # STORE LAST NUMERIC VALUES
-        # ----------------------------------------------------
+                    known_student = None
 
-        if (
-            yaw_ratio is not None
-            and
-            pitch_ratio is not None
-        ):
+                recognized_id = known_student
 
-            last_attention_values[
-                track_id
-            ] = (
-                yaw_ratio,
-                pitch_ratio
-            )
+                similarity = 0.0
 
-        elif track_id in last_attention_values:
+                # ----------------------------------------------------
+                # FACE DETECTION
+                # ----------------------------------------------------
 
-            (
-                yaw_ratio,
-                pitch_ratio
-            ) = last_attention_values[
-                track_id
-            ]
+                faces = []
 
-        # ----------------------------------------------------
-        # DASHBOARD STUDENT DATA
-        # ----------------------------------------------------
+                try:
 
-        dashboard_student_id = None
+                    faces = face_app.get(
+                        person_crop
+                    )
 
-        if recognized_id is not None:
+                except Exception as error:
 
-            dashboard_student_id = str(
-                recognized_id
-            )
+                    print(
+                        f"[FACE] Detection error: {error}"
+                    )
 
-        student_record = {
-            "track_id": int(
-                track_id
-            ),
+                    faces = []
 
-            "student_id": dashboard_student_id,
+                # ----------------------------------------------------
+                # FIND BEST FACE
+                # ----------------------------------------------------
 
-            "recognized": (
-                recognized_id is not None
-            ),
+                best_face = None
 
-            "similarity": round(
-                float(similarity),
-                3
-            ),
+                best_face_area = 0
 
-            "attention": str(
-                attention_state
-            ),
+                for face in faces:
 
-            "yaw_ratio": (
-                round(
-                    float(yaw_ratio),
-                    3
-                )
-                if yaw_ratio is not None
-                else None
-            ),
+                    try:
 
-            "pitch_ratio": (
-                round(
-                    float(pitch_ratio),
-                    3
-                )
-                if pitch_ratio is not None
-                else None
-            )
-        }
+                        fx1, fy1, fx2, fy2 = map(
+                            int,
+                            face.bbox
+                        )
 
-        dashboard_students.append(
-            student_record
-        )
+                        face_width = (
+                            fx2 - fx1
+                        )
 
-        # ----------------------------------------------------
-        # PERSON BOX COLOR
-        # ----------------------------------------------------
+                        face_height = (
+                            fy2 - fy1
+                        )
 
-        if recognized_id is not None:
+                        if (
+                            face_width <
+                            MIN_FACE_WIDTH
+                            or
+                            face_height <
+                            MIN_FACE_HEIGHT
+                        ):
 
-            person_box_color = (
-                255,
-                220,
-                0
-            )
+                            continue
 
-        else:
+                        face_center_x = (
+                            fx1 + fx2
+                        ) / 2.0
 
-            person_box_color = (
-                0,
-                165,
-                255
-            )
+                        face_center_y = (
+                            fy1 + fy2
+                        ) / 2.0
 
-        # ----------------------------------------------------
-        # ATTENTION COLOR
-        # ----------------------------------------------------
+                        crop_width = (
+                            person_crop.shape[1]
+                        )
 
-        if attention_state == "ATTENTIVE":
+                        crop_height = (
+                            person_crop.shape[0]
+                        )
 
-            attention_color = (
-                0,
-                255,
-                0
-            )
+                        if not (
+                            0 <= face_center_x
+                            <= crop_width
+                            and
+                            0 <= face_center_y
+                            <= crop_height
+                        ):
 
-            attention_background = (
-                20,
-                90,
-                20
-            )
+                            continue
 
-        elif attention_state == "NOT ATTENTIVE":
+                        area = (
+                            face_width *
+                            face_height
+                        )
 
-            attention_color = (
-                0,
-                0,
-                255
-            )
+                        if area > best_face_area:
 
-            attention_background = (
-                90,
-                20,
-                20
-            )
+                            best_face = face
 
-        else:
+                            best_face_area = area
 
-            attention_color = (
-                255,
-                255,
-                255
-            )
+                    except Exception:
 
-            attention_background = (
-                70,
-                55,
-                20
-            )
+                        continue
 
-        # ----------------------------------------------------
-        # DRAW PERSON BOX
-        # ----------------------------------------------------
+                # ----------------------------------------------------
+                # FACE RECOGNITION
+                # ----------------------------------------------------
 
-        cv2.rectangle(
-            frame,
-            (x1, y1),
-            (x2, y2),
-            person_box_color,
-            2
-        )
+                if best_face is not None:
 
-        # ----------------------------------------------------
-        # IDENTITY LABEL
-        # ----------------------------------------------------
+                    try:
 
-        if recognized_id is not None:
+                        if hasattr(
+                            best_face,
+                            "embedding"
+                        ):
 
-            identity_text = (
-                f"ID {track_id} | "
-                f"{recognized_id}"
-            )
+                            (
+                                newly_recognized_id,
+                                newly_similarity
+                            ) = recognize_face(
+                                best_face.embedding
+                            )
 
-        else:
+                            recognized_id = (
+                                newly_recognized_id
+                            )
 
-            identity_text = (
-                f"ID {track_id} | UNKNOWN"
-            )
+                            similarity = (
+                                newly_similarity
+                            )
 
-        label_x = max(
-            8,
-            x1
-        )
+                    except Exception as error:
 
-        label_y = max(
-            30,
-            y1 + 28
-        )
+                        print(
+                            f"[RECOGNITION] Error: {error}"
+                        )
 
-        draw_text_box(
-            frame,
-            identity_text,
-            (
-                label_x,
-                label_y
-            ),
-            text_color=(
-                255,
-                255,
-                255
-            ),
-            background_color=(
-                25,
-                35,
-                40
-            ),
-            font_scale=0.58,
-            thickness=2,
-            padding=6
-        )
-
-        # ----------------------------------------------------
-        # ATTENTION LABEL
-        # ----------------------------------------------------
-
-        attention_text = (
-            f"Attention: "
-            f"{attention_state}"
-        )
-
-        attention_y = (
-            label_y + 38
-        )
-
-        draw_text_box(
-            frame,
-            attention_text,
-            (
-                label_x,
-                attention_y
-            ),
-            text_color=attention_color,
-            background_color=attention_background,
-            font_scale=0.58,
-            thickness=2,
-            padding=6
-        )
-
-        # ----------------------------------------------------
-        # FACE BOX
-        # ----------------------------------------------------
-
-        if best_face is not None:
-
-            try:
-
-                fx1, fy1, fx2, fy2 = map(
-                    int,
-                    best_face.bbox
-                )
-
-                fx1 += x1
-                fx2 += x1
-
-                fy1 += y1
-                fy2 += y1
-
-                fx1, fy1, fx2, fy2 = clip_box(
-                    fx1,
-                    fy1,
-                    fx2,
-                    fy2,
-                    frame_width,
-                    frame_height
-                )
-
-                cv2.rectangle(
-                    frame,
-                    (fx1, fy1),
-                    (fx2, fy2),
-                    (
-                        255,
-                        80,
-                        0
-                    ),
-                    2
-                )
+                # ----------------------------------------------------
+                # STUDENT ASSOCIATION
+                # ----------------------------------------------------
 
                 if recognized_id is not None:
 
-                    face_text = (
-                        f"{recognized_id} "
-                        f"{similarity:.2f}"
+                    try:
+
+                        student_tracker.associate(
+                            track_id,
+                            recognized_id,
+                            similarity
+                        )
+
+                    except Exception as error:
+
+                        print(
+                            f"[TRACKER] Association error: {error}"
+                        )
+
+                    # ------------------------------------------------
+                    # EXISTING ATTENDANCE MANAGER
+                    # ------------------------------------------------
+
+                    try:
+
+                        attendance_manager.mark_present(
+                            recognized_id,
+                            track_id,
+                            similarity
+                        )
+
+                    except Exception as error:
+
+                        print(
+                            f"[ATTENDANCE] Error: {error}"
+                        )
+
+                    # ------------------------------------------------
+                    # POSTGRESQL ATTENDANCE
+                    # ------------------------------------------------
+
+                    try:
+
+                        classroom_database.record_attendance(
+                            session_id=database_session_id,
+                            student_id=str(
+                                recognized_id
+                            ),
+                            confidence=similarity
+                        )
+
+                    except Exception as error:
+
+                        print(
+                            "[DATABASE ATTENDANCE] "
+                            f"Error: {error}"
+                        )
+
+                # ----------------------------------------------------
+                # ATTENTION
+                # ----------------------------------------------------
+
+                raw_attention_state = "UNKNOWN"
+
+                yaw_ratio = None
+
+                pitch_ratio = None
+
+                if best_face is not None:
+
+                    (
+                        raw_attention_state,
+                        yaw_ratio,
+                        pitch_ratio
+                    ) = estimate_attention(
+                        best_face
+                    )
+
+                # ----------------------------------------------------
+                # ADDITIVE ATTENTION FUSION (LEGACY STATE IS UNCHANGED)
+                # ----------------------------------------------------
+
+                head_pose = "UNKNOWN"
+
+                if (
+                    best_face is not None
+                    and
+                    getattr(
+                        best_face,
+                        "kps",
+                        None
+                    ) is not None
+                ):
+
+                    try:
+
+                        head_pose_result = detect_head_pose(
+                            best_face.kps
+                        )
+
+                        head_pose = head_pose_result.get(
+                            "head_pose",
+                            "UNKNOWN"
+                        )
+
+                    except Exception as error:
+
+                        print(
+                            f"[FUSION] Head pose integration error: {error}"
+                        )
+
+                fusion_result = fuse_student_attention(
+                    eye_state="UNKNOWN",
+                    head_pose=head_pose,
+                    emotion="UNKNOWN",
+                    phone_detected=None,
+                    hand_raised=None
+                )
+
+                fusion_data = None
+
+                temporal_data = None
+
+                smoothed_fusion_result = None
+
+                student_attention_result = None
+
+                if fusion_result is not None:
+
+                    last_fusion_result[
+                        track_id
+                    ] = fusion_result
+
+                    fusion_data = {
+                        "attention_state": fusion_result.attention_state,
+                        "attention_score": fusion_result.attention_score,
+                        "confidence": fusion_result.confidence,
+                        "eye_state": fusion_result.eye_state,
+                        "head_pose": fusion_result.head_pose,
+                        "emotion": fusion_result.emotion,
+                        "phone_detected": fusion_result.phone_detected,
+                        "hand_raised": fusion_result.hand_raised,
+                        "signal_scores": fusion_result.signal_scores,
+                        "signal_weights": fusion_result.signal_weights,
+                        "reasons": fusion_result.reasons
+                    }
+
+                    smoothed_fusion_result = attention_temporal_smoother.update(
+                        track_id=track_id,
+                        attention_state=fusion_result.attention_state,
+                        attention_score=fusion_result.attention_score,
+                        confidence=fusion_result.confidence
+                    )
+
+                    temporal_data = {
+                        "attention_state": smoothed_fusion_result.attention_state,
+                        "attention_score": smoothed_fusion_result.attention_score,
+                        "confidence": smoothed_fusion_result.confidence,
+                        "sample_count": smoothed_fusion_result.sample_count,
+                        "stable": smoothed_fusion_result.stable
+                    }
+
+                    if recognized_id is not None:
+
+                        student_attention_result = student_attention_scorer.calculate(
+                            student_id=str(
+                                recognized_id
+                            ),
+                            attention_score=smoothed_fusion_result.attention_score,
+                            stable=smoothed_fusion_result.stable,
+                            temporal_confidence=smoothed_fusion_result.confidence
+                        )
+
+                # ----------------------------------------------------
+                # SMOOTH ATTENTION
+                # ----------------------------------------------------
+
+                attention_state = smooth_attention(
+                    track_id,
+                    raw_attention_state
+                )
+
+                # ----------------------------------------------------
+                # POSTGRESQL ATTENTION PERSISTENCE
+                # ----------------------------------------------------
+
+                if recognized_id is not None:
+
+                    database_student_id = str(
+                        recognized_id
+                    )
+
+                    current_attention_time = time.monotonic()
+
+                    last_database_write = (
+                        last_attention_database_write.get(
+                            database_student_id,
+                            0.0
+                        )
+                    )
+
+                    if (
+                        current_attention_time
+                        -
+                        last_database_write
+                        >=
+                        ATTENTION_DATABASE_INTERVAL
+                    ):
+
+                        try:
+
+                            classroom_database.record_attention(
+                                session_id=database_session_id,
+                                student_id=database_student_id,
+                                track_id=int(
+                                    track_id
+                                ),
+                                attention_state=attention_state,
+                                confidence=None,
+                                attention_score=(
+                                    student_attention_result.attention_score
+                                    if student_attention_result is not None
+                                    else None
+                                ),
+                                fusion_state=(
+                                    fusion_result.attention_state
+                                    if fusion_result is not None
+                                    else None
+                                ),
+                                fusion_score=(
+                                    fusion_result.attention_score
+                                    if fusion_result is not None
+                                    else None
+                                ),
+                                fusion_confidence=(
+                                    fusion_result.confidence
+                                    if fusion_result is not None
+                                    else None
+                                ),
+                                temporal_state=(
+                                    smoothed_fusion_result.attention_state
+                                    if smoothed_fusion_result is not None
+                                    else None
+                                ),
+                                temporal_score=(
+                                    smoothed_fusion_result.attention_score
+                                    if smoothed_fusion_result is not None
+                                    else None
+                                ),
+                                temporal_confidence=(
+                                    smoothed_fusion_result.confidence
+                                    if smoothed_fusion_result is not None
+                                    else None
+                                ),
+                                temporal_stable=(
+                                    smoothed_fusion_result.stable
+                                    if smoothed_fusion_result is not None
+                                    else None
+                                )
+                            )
+
+                            last_attention_database_write[
+                                database_student_id
+                            ] = current_attention_time
+
+                        except Exception as error:
+
+                            print(
+                                f"[DATABASE] Attention persistence error: {error}"
+                            )
+
+                # ----------------------------------------------------
+                # STORE LAST NUMERIC VALUES
+                # ----------------------------------------------------
+
+                if (
+                    yaw_ratio is not None
+                    and
+                    pitch_ratio is not None
+                ):
+
+                    last_attention_values[
+                        track_id
+                    ] = (
+                        yaw_ratio,
+                        pitch_ratio
+                    )
+
+                elif track_id in last_attention_values:
+
+                    (
+                        yaw_ratio,
+                        pitch_ratio
+                    ) = last_attention_values[
+                        track_id
+                    ]
+
+                # ----------------------------------------------------
+                # DASHBOARD STUDENT DATA
+                # ----------------------------------------------------
+
+                dashboard_student_id = None
+
+                if recognized_id is not None:
+
+                    dashboard_student_id = str(
+                        recognized_id
+                    )
+
+                student_record = {
+                    "track_id": int(
+                        track_id
+                    ),
+
+                    "student_id": dashboard_student_id,
+
+                    "recognized": (
+                        recognized_id is not None
+                    ),
+
+                    "similarity": round(
+                        float(similarity),
+                        3
+                    ),
+
+                    "attention": str(
+                        attention_state
+                    ),
+
+                    "fusion": fusion_data,
+
+                    "temporal": temporal_data,
+
+                    "yaw_ratio": (
+                        round(
+                            float(yaw_ratio),
+                            3
+                        )
+                        if yaw_ratio is not None
+                        else None
+                    ),
+
+                    "pitch_ratio": (
+                        round(
+                            float(pitch_ratio),
+                            3
+                        )
+                        if pitch_ratio is not None
+                        else None
+                    )
+                }
+
+                dashboard_students.append(
+                    student_record
+                )
+
+                # ----------------------------------------------------
+                # PERSON BOX COLOR
+                # ----------------------------------------------------
+
+                if recognized_id is not None:
+
+                    person_box_color = (
+                        255,
+                        220,
+                        0
                     )
 
                 else:
 
-                    face_text = (
-                        "Unknown Face"
+                    person_box_color = (
+                        0,
+                        165,
+                        255
                     )
 
-                face_label_y = max(
-                    25,
-                    fy1 - 8
+                # ----------------------------------------------------
+                # ATTENTION COLOR
+                # ----------------------------------------------------
+
+                if attention_state == "ATTENTIVE":
+
+                    attention_color = (
+                        0,
+                        255,
+                        0
+                    )
+
+                    attention_background = (
+                        20,
+                        90,
+                        20
+                    )
+
+                elif attention_state == "NOT ATTENTIVE":
+
+                    attention_color = (
+                        0,
+                        0,
+                        255
+                    )
+
+                    attention_background = (
+                        90,
+                        20,
+                        20
+                    )
+
+                else:
+
+                    attention_color = (
+                        255,
+                        255,
+                        255
+                    )
+
+                    attention_background = (
+                        70,
+                        55,
+                        20
+                    )
+
+                # ----------------------------------------------------
+                # DRAW PERSON BOX
+                # ----------------------------------------------------
+
+                cv2.rectangle(
+                    frame,
+                    (x1, y1),
+                    (x2, y2),
+                    person_box_color,
+                    2
+                )
+
+                # ----------------------------------------------------
+                # IDENTITY LABEL
+                # ----------------------------------------------------
+
+                if recognized_id is not None:
+
+                    identity_text = (
+                        f"ID {track_id} | "
+                        f"{recognized_id}"
+                    )
+
+                else:
+
+                    identity_text = (
+                        f"ID {track_id} | UNKNOWN"
+                    )
+
+                label_x = max(
+                    8,
+                    x1
+                )
+
+                label_y = max(
+                    30,
+                    y1 + 28
                 )
 
                 draw_text_box(
                     frame,
-                    face_text,
+                    identity_text,
                     (
-                        fx1,
-                        face_label_y
+                        label_x,
+                        label_y
                     ),
                     text_color=(
                         255,
@@ -1702,221 +1778,385 @@ while True:
                     ),
                     background_color=(
                         25,
-                        25,
-                        25
+                        35,
+                        40
                     ),
-                    font_scale=0.52,
+                    font_scale=0.58,
                     thickness=2,
-                    padding=5
+                    padding=6
+                )
+
+                # ----------------------------------------------------
+                # ATTENTION LABEL
+                # ----------------------------------------------------
+
+                attention_text = (
+                    f"Attention: "
+                    f"{attention_state}"
+                )
+
+                attention_y = (
+                    label_y + 38
+                )
+
+                draw_text_box(
+                    frame,
+                    attention_text,
+                    (
+                        label_x,
+                        attention_y
+                    ),
+                    text_color=attention_color,
+                    background_color=attention_background,
+                    font_scale=0.58,
+                    thickness=2,
+                    padding=6
+                )
+
+                # ----------------------------------------------------
+                # FACE BOX
+                # ----------------------------------------------------
+
+                if best_face is not None:
+
+                    try:
+
+                        fx1, fy1, fx2, fy2 = map(
+                            int,
+                            best_face.bbox
+                        )
+
+                        fx1 += x1
+                        fx2 += x1
+
+                        fy1 += y1
+                        fy2 += y1
+
+                        fx1, fy1, fx2, fy2 = clip_box(
+                            fx1,
+                            fy1,
+                            fx2,
+                            fy2,
+                            frame_width,
+                            frame_height
+                        )
+
+                        cv2.rectangle(
+                            frame,
+                            (fx1, fy1),
+                            (fx2, fy2),
+                            (
+                                255,
+                                80,
+                                0
+                            ),
+                            2
+                        )
+
+                        if recognized_id is not None:
+
+                            face_text = (
+                                f"{recognized_id} "
+                                f"{similarity:.2f}"
+                            )
+
+                        else:
+
+                            face_text = (
+                                "Unknown Face"
+                            )
+
+                        face_label_y = max(
+                            25,
+                            fy1 - 8
+                        )
+
+                        draw_text_box(
+                            frame,
+                            face_text,
+                            (
+                                fx1,
+                                face_label_y
+                            ),
+                            text_color=(
+                                255,
+                                255,
+                                255
+                            ),
+                            background_color=(
+                                25,
+                                25,
+                                25
+                            ),
+                            font_scale=0.52,
+                            thickness=2,
+                            padding=5
+                        )
+
+                    except Exception:
+
+                        pass
+
+            # ========================================================
+            # CLEAN UP EXPIRED TRACK HISTORIES
+            # ========================================================
+
+            active_track_ids = set(
+                current_tracks
+            )
+
+            for tracked_collection in (
+                getattr(
+                    tracker,
+                    "tracked_tracks",
+                    ()
+                ),
+                getattr(
+                    tracker,
+                    "lost_tracks",
+                    ()
+                )
+            ):
+
+                for tracked_item in tracked_collection:
+
+                    tracked_id = getattr(
+                        tracked_item,
+                        "external_track_id",
+                        None
+                    )
+
+                    if tracked_id is not None:
+
+                        active_track_ids.add(
+                            int(tracked_id)
+                        )
+
+            attention_temporal_smoother.retain_tracks(
+                active_track_ids
+            )
+
+            for stale_track_id in (
+                set(last_fusion_result) - active_track_ids
+            ):
+
+                del last_fusion_result[
+                    stale_track_id
+                ]
+
+            # ========================================================
+            # PRESENT STUDENTS
+            # ========================================================
+
+            try:
+
+                present_students = len(
+                    attendance_manager
+                    .get_present_students()
                 )
 
             except Exception:
 
-                pass
+                present_students = 0
 
-    # ========================================================
-    # PRESENT STUDENTS
-    # ========================================================
+            # ========================================================
+            # UPDATE DASHBOARD STATE
+            # ========================================================
 
-    try:
+            current_time = time.time()
 
-        present_students = len(
-            attendance_manager
-            .get_present_students()
-        )
+            if (
+                current_time -
+                last_dashboard_update
+                >=
+                DASHBOARD_UPDATE_INTERVAL
+            ):
 
-    except Exception:
+                save_dashboard_state(
+                    tracked_person_count,
+                    present_students,
+                    dashboard_students
+                )
 
-        present_students = 0
+                last_dashboard_update = (
+                    current_time
+                )
 
-    # ========================================================
-    # UPDATE DASHBOARD STATE
-    # ========================================================
+            # ========================================================
+            # DASHBOARD HEADER
+            # ========================================================
 
-    current_time = time.time()
+            dashboard_height = 118
 
-    if (
-        current_time -
-        last_dashboard_update
-        >=
-        DASHBOARD_UPDATE_INTERVAL
-    ):
+            dashboard_width = 410
 
-        save_dashboard_state(
-            tracked_person_count,
-            present_students,
-            dashboard_students
-        )
+            cv2.rectangle(
+                frame,
+                (0, 0),
+                (
+                    dashboard_width,
+                    dashboard_height
+                ),
+                (
+                    18,
+                    18,
+                    18
+                ),
+                -1
+            )
 
-        last_dashboard_update = (
-            current_time
-        )
+            cv2.rectangle(
+                frame,
+                (0, 0),
+                (
+                    dashboard_width,
+                    dashboard_height
+                ),
+                (
+                    70,
+                    70,
+                    70
+                ),
+                1
+            )
 
-    # ========================================================
-    # DASHBOARD HEADER
-    # ========================================================
+            # --------------------------------------------------------
+            # TITLE
+            # --------------------------------------------------------
 
-    dashboard_height = 118
+            cv2.putText(
+                frame,
+                "AI SMART CLASSROOM - STEP 9",
+                (15, 28),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.62,
+                (
+                    255,
+                    255,
+                    255
+                ),
+                2,
+                cv2.LINE_AA
+            )
 
-    dashboard_width = 410
+            # --------------------------------------------------------
+            # TRACKED PERSONS
+            # --------------------------------------------------------
 
-    cv2.rectangle(
-        frame,
-        (0, 0),
-        (
-            dashboard_width,
-            dashboard_height
-        ),
-        (
-            18,
-            18,
-            18
-        ),
-        -1
+            cv2.putText(
+                frame,
+                f"Tracked Persons: "
+                f"{tracked_person_count}",
+                (15, 63),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.62,
+                (
+                    0,
+                    255,
+                    0
+                ),
+                2,
+                cv2.LINE_AA
+            )
+
+            # --------------------------------------------------------
+            # PRESENT STUDENTS
+            # --------------------------------------------------------
+
+            cv2.putText(
+                frame,
+                f"Present Students: "
+                f"{present_students}",
+                (15, 94),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.60,
+                (
+                    0,
+                    220,
+                    255
+                ),
+                2,
+                cv2.LINE_AA
+            )
+
+            # ========================================================
+            # CAMERA STREAM
+            # ========================================================
+
+            camera_stream.update_frame(
+                frame
+            )
+
+            # ========================================================
+            # DISPLAY
+            # ========================================================
+
+            cv2.imshow(
+                "AI Smart Classroom - Attention Detection",
+                frame
+            )
+
+            # ========================================================
+            # KEYBOARD
+            # ========================================================
+
+            key = cv2.waitKey(1) & 0xFF
+
+            if key == ord("q"):
+
+                break
+
+
+        # ============================================================
+    except KeyboardInterrupt:
+        shutdown_status = "INTERRUPTED"
+        print("Stopping AI pipeline...")
+
+    # CLEANUP
+    # ============================================================
+
+    camera.release()
+
+    cv2.destroyAllWindows()
+
+    # ------------------------------------------------------------
+    # FINISH POSTGRESQL CLASSROOM SESSION
+    # ------------------------------------------------------------
+
+    classroom_database.finish_session(
+        database_session_id,
+        status=shutdown_status
     )
 
-    cv2.rectangle(
-        frame,
-        (0, 0),
-        (
-            dashboard_width,
-            dashboard_height
-        ),
-        (
-            70,
-            70,
-            70
-        ),
-        1
+
+    # ============================================================
+    # FINAL OUTPUT
+    # ============================================================
+
+    print("=" * 60)
+
+    print(
+        "STEP 9 STOPPED"
     )
 
-    # --------------------------------------------------------
-    # TITLE
-    # --------------------------------------------------------
+    print("=" * 60)
 
-    cv2.putText(
-        frame,
-        "AI SMART CLASSROOM - STEP 9",
-        (15, 28),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.62,
-        (
-            255,
-            255,
-            255
-        ),
-        2,
-        cv2.LINE_AA
+    print(
+        f"Tracked persons in final frame: "
+        f"{tracked_person_count}"
     )
 
-    # --------------------------------------------------------
-    # TRACKED PERSONS
-    # --------------------------------------------------------
-
-    cv2.putText(
-        frame,
-        f"Tracked Persons: "
-        f"{tracked_person_count}",
-        (15, 63),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.62,
-        (
-            0,
-            255,
-            0
-        ),
-        2,
-        cv2.LINE_AA
+    print(
+        f"Present students: "
+        f"{present_students}"
     )
 
-    # --------------------------------------------------------
-    # PRESENT STUDENTS
-    # --------------------------------------------------------
-
-    cv2.putText(
-        frame,
-        f"Present Students: "
-        f"{present_students}",
-        (15, 94),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.60,
-        (
-            0,
-            220,
-            255
-        ),
-        2,
-        cv2.LINE_AA
+    print(
+        f"Dashboard state: "
+        f"{DASHBOARD_STATE_FILE}"
     )
 
-    # ========================================================
-    # CAMERA STREAM
-    # ========================================================
+    print("=" * 60)
 
-    camera_stream.update_frame(
-        frame
-    )
-
-    # ========================================================
-    # DISPLAY
-    # ========================================================
-
-    cv2.imshow(
-        "AI Smart Classroom - Attention Detection",
-        frame
-    )
-
-    # ========================================================
-    # KEYBOARD
-    # ========================================================
-
-    key = cv2.waitKey(1) & 0xFF
-
-    if key == ord("q"):
-
-        break
-
-
-# ============================================================
-# CLEANUP
-# ============================================================
-
-camera.release()
-
-cv2.destroyAllWindows()
-
-# ------------------------------------------------------------
-# FINISH POSTGRESQL CLASSROOM SESSION
-# ------------------------------------------------------------
-
-classroom_database.finish_session()
-
-
-# ============================================================
-# FINAL OUTPUT
-# ============================================================
-
-print("=" * 60)
-
-print(
-    "STEP 9 STOPPED"
-)
-
-print("=" * 60)
-
-print(
-    f"Tracked persons in final frame: "
-    f"{tracked_person_count}"
-)
-
-print(
-    f"Present students: "
-    f"{present_students}"
-)
-
-print(
-    f"Dashboard state: "
-    f"{DASHBOARD_STATE_FILE}"
-)
-
-print("=" * 60)
+if __name__ == "__main__":
+    main()

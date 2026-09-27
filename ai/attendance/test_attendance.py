@@ -1,73 +1,46 @@
+import csv
+from datetime import datetime, timedelta
+
 from ai.attendance.attendance_manager import AttendanceManager
 
 
-print("=" * 60)
-print("STEP 7 - ATTENDANCE MANAGER TEST")
-print("=" * 60)
+def _manager_for_path(path):
+    manager = AttendanceManager()
+    manager.attendance_file = str(path)
+    return manager
 
 
-# ------------------------------------------------------------
-# Create Attendance Manager
-# ------------------------------------------------------------
+def test_today_count_is_read_only_and_counts_distinct_present_students(tmp_path):
+    path = tmp_path / "attendance.csv"
+    today = datetime.now().strftime("%Y-%m-%d")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    rows = [
+        ["student_id", "track_id", "similarity", "date", "time", "status"],
+        ["S1", "1", "0.9", today, "09:00:00", "Present"],
+        ["S1", "2", "0.8", today, "10:00:00", "PRESENT"],
+        ["S2", "3", "0.9", yesterday, "09:00:00", "Present"],
+        ["S3", "4", "0.9", today, "11:00:00", "Absent"],
+    ]
+    with path.open("w", newline="", encoding="utf-8") as file:
+        csv.writer(file).writerows(rows)
+    original = path.read_bytes()
 
-attendance = AttendanceManager()
+    manager = _manager_for_path(path)
 
-
-# ------------------------------------------------------------
-# Show existing count
-# ------------------------------------------------------------
-
-print(
-    f"Today's attendance count: "
-    f"{attendance.get_today_count()}"
-)
-
-
-# ------------------------------------------------------------
-# Test Student
-# ------------------------------------------------------------
-
-student_id = "24AD095"
+    assert manager.get_today_count() == 1
+    assert path.read_bytes() == original
 
 
-print()
-print(
-    f"Testing Student ID: {student_id}"
-)
+def test_today_count_returns_zero_when_file_is_missing(tmp_path):
+    manager = _manager_for_path(tmp_path / "missing.csv")
+
+    assert manager.get_today_count() == 0
 
 
-# ------------------------------------------------------------
-# Mark attendance
-# ------------------------------------------------------------
+def test_mark_present_updates_today_count_once(tmp_path):
+    manager = _manager_for_path(tmp_path / "attendance.csv")
 
-marked = attendance.mark_attendance(
-    student_id
-)
-
-
-if marked:
-
-    print(
-        f"SUCCESS: {student_id} marked Present."
-    )
-
-else:
-
-    print(
-        f"INFO: {student_id} was already marked today."
-    )
-
-
-# ------------------------------------------------------------
-# Final count
-# ------------------------------------------------------------
-
-print()
-print(
-    f"Today's attendance count: "
-    f"{attendance.get_today_count()}"
-)
-
-print("=" * 60)
-print("STEP 7 ATTENDANCE MANAGER TEST COMPLETE")
-print("=" * 60)
+    assert manager.mark_present("S1", track_id=7, similarity=0.91) is True
+    assert manager.mark_present("S1", track_id=7, similarity=0.91) is False
+    assert manager.get_today_count() == 1
+    assert manager.get_present_count() == 1
