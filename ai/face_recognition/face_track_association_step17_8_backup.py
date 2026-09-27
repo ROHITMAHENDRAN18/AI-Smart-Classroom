@@ -82,10 +82,6 @@ last_attention_state = {}
 
 last_attention_values = {}
 
-last_attention_database_write = {}
-
-ATTENTION_DATABASE_INTERVAL = 1.0
-
 
 # ============================================================
 # DASHBOARD STATE
@@ -900,16 +896,7 @@ if not camera.isOpened():
 try:
 
     database_session_id = (
-        "SESSION_"
-        + datetime.now().strftime(
-            "%Y%m%d_%H%M%S_%f"
-        )
-    )
-
-    database_session_id = (
-        classroom_database.start_session(
-            session_id=database_session_id
-        ).session_id
+        classroom_database.start_session()
     )
 
 except Exception as error:
@@ -1296,10 +1283,8 @@ while True:
             try:
 
                 classroom_database.record_attendance(
-                    session_id=database_session_id,
-                    student_id=str(
-                        recognized_id
-                    ),
+                    student_id=recognized_id,
+                    track_id=track_id,
                     confidence=similarity
                 )
 
@@ -1338,62 +1323,6 @@ while True:
             track_id,
             raw_attention_state
         )
-
-        # ----------------------------------------------------
-        # POSTGRESQL ATTENTION PERSISTENCE
-        # ----------------------------------------------------
-
-        if (
-            recognized_id is not None
-            and
-            attention_state in (
-                "ATTENTIVE",
-                "NOT ATTENTIVE"
-            )
-        ):
-
-            database_student_id = str(
-                recognized_id
-            )
-
-            current_attention_time = time.time()
-
-            last_database_write = (
-                last_attention_database_write.get(
-                    database_student_id,
-                    0.0
-                )
-            )
-
-            if (
-                current_attention_time
-                -
-                last_database_write
-                >=
-                ATTENTION_DATABASE_INTERVAL
-            ):
-
-                last_attention_database_write[
-                    database_student_id
-                ] = current_attention_time
-
-                try:
-
-                    classroom_database.record_attention(
-                        session_id=database_session_id,
-                        student_id=database_student_id,
-                        track_id=int(
-                            track_id
-                        ),
-                        attention_state=attention_state,
-                        confidence=None
-                    )
-
-                except Exception as error:
-
-                    print(
-                        f"[DATABASE] Attention persistence error: {error}"
-                    )
 
         # ----------------------------------------------------
         # STORE LAST NUMERIC VALUES

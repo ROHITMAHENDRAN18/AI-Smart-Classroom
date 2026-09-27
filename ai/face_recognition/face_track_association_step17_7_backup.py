@@ -23,7 +23,6 @@ from configs.settings import (
 from ai.attendance.attendance_manager import AttendanceManager
 from ai.tracking.student_tracker import StudentTracker
 from dashboard.camera_stream import CameraStream
-from ai.database.classroom_database import ClassroomDatabase
 
 
 # ============================================================
@@ -82,10 +81,6 @@ last_attention_state = {}
 
 last_attention_values = {}
 
-last_attention_database_write = {}
-
-ATTENTION_DATABASE_INTERVAL = 1.0
-
 
 # ============================================================
 # DASHBOARD STATE
@@ -102,7 +97,8 @@ def save_dashboard_state(
     """
     Save live classroom information.
 
-    This file is consumed by the Classroom Dashboard.
+    This file is consumed by STEP 10
+    Classroom Dashboard.
     """
 
     try:
@@ -821,21 +817,6 @@ print(
 
 
 # ============================================================
-# POSTGRESQL DATABASE
-# ============================================================
-
-print("=" * 60)
-print("Loading Classroom Database...")
-print("=" * 60)
-
-classroom_database = ClassroomDatabase()
-
-print(
-    "Classroom Database Loaded Successfully."
-)
-
-
-# ============================================================
 # INSIGHTFACE
 # ============================================================
 
@@ -894,39 +875,6 @@ if not camera.isOpened():
 
 
 # ============================================================
-# START POSTGRESQL CLASSROOM SESSION
-# ============================================================
-
-try:
-
-    database_session_id = (
-        "SESSION_"
-        + datetime.now().strftime(
-            "%Y%m%d_%H%M%S_%f"
-        )
-    )
-
-    database_session_id = (
-        classroom_database.start_session(
-            session_id=database_session_id
-        ).session_id
-    )
-
-except Exception as error:
-
-    print(
-        "[DATABASE] Could not start "
-        f"classroom session: {error}"
-    )
-
-    camera.release()
-
-    cv2.destroyAllWindows()
-
-    raise SystemExit(1)
-
-
-# ============================================================
 # MAIN LOOP
 # ============================================================
 
@@ -938,14 +886,6 @@ print("=" * 60)
 print(
     "Face + Person + ByteTrack + "
     "Student Association + Attendance + Attention"
-)
-
-print(
-    "PostgreSQL attendance persistence: ENABLED"
-)
-
-print(
-    f"Database Session: {database_session_id}"
 )
 
 print(
@@ -966,7 +906,6 @@ print("=" * 60)
 tracked_person_count = 0
 
 present_students = 0
-
 
 while True:
 
@@ -1272,7 +1211,7 @@ while True:
                 )
 
             # ------------------------------------------------
-            # EXISTING ATTENDANCE MANAGER
+            # ATTENDANCE
             # ------------------------------------------------
 
             try:
@@ -1287,27 +1226,6 @@ while True:
 
                 print(
                     f"[ATTENDANCE] Error: {error}"
-                )
-
-            # ------------------------------------------------
-            # POSTGRESQL ATTENDANCE
-            # ------------------------------------------------
-
-            try:
-
-                classroom_database.record_attendance(
-                    session_id=database_session_id,
-                    student_id=str(
-                        recognized_id
-                    ),
-                    confidence=similarity
-                )
-
-            except Exception as error:
-
-                print(
-                    "[DATABASE ATTENDANCE] "
-                    f"Error: {error}"
                 )
 
         # ----------------------------------------------------
@@ -1338,62 +1256,6 @@ while True:
             track_id,
             raw_attention_state
         )
-
-        # ----------------------------------------------------
-        # POSTGRESQL ATTENTION PERSISTENCE
-        # ----------------------------------------------------
-
-        if (
-            recognized_id is not None
-            and
-            attention_state in (
-                "ATTENTIVE",
-                "NOT ATTENTIVE"
-            )
-        ):
-
-            database_student_id = str(
-                recognized_id
-            )
-
-            current_attention_time = time.time()
-
-            last_database_write = (
-                last_attention_database_write.get(
-                    database_student_id,
-                    0.0
-                )
-            )
-
-            if (
-                current_attention_time
-                -
-                last_database_write
-                >=
-                ATTENTION_DATABASE_INTERVAL
-            ):
-
-                last_attention_database_write[
-                    database_student_id
-                ] = current_attention_time
-
-                try:
-
-                    classroom_database.record_attention(
-                        session_id=database_session_id,
-                        student_id=database_student_id,
-                        track_id=int(
-                            track_id
-                        ),
-                        attention_state=attention_state,
-                        confidence=None
-                    )
-
-                except Exception as error:
-
-                    print(
-                        f"[DATABASE] Attention persistence error: {error}"
-                    )
 
         # ----------------------------------------------------
         # STORE LAST NUMERIC VALUES
@@ -1884,12 +1746,6 @@ while True:
 camera.release()
 
 cv2.destroyAllWindows()
-
-# ------------------------------------------------------------
-# FINISH POSTGRESQL CLASSROOM SESSION
-# ------------------------------------------------------------
-
-classroom_database.finish_session()
 
 
 # ============================================================

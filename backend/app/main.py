@@ -3,6 +3,7 @@ from backend.utils.logger import logger
 from backend.exceptions.handlers import generic_exception_handler
 from backend.routes.database import router as database_router
 from backend.routes.students import router as student_router
+from backend.routes.history import router as history_router
 
 from configs.config import (
     PROJECT_NAME,
@@ -32,6 +33,10 @@ app.include_router(
 )
 app.include_router(
     student_router,
+    prefix=API_VERSION,
+)
+app.include_router(
+    history_router,
     prefix=API_VERSION,
 )
 

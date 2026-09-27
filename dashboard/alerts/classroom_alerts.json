@@ -406,6 +406,207 @@
         "track_id": 1,
         "alert_type": "NOT_ATTENTIVE",
         "message": "Student 24AD095 is currently not attentive.",
-        "status": "ACTIVE"
+        "status": "CLEARED",
+        "cleared_at": "2026-09-22T09:12:50"
+    },
+    {
+        "alert_id": "ALERT_20260922_091009_047300",
+        "timestamp": "2026-09-22T09:10:09",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-22T09:12:49"
+    },
+    {
+        "alert_id": "ALERT_20260922_091035_033321",
+        "timestamp": "2026-09-22T09:10:35",
+        "student_id": "24AD095",
+        "track_id": 2,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-22T09:12:48"
+    },
+    {
+        "alert_id": "ALERT_20260922_091056_032312",
+        "timestamp": "2026-09-22T09:10:56",
+        "student_id": "UNKNOWN",
+        "track_id": 9,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-22T09:12:48"
+    },
+    {
+        "alert_id": "ALERT_20260922_091126_032940",
+        "timestamp": "2026-09-22T09:11:26",
+        "student_id": "UNKNOWN",
+        "track_id": 8,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-22T09:12:47"
+    },
+    {
+        "alert_id": "ALERT_20260922_091203_033191",
+        "timestamp": "2026-09-22T09:12:03",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-22T09:12:47"
+    },
+    {
+        "alert_id": "ALERT_20260922_091234_031805",
+        "timestamp": "2026-09-22T09:12:34",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-22T09:12:47"
+    },
+    {
+        "alert_id": "ALERT_20260922_091237_033403",
+        "timestamp": "2026-09-22T09:12:37",
+        "student_id": "24AD095",
+        "track_id": 2,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student 24AD095 is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-22T09:12:45"
+    },
+    {
+        "alert_id": "ALERT_20260922_091304_032201",
+        "timestamp": "2026-09-22T09:13:04",
+        "student_id": "UNKNOWN",
+        "track_id": 3,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:11"
+    },
+    {
+        "alert_id": "ALERT_20260922_091348_039688",
+        "timestamp": "2026-09-22T09:13:48",
+        "student_id": "UNKNOWN",
+        "track_id": 1,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:12"
+    },
+    {
+        "alert_id": "ALERT_20260922_093000_305583",
+        "timestamp": "2026-09-22T09:30:00",
+        "student_id": "UNKNOWN",
+        "track_id": 5,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:12"
+    },
+    {
+        "alert_id": "ALERT_20260922_093030_305764",
+        "timestamp": "2026-09-22T09:30:30",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:12"
+    },
+    {
+        "alert_id": "ALERT_20260922_093101_304376",
+        "timestamp": "2026-09-22T09:31:01",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:12"
+    },
+    {
+        "alert_id": "ALERT_20260922_093133_306738",
+        "timestamp": "2026-09-22T09:31:33",
+        "student_id": "UNKNOWN",
+        "track_id": 18,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:12"
+    },
+    {
+        "alert_id": "ALERT_20260922_093204_305724",
+        "timestamp": "2026-09-22T09:32:04",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:12"
+    },
+    {
+        "alert_id": "ALERT_20260922_093234_312217",
+        "timestamp": "2026-09-22T09:32:34",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:13"
+    },
+    {
+        "alert_id": "ALERT_20260922_093305_305082",
+        "timestamp": "2026-09-22T09:33:05",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:13"
+    },
+    {
+        "alert_id": "ALERT_20260922_093335_305149",
+        "timestamp": "2026-09-22T09:33:35",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:13"
+    },
+    {
+        "alert_id": "ALERT_20260922_093405_316202",
+        "timestamp": "2026-09-22T09:34:05",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:13"
+    },
+    {
+        "alert_id": "ALERT_20260922_093437_265242",
+        "timestamp": "2026-09-22T09:34:37",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:13"
+    },
+    {
+        "alert_id": "ALERT_20260922_093509_261815",
+        "timestamp": "2026-09-22T09:35:09",
+        "student_id": "UNKNOWN",
+        "track_id": 4,
+        "alert_type": "NOT_ATTENTIVE",
+        "message": "Student UNKNOWN is currently not attentive.",
+        "status": "CLEARED",
+        "cleared_at": "2026-09-27T12:58:13"
     }
 ]
