@@ -30,6 +30,12 @@ SESSIONS_DIR = os.path.join(
     "sessions"
 )
 
+STUDENT_REPORTS_DIR = os.path.join(
+    BASE_DIR,
+    "reports",
+    "student"
+)
+
 DEFAULT_STATE = {
     "timestamp": "Waiting for STEP 9...",
     "tracked_persons": 0,
@@ -1784,7 +1790,6 @@ DASHBOARD_HTML = r"""
     </div>
 
 
-
     <div
         class="panel"
         style="
@@ -2944,6 +2949,7 @@ async function updateAlerts() {
                             ${alert.timestamp}
 
                             |
+
                             Track:
                             ${alert.track_id ?? "-"}
 
@@ -3078,7 +3084,7 @@ async function clearAlert(
     catch (error) {
 
         console.error(
-            "Clear alert error:",
+            "Clear error:",
             error
         );
 
@@ -3948,7 +3954,6 @@ class ClassroomDashboardHandler(
         )
 
 
-
         if path == "/video":
 
             try:
@@ -4058,6 +4063,97 @@ class ClassroomDashboardHandler(
             return
 
 
+        # ------------------------------------------------
+        # STUDENT HTML REPORT
+        # ------------------------------------------------
+
+        if path.startswith(
+            "/reports/student/"
+        ):
+
+            student_id = path[
+                len("/reports/student/"):
+            ].strip("/")
+
+
+            if (
+                not student_id
+                or "/" in student_id
+                or "\\" in student_id
+                or ".." in student_id
+            ):
+
+                self.send_json(
+                    {
+                        "error":
+                            "Invalid student report"
+                    },
+                    status=400
+                )
+
+                return
+
+
+            report_file = os.path.join(
+                STUDENT_REPORTS_DIR,
+                f"{student_id}_attention_report.html"
+            )
+
+
+            if not os.path.isfile(
+                report_file
+            ):
+
+                self.send_json(
+                    {
+                        "error":
+                            "Student report not found",
+
+                        "student_id":
+                            student_id
+                    },
+                    status=404
+                )
+
+                return
+
+
+            try:
+
+                with open(
+                    report_file,
+                    "r",
+                    encoding="utf-8"
+                ) as file:
+
+                    report_html = file.read()
+
+
+                self.send_html(
+                    report_html
+                )
+
+                return
+
+
+            except Exception as error:
+
+                print(
+                    f"[REPORT ERROR] {error}"
+                )
+
+
+                self.send_json(
+                    {
+                        "error":
+                            "Unable to read student report"
+                    },
+                    status=500
+                )
+
+                return
+
+
         if path == "/health":
 
             self.send_json({
@@ -4091,9 +4187,10 @@ class ClassroomDashboardHandler(
             generated_alerts = []
 
             if ALERT_MANAGER is not None:
+
                 generated_alerts = ALERT_MANAGER.process_state(
-                  state
-                     )
+                    state
+                )
 
 
             self.send_json(
@@ -4122,11 +4219,11 @@ class ClassroomDashboardHandler(
 
             if ALERT_MANAGER is not None:
 
-                alerts =    ALERT_MANAGER.get_alerts(
-                        limit=50
-                    )
+                alerts = ALERT_MANAGER.get_alerts(
+                    limit=50
+                )
 
-                statistics =     ALERT_MANAGER.get_statistics()
+                statistics = ALERT_MANAGER.get_statistics()
 
 
             self.send_json({
@@ -4147,10 +4244,10 @@ class ClassroomDashboardHandler(
 
         if path == "/api/alerts/acknowledge":
 
-            alert_id =    query.get(
-                    "alert_id",
-                    [None]
-                )[0]
+            alert_id = query.get(
+                "alert_id",
+                [None]
+            )[0]
 
 
             result = None
@@ -4161,9 +4258,9 @@ class ClassroomDashboardHandler(
                 and alert_id
             ):
 
-                result =    ALERT_MANAGER.acknowledge_alert(
-                        alert_id
-                    )
+                result = ALERT_MANAGER.acknowledge_alert(
+                    alert_id
+                )
 
 
             self.send_json({
@@ -4181,10 +4278,10 @@ class ClassroomDashboardHandler(
 
         if path == "/api/alerts/clear":
 
-            alert_id =   query.get(
-                    "alert_id",
-                    [None]
-                )[0]
+            alert_id = query.get(
+                "alert_id",
+                [None]
+            )[0]
 
 
             result = None
@@ -4195,9 +4292,9 @@ class ClassroomDashboardHandler(
                 and alert_id
             ):
 
-                result =   ALERT_MANAGER.clear_alert(
-                        alert_id
-                    )
+                result = ALERT_MANAGER.clear_alert(
+                    alert_id
+                )
 
 
             self.send_json({
@@ -4215,7 +4312,7 @@ class ClassroomDashboardHandler(
 
         if path == "/api/sessions":
 
-            sessions =    list_sessions()
+            sessions = list_sessions()
 
 
             self.send_json(
@@ -4227,15 +4324,15 @@ class ClassroomDashboardHandler(
 
         if path == "/api/session":
 
-            session_id =    query.get(
-                    "session_id",
-                    [None]
-                )[0]
+            session_id = query.get(
+                "session_id",
+                [None]
+            )[0]
 
 
-            session =     load_session(
-                    session_id
-                )
+            session = load_session(
+                session_id
+            )
 
 
             if session is None:
@@ -4260,15 +4357,15 @@ class ClassroomDashboardHandler(
 
         if path == "/api/analytics":
 
-            session_id =    query.get(
-                    "session_id",
-                    [None]
-                )[0]
+            session_id = query.get(
+                "session_id",
+                [None]
+            )[0]
 
 
-            session =   load_session(
-                    session_id
-                )
+            session = load_session(
+                session_id
+            )
 
 
             if session is None:
@@ -4284,9 +4381,9 @@ class ClassroomDashboardHandler(
                 return
 
 
-            analytics =  calculate_analytics(
-                    session
-                )
+            analytics = calculate_analytics(
+                session
+            )
 
 
             self.send_json(
@@ -4314,20 +4411,31 @@ class ClassroomDashboardHandler(
             return
 
 
-        if path.startswith("/api/db-history/session/"):
+        if path.startswith(
+            "/api/db-history/session/"
+        ):
 
-            session_id = path[len("/api/db-history/session/"):]
-            summary = get_database_session_summary(session_id)
+            session_id = path[
+                len("/api/db-history/session/"):
+            ]
+
+            summary = get_database_session_summary(
+                session_id
+            )
 
             if summary is None:
+
                 self.send_json(
                     {
                         "success": False,
-                        "error": "Database session not found",
+                        "error":
+                            "Database session not found",
                     },
                     404,
                 )
+
                 return
+
 
             self.send_json(
                 {
@@ -4378,10 +4486,15 @@ def main():
         exist_ok=True
     )
 
+    os.makedirs(
+        STUDENT_REPORTS_DIR,
+        exist_ok=True
+    )
 
-    SESSION_MANAGER =  ClassroomSessionManager(
-            sessions_dir=SESSIONS_DIR
-        )
+
+    SESSION_MANAGER = ClassroomSessionManager(
+        sessions_dir=SESSIONS_DIR
+    )
 
 
     ALERT_MANAGER = ClassroomAlertManager()
@@ -4390,13 +4503,13 @@ def main():
     SESSION_MANAGER.start_session()
 
 
-    server =ThreadingHTTPServer(
-            (
-                HOST,
-                PORT
-            ),
-            ClassroomDashboardHandler
-        )
+    server = ThreadingHTTPServer(
+        (
+            HOST,
+            PORT
+        ),
+        ClassroomDashboardHandler
+    )
 
 
     print()
@@ -4426,6 +4539,10 @@ def main():
     )
 
     print(
+        "PHASE 19 - STUDENT HTML REPORTS"
+    )
+
+    print(
         "=" * 65
     )
 
@@ -4447,10 +4564,18 @@ def main():
         f"Alerts    : http://{HOST}:{PORT}/api/alerts"
     )
 
+    print(
+        f"Reports   : http://{HOST}:{PORT}/reports/student/<student_id>"
+    )
+
     print()
 
     print(
         f"Sessions  : {SESSIONS_DIR}"
+    )
+
+    print(
+        f"Reports   : {STUDENT_REPORTS_DIR}"
     )
 
     print()
@@ -4497,6 +4622,8 @@ def main():
         print(
             "Dashboard stopped."
         )
+
+
 if __name__ == "__main__":
 
     main()

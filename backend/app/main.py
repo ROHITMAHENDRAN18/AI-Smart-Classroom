@@ -4,11 +4,16 @@ from backend.exceptions.handlers import generic_exception_handler
 from backend.routes.database import router as database_router
 from backend.routes.students import router as student_router
 from backend.routes.history import router as history_router
+from backend.routes.analytics import router as analytics_router
+from backend.routes.health import router as health_router
 
 from configs.config import (
     PROJECT_NAME,
     PROJECT_VERSION,
     API_VERSION,
+)
+from backend.routes.analytics import (
+    router as analytics_router
 )
 
 from backend.routes.health import router as health_router
@@ -37,6 +42,10 @@ app.include_router(
 )
 app.include_router(
     history_router,
+    prefix=API_VERSION,
+)
+app.include_router(
+    analytics_router,
     prefix=API_VERSION,
 )
 
