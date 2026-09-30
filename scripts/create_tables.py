@@ -1,14 +1,27 @@
 from backend.database.base import Base
 from backend.database.connection import engine
 
-from backend.models.student import Student
-from backend.models.classroom_session import ClassroomSession
-from backend.models.attendance_record import AttendanceRecord
-from backend.models.attention_record import AttentionRecord
+from backend.models import (
+    Student,
+    ClassroomSession,
+    AttendanceRecord,
+    AttentionRecord,
+    User,
+    Teacher,
+    Classroom,
+    ClassroomMember,
+)
 
 
-print("Creating database tables...")
+def create_tables():
+    print("Creating database tables...")
 
-Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(
+        bind=engine
+    )
 
-print("Database tables created successfully!")
+    print("Database tables created successfully.")
+
+
+if __name__ == "__main__":
+    create_tables()

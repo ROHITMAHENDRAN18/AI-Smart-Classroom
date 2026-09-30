@@ -1,167 +1,133 @@
-from dotenv import load_dotenv
-import math
 import os
+
+from dotenv import load_dotenv
 
 
 load_dotenv()
 
 
-def get_required(name):
+def get_required(name: str) -> str:
     value = os.getenv(name)
 
-    if value is None or value.strip() == "":
-        raise ValueError(
-            f"CONFIGURATION ERROR: Required environment variable '{name}' is missing."
+    if not value:
+        raise RuntimeError(
+            f"Required environment variable '{name}' is not set."
         )
 
-    return value.strip()
+    return value
 
 
-def get_int(name, minimum=None, maximum=None):
-    value = get_required(name)
+def get_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
 
-    try:
-        result = int(value)
-    except ValueError:
-        raise ValueError(
-            f"CONFIGURATION ERROR: '{name}' must be an integer. "
-            f"Current value: {value}"
-        )
+    if value is None:
+        return default
 
-    if minimum is not None and result < minimum:
-        raise ValueError(
-            f"CONFIGURATION ERROR: '{name}' must be >= {minimum}. "
-            f"Current value: {result}"
-        )
-
-    if maximum is not None and result > maximum:
-        raise ValueError(
-            f"CONFIGURATION ERROR: '{name}' must be <= {maximum}. "
-            f"Current value: {result}"
-        )
-
-    return result
+    return value.lower() in {"1", "true", "yes", "on"}
 
 
-def get_float(name, minimum=None, maximum=None, exclusive_minimum=False):
-    value = get_required(name)
+def get_float(name: str, default: float) -> float:
+    value = os.getenv(name)
 
-    try:
-        result = float(value)
-    except ValueError:
-        raise ValueError(
-            f"CONFIGURATION ERROR: '{name}' must be a number. "
-            f"Current value: {value}"
-        )
+    if value is None:
+        return default
 
-    if minimum is not None:
-        if exclusive_minimum and result <= minimum:
-            raise ValueError(
-                f"CONFIGURATION ERROR: '{name}' must be > {minimum}. "
-                f"Current value: {result}"
-            )
-
-        if not exclusive_minimum and result < minimum:
-            raise ValueError(
-                f"CONFIGURATION ERROR: '{name}' must be >= {minimum}. "
-                f"Current value: {result}"
-            )
-
-    if maximum is not None and result > maximum:
-        raise ValueError(
-            f"CONFIGURATION ERROR: '{name}' must be <= {maximum}. "
-            f"Current value: {result}"
-        )
-
-    return result
+    return float(value)
 
 
-def get_bool(name):
-    value = get_required(name).lower()
+def get_int(name: str, default: int) -> int:
+    value = os.getenv(name)
 
-    if value == "true":
-        return True
+    if value is None:
+        return default
 
-    if value == "false":
-        return False
-
-    raise ValueError(
-        f"CONFIGURATION ERROR: '{name}' must be True or False. "
-        f"Current value: {value}"
-    )
+    return int(value)
 
 
-PROJECT_NAME = get_required("PROJECT_NAME")
-PROJECT_VERSION = get_required("PROJECT_VERSION")
-API_VERSION = get_required("API_VERSION")
+PROJECT_NAME = os.getenv(
+    "PROJECT_NAME",
+    "AI Smart Classroom Attention Monitoring",
+)
 
-HOST = get_required("HOST")
+PROJECT_VERSION = os.getenv(
+    "PROJECT_VERSION",
+    "1.0.0",
+)
+
+HOST = os.getenv(
+    "HOST",
+    "127.0.0.1",
+)
 
 PORT = get_int(
     "PORT",
-    minimum=1,
-    maximum=65535
+    8000,
 )
 
-DEBUG = get_bool("DEBUG")
+DEBUG = get_bool(
+    "DEBUG",
+    True,
+)
 
-DATABASE_URL = get_required("DATABASE_URL")
+DATABASE_URL = get_required(
+    "DATABASE_URL",
+)
 
-CAMERA_SOURCE = get_int(
+CAMERA_SOURCE = os.getenv(
     "CAMERA_SOURCE",
-    minimum=0
+    "0",
 )
 
 ATTENDANCE_THRESHOLD = get_float(
     "ATTENDANCE_THRESHOLD",
-    minimum=0.0,
-    maximum=1.0
+    0.70,
 )
 
 ATTENTION_THRESHOLD = get_float(
     "ATTENTION_THRESHOLD",
-    minimum=0.0,
-    maximum=1.0
+    0.60,
 )
 
-YOLO_MODEL = get_required("YOLO_MODEL")
+API_VERSION = os.getenv(
+    "API_VERSION",
+    "/api/v1",
+)
+
+YOLO_MODEL = os.getenv(
+    "YOLO_MODEL",
+    "yolov8m.pt",
+)
 
 CAMERA_INDEX = get_int(
     "CAMERA_INDEX",
-    minimum=0
+    0,
 )
 
 FACE_RECOGNITION_THRESHOLD = get_float(
     "FACE_RECOGNITION_THRESHOLD",
-    minimum=0.0,
-    maximum=1.0
+    0.50,
 )
 
 DASHBOARD_UPDATE_INTERVAL = get_float(
     "DASHBOARD_UPDATE_INTERVAL",
-    minimum=0.0,
-    exclusive_minimum=True
+    0.5,
 )
 
-DATABASE_ATTENTION_UPDATE_INTERVAL = float(
-    os.getenv(
-        "DATABASE_ATTENTION_UPDATE_INTERVAL",
-        "1.0"
-    )
+DATABASE_ATTENTION_UPDATE_INTERVAL = get_float(
+    "DATABASE_ATTENTION_UPDATE_INTERVAL",
+    1.0,
 )
 
-if (
-    not math.isfinite(DATABASE_ATTENTION_UPDATE_INTERVAL)
-    or DATABASE_ATTENTION_UPDATE_INTERVAL <= 0.0
-):
-    raise ValueError(
-        "CONFIGURATION ERROR: 'DATABASE_ATTENTION_UPDATE_INTERVAL' must be a finite number greater than 0."
-    )
-
-DASHBOARD_HOST = get_required("DASHBOARD_HOST")
+DASHBOARD_HOST = os.getenv(
+    "DASHBOARD_HOST",
+    "127.0.0.1",
+)
 
 DASHBOARD_PORT = get_int(
     "DASHBOARD_PORT",
-    minimum=1,
-    maximum=65535
+    5050,
+)
+
+JWT_SECRET_KEY = get_required(
+    "JWT_SECRET_KEY",
 )
