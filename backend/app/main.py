@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.exceptions.handlers import generic_exception_handler
 from backend.routes.analytics import router as analytics_router
@@ -32,7 +33,16 @@ app = FastAPI(
     version=PROJECT_VERSION,
     description="Backend API for AI Smart Classroom",
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.add_exception_handler(
     Exception,
