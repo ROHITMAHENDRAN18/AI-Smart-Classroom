@@ -128,9 +128,12 @@ export function getSessionErrorMessage(error, action = 'load') {
   }
 
   if (!error?.response) {
-    return error?.message?.startsWith('Set VITE_DEFAULT_CLASSROOM_ID')
-      ? error.message
-      : 'Cannot reach the classroom session service. Check that the FastAPI backend is running, then retry.'
+    if (error?.isAxiosError) {
+      return 'Cannot reach the classroom session service. Check that the FastAPI backend is running, then retry.'
+    }
+
+    return error?.message ||
+      'The session service returned an unexpected response. Please retry.'
   }
 
   const { status } = error.response
