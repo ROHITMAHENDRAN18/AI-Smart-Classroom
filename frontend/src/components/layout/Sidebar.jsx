@@ -3,24 +3,16 @@ import {
   BarChart3,
   Bell,
   BookOpen,
-  CalendarCheck2,
   ChevronLeft,
-  ChevronRight,
   LayoutDashboard,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
-  Settings,
+  Timer,
   Users,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
-import {
-  ClipboardCheck,
-} from 'lucide-react'
-import {
-  Timer,
-} from 'lucide-react'
-
+import { ClipboardCheck } from 'lucide-react'
 
 const navigation = [
   {
@@ -32,6 +24,11 @@ const navigation = [
     label: 'Classroom',
     path: '/dashboard/classroom',
     icon: BookOpen,
+  },
+  {
+    label: 'Live Monitoring',
+    path: '/dashboard/live',
+    icon: Activity,
   },
   {
     label: 'Students',
@@ -58,11 +55,11 @@ const navigation = [
     path: '/dashboard/reports',
     icon: Activity,
   },
-{
-  label: 'Session Control',
-  path: '/dashboard/session',
-  icon: Timer,
-}
+  {
+    label: 'Session Control',
+    path: '/dashboard/session',
+    icon: Timer,
+  },
 ]
 
 export default function Sidebar({
@@ -190,30 +187,6 @@ export default function Sidebar({
             })}
           </nav>
 
-          {!collapsed && (
-            <div className="mt-8">
-              <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
-                System
-              </p>
-
-              <NavLink
-                to="/dashboard/settings"
-                onClick={onCloseMobile}
-                className={({ isActive }) =>
-                  [
-                    'group flex items-center gap-3 rounded-xl px-3 py-2.5',
-                    'text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-blue-500/10 text-blue-400'
-                      : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-200',
-                  ].join(' ')
-                }
-              >
-                <Settings size={18} />
-                Settings
-              </NavLink>
-            </div>
-          )}
         </div>
 
         <div className="border-t border-slate-800 p-3">

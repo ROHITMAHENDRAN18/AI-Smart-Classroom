@@ -16,13 +16,25 @@ const pageTitles = {
     title: 'Classroom',
     description: 'Live classroom monitoring',
   },
+  '/dashboard/live': {
+    title: 'Live Monitoring',
+    description: 'Monitor classroom activity in real time',
+  },
   '/dashboard/students': {
     title: 'Students',
     description: 'Student attention and attendance',
   },
+  '/dashboard/students/attention': {
+    title: 'Student Attention',
+    description: 'Current attention state of detected students',
+  },
   '/dashboard/attendance': {
     title: 'Attendance',
     description: 'Attendance records and history',
+  },
+  '/dashboard/session': {
+    title: 'Session Control',
+    description: 'Start, monitor, and stop classroom sessions',
   },
   '/dashboard/analytics': {
     title: 'Analytics',
@@ -35,10 +47,6 @@ const pageTitles = {
   '/dashboard/reports': {
     title: 'Reports',
     description: 'Student and classroom reports',
-  },
-  '/dashboard/settings': {
-    title: 'Settings',
-    description: 'System preferences',
   },
 }
 

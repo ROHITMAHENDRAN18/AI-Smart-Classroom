@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.exceptions.handlers import generic_exception_handler
+from backend.routes.alerts import router as alerts_router
 from backend.routes.analytics import router as analytics_router
 from backend.routes.database import router as database_router
 from backend.routes.health import router as health_router
@@ -77,6 +78,11 @@ app.include_router(
 
 app.include_router(
     history_router,
+    prefix=API_VERSION,
+)
+
+app.include_router(
+    alerts_router,
     prefix=API_VERSION,
 )
 

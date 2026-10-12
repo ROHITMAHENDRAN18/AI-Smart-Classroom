@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   AlertCircle,
   BookOpen,
-  CheckCircle2,
   Clock3,
   Mail,
   RefreshCw,

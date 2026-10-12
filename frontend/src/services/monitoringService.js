@@ -1,56 +1,98 @@
-import axios from 'axios'
+import api from './api'
 
-const monitoringApi = axios.create({
-  baseURL: '/monitoring',
-  timeout: 5000,
-})
-
-export async function getMonitoringState() {
-  const response = await monitoringApi.get('/api/state')
-
-  return response.data
+export class MonitoringServiceError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'MonitoringServiceError'
+  }
 }
 
-export async function getMonitoringAlerts() {
-  const response = await monitoringApi.get('/api/alerts')
-
-  return response.data
-}
-
-export async function acknowledgeMonitoringAlert(alertId) {
-  if (!alertId) {
-    throw new Error('Alert ID is required.')
+function normalizeAlert(alert) {
+  if (
+    !alert ||
+    typeof alert !== 'object' ||
+    typeof alert.alert_id !== 'string' ||
+    typeof alert.alert_type !== 'string' ||
+    typeof alert.message !== 'string' ||
+    typeof alert.timestamp !== 'string' ||
+    typeof alert.session_id !== 'string' ||
+    typeof alert.student_id !== 'string' ||
+    (alert.severity !== null && typeof alert.severity !== 'string') ||
+    (alert.track_id !== null && typeof alert.track_id !== 'number')
+  ) {
+    throw new MonitoringServiceError(
+      'The alert service returned an unexpected response. Please retry.',
+    )
   }
 
-  const response = await monitoringApi.get(
-    '/api/alerts/acknowledge',
-    {
-      params: {
-        alert_id: alertId,
-      },
-    },
-  )
-
-  return response.data
+  return {
+    alert_id: alert.alert_id,
+    alert_type: alert.alert_type,
+    message: alert.message,
+    severity: alert.severity,
+    timestamp: alert.timestamp,
+    session_id: alert.session_id,
+    student_id: alert.student_id,
+    track_id: alert.track_id,
+  }
 }
 
-export async function clearMonitoringAlert(alertId) {
-  if (!alertId) {
-    throw new Error('Alert ID is required.')
+export async function getMonitoringAlerts({
+  limit = 50,
+  offset = 0,
+  sessionId,
+  signal,
+} = {}) {
+  const params = { limit, offset }
+
+  if (sessionId) {
+    params.session_id = sessionId
   }
 
-  const response = await monitoringApi.get(
-    '/api/alerts/clear',
-    {
-      params: {
-        alert_id: alertId,
-      },
-    },
-  )
+  const response = await api.get('/alerts', {
+    params,
+    signal,
+  })
 
-  return response.data
+  if (!Array.isArray(response.data)) {
+    throw new MonitoringServiceError(
+      'The alert service returned an unexpected response. Please retry.',
+    )
+  }
+
+  return response.data.map(normalizeAlert)
 }
 
-export function getMonitoringVideoUrl() {
-  return '/monitoring/video'
+export function getMonitoringErrorMessage(error) {
+  if (error instanceof MonitoringServiceError) {
+    return error.message
+  }
+
+  if (error?.code === 'ERR_CANCELED') {
+    return ''
+  }
+
+  if (error?.isAxiosError) {
+    if (error.code === 'ECONNABORTED' || !error.response) {
+      return 'Cannot reach the alert service. Check that the FastAPI backend is running, then retry.'
+    }
+
+    const { status } = error.response
+
+    if (status === 401) {
+      return 'Your session has expired. Please log in again.'
+    }
+
+    if (status === 403) {
+      return 'You do not have permission to view these alerts.'
+    }
+
+    if (status >= 500) {
+      return 'The alert service encountered a server error. Please retry shortly.'
+    }
+
+    return `The alert request failed (HTTP ${status}). Please retry.`
+  }
+
+  return 'Unable to load alerts. Please retry.'
 }
