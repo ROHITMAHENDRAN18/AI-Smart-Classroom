@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.auth.dependencies import get_current_user
@@ -14,6 +15,7 @@ from backend.schemas.classroom_session import (
     SessionStartResponse,
     SessionStopResponse,
 )
+from backend.utils.logger import logger
 
 
 router = APIRouter(
@@ -51,15 +53,21 @@ def get_teacher_classroom(
     classroom_id: int,
     teacher_id: int,
     db: Session,
+    *,
+    lock: bool = False,
 ) -> Classroom:
-    classroom = (
+    query = (
         db.query(Classroom)
         .filter(
             Classroom.id == classroom_id,
             Classroom.teacher_id == teacher_id,
         )
-        .first()
     )
+
+    if lock:
+        query = query.with_for_update()
+
+    classroom = query.first()
 
     if classroom is None:
         raise HTTPException(
@@ -91,50 +99,57 @@ def start_classroom_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    teacher = get_current_teacher(
-        current_user,
-        db,
-    )
-
-    get_teacher_classroom(
-        classroom_id,
-        teacher.id,
-        db,
-    )
-
-    existing_active_session = (
-        db.query(ClassroomSession)
-        .filter(
-            ClassroomSession.classroom_id == classroom_id,
-            ClassroomSession.status == "ACTIVE",
+    try:
+        teacher = get_current_teacher(
+            current_user,
+            db,
         )
-        .first()
-    )
 
-    if existing_active_session is not None:
+        get_teacher_classroom(
+            classroom_id,
+            teacher.id,
+            db,
+            lock=True,
+        )
+
+        existing_active_session = (
+            db.query(ClassroomSession)
+            .filter(
+                ClassroomSession.classroom_id == classroom_id,
+                ClassroomSession.status == "ACTIVE",
+            )
+            .first()
+        )
+
+        if existing_active_session is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="An active classroom session already exists",
+            )
+
+        session = ClassroomSession(
+            session_id=generate_session_id(),
+            classroom_id=classroom_id,
+            started_at=datetime.now(timezone.utc),
+            ended_at=None,
+            duration_seconds=None,
+            status="ACTIVE",
+        )
+
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+
+        return {
+            "session": session,
+        }
+    except SQLAlchemyError as error:
+        db.rollback()
+        logger.exception("Database failure while starting classroom session")
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="An active classroom session already exists",
-        )
-
-    now = datetime.now(timezone.utc)
-
-    session = ClassroomSession(
-        session_id=generate_session_id(),
-        classroom_id=classroom_id,
-        started_at=now,
-        ended_at=None,
-        duration_seconds=None,
-        status="ACTIVE",
-    )
-
-    db.add(session)
-    db.commit()
-    db.refresh(session)
-
-    return {
-        "session": session,
-    }
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Classroom session data is temporarily unavailable.",
+        ) from error
 
 
 @router.get(
@@ -146,34 +161,42 @@ def get_active_classroom_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    teacher = get_current_teacher(
-        current_user,
-        db,
-    )
-
-    get_teacher_classroom(
-        classroom_id,
-        teacher.id,
-        db,
-    )
-
-    session = (
-        db.query(ClassroomSession)
-        .filter(
-            ClassroomSession.classroom_id == classroom_id,
-            ClassroomSession.status == "ACTIVE",
+    try:
+        teacher = get_current_teacher(
+            current_user,
+            db,
         )
-        .order_by(ClassroomSession.id.desc())
-        .first()
-    )
 
-    if session is None:
+        get_teacher_classroom(
+            classroom_id,
+            teacher.id,
+            db,
+        )
+
+        session = (
+            db.query(ClassroomSession)
+            .filter(
+                ClassroomSession.classroom_id == classroom_id,
+                ClassroomSession.status == "ACTIVE",
+            )
+            .order_by(ClassroomSession.id.desc())
+            .first()
+        )
+
+        if session is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No active classroom session",
+            )
+
+        return session
+    except SQLAlchemyError as error:
+        db.rollback()
+        logger.exception("Database failure while retrieving active session")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No active classroom session",
-        )
-
-    return session
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Classroom session data is temporarily unavailable.",
+        ) from error
 
 
 @router.get(
@@ -182,30 +205,43 @@ def get_active_classroom_session(
 )
 def get_classroom_session_history(
     classroom_id: int,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    teacher = get_current_teacher(
-        current_user,
-        db,
-    )
-
-    get_teacher_classroom(
-        classroom_id,
-        teacher.id,
-        db,
-    )
-
-    sessions = (
-        db.query(ClassroomSession)
-        .filter(
-            ClassroomSession.classroom_id == classroom_id,
+    try:
+        teacher = get_current_teacher(
+            current_user,
+            db,
         )
-        .order_by(ClassroomSession.id.desc())
-        .all()
-    )
 
-    return sessions
+        get_teacher_classroom(
+            classroom_id,
+            teacher.id,
+            db,
+        )
+
+        return (
+            db.query(ClassroomSession)
+            .filter(
+                ClassroomSession.classroom_id == classroom_id,
+            )
+            .order_by(
+                ClassroomSession.started_at.desc(),
+                ClassroomSession.id.desc(),
+            )
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+    except SQLAlchemyError as error:
+        db.rollback()
+        logger.exception("Database failure while retrieving session history")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Classroom session data is temporarily unavailable.",
+        ) from error
 
 
 @router.get(
@@ -218,33 +254,41 @@ def get_classroom_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    teacher = get_current_teacher(
-        current_user,
-        db,
-    )
-
-    get_teacher_classroom(
-        classroom_id,
-        teacher.id,
-        db,
-    )
-
-    session = (
-        db.query(ClassroomSession)
-        .filter(
-            ClassroomSession.session_id == session_id,
-            ClassroomSession.classroom_id == classroom_id,
+    try:
+        teacher = get_current_teacher(
+            current_user,
+            db,
         )
-        .first()
-    )
 
-    if session is None:
+        get_teacher_classroom(
+            classroom_id,
+            teacher.id,
+            db,
+        )
+
+        session = (
+            db.query(ClassroomSession)
+            .filter(
+                ClassroomSession.session_id == session_id,
+                ClassroomSession.classroom_id == classroom_id,
+            )
+            .first()
+        )
+
+        if session is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Classroom session not found",
+            )
+
+        return session
+    except SQLAlchemyError as error:
+        db.rollback()
+        logger.exception("Database failure while retrieving classroom session")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Classroom session not found",
-        )
-
-    return session
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Classroom session data is temporarily unavailable.",
+        ) from error
 
 
 @router.post(
@@ -257,54 +301,62 @@ def stop_classroom_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    teacher = get_current_teacher(
-        current_user,
-        db,
-    )
-
-    get_teacher_classroom(
-        classroom_id,
-        teacher.id,
-        db,
-    )
-
-    session = (
-        db.query(ClassroomSession)
-        .filter(
-            ClassroomSession.session_id == session_id,
-            ClassroomSession.classroom_id == classroom_id,
+    try:
+        teacher = get_current_teacher(
+            current_user,
+            db,
         )
-        .first()
-    )
 
-    if session is None:
+        get_teacher_classroom(
+            classroom_id,
+            teacher.id,
+            db,
+        )
+
+        session = (
+            db.query(ClassroomSession)
+            .filter(
+                ClassroomSession.session_id == session_id,
+                ClassroomSession.classroom_id == classroom_id,
+            )
+            .with_for_update()
+            .first()
+        )
+
+        if session is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Classroom session not found",
+            )
+
+        if session.status != "ACTIVE":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Classroom session is already stopped",
+            )
+
+        ended_at = datetime.now(timezone.utc)
+        started_at = session.started_at
+        if started_at.tzinfo is None:
+            started_at = started_at.replace(tzinfo=timezone.utc)
+
+        session.ended_at = ended_at
+        session.duration_seconds = max(
+            0,
+            int((ended_at - started_at).total_seconds()),
+        )
+        session.status = "COMPLETED"
+
+        db.commit()
+        db.refresh(session)
+
+        return {
+            "session": session,
+        }
+    except SQLAlchemyError as error:
+        db.rollback()
+        logger.exception("Database failure while stopping classroom session")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Classroom session not found",
-        )
-
-    if session.status != "ACTIVE":
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Classroom session is already stopped",
-        )
-
-    ended_at = datetime.now(timezone.utc)
-
-    session.ended_at = ended_at
-    session.duration_seconds = max(
-        0,
-        int(
-            (
-                ended_at - session.started_at
-            ).total_seconds()
-        ),
-    )
-    session.status = "COMPLETED"
-
-    db.commit()
-    db.refresh(session)
-
-    return {
-        "session": session,
-    }
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Classroom session data is temporarily unavailable.",
+        ) from error

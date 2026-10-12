@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   Activity,
   AlertCircle,
@@ -15,7 +21,9 @@ import {
 } from 'lucide-react'
 
 import {
+  CLASSROOM_ID,
   getActiveSession,
+  getSessionErrorMessage,
   getSessions,
   startSession,
   stopSession,
@@ -26,6 +34,7 @@ const STATUS = {
   COMPLETED: 'COMPLETED',
   INTERRUPTED: 'INTERRUPTED',
 }
+const HISTORY_PAGE_SIZE = 100
 
 function formatDateTime(value) {
   if (!value) {
@@ -45,11 +54,15 @@ function formatDateTime(value) {
 }
 
 function formatDuration(seconds) {
-  if (seconds === null || seconds === undefined) {
+  if (
+    seconds === null ||
+    seconds === undefined ||
+    !Number.isFinite(Number(seconds))
+  ) {
     return '—'
   }
 
-  const totalSeconds = Math.max(0, Number(seconds))
+  const totalSeconds = Math.floor(Math.max(0, Number(seconds)))
 
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor(
@@ -98,60 +111,156 @@ function getStatusIcon(status) {
 
 export default function SessionControl() {
   const [sessions, setSessions] = useState([])
+  const [historyOffset, setHistoryOffset] = useState(0)
+  const [hasMoreHistory, setHasMoreHistory] = useState(false)
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [activeSession, setActiveSession] = useState(null)
 
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
-
   const [backendConnected, setBackendConnected] = useState(false)
-
+  const [sessionState, setSessionState] = useState('loading')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  const loadSessions = useCallback(async () => {
-    setLoading(true)
+  const mountedRef = useRef(false)
+  const activeRequestRef = useRef(null)
+  const actionRequestRef = useRef(null)
+  const historyRequestRef = useRef(null)
+  const actionInProgressRef = useRef(false)
+  const requestVersionRef = useRef(0)
+
+  const loadSessions = useCallback(async ({ showLoader = true } = {}) => {
+    activeRequestRef.current?.abort()
+    historyRequestRef.current?.abort()
+    historyRequestRef.current = null
+    const controller = new AbortController()
+    activeRequestRef.current = controller
+    const requestVersion = ++requestVersionRef.current
+
+    if (showLoader) {
+      setLoading(true)
+    }
     setError('')
+    setSessionState('loading')
 
     try {
       const [sessionHistory, active] = await Promise.all([
-        getSessions(),
-        getActiveSession(),
+        getSessions({
+          limit: HISTORY_PAGE_SIZE,
+          signal: controller.signal,
+        }),
+        getActiveSession({ signal: controller.signal }),
       ])
 
-      setSessions(sessionHistory)
-      setActiveSession(active)
+      if (
+        !mountedRef.current ||
+        requestVersion !== requestVersionRef.current
+      ) {
+        return
+      }
 
-      /*
-       * If both session requests succeeded, the backend
-       * is connected even when there is no active session.
-       */
+      setSessions(sessionHistory)
+      setHistoryOffset(sessionHistory.length)
+      setHasMoreHistory(sessionHistory.length === HISTORY_PAGE_SIZE)
+      setActiveSession(active)
       setBackendConnected(true)
+      setSessionState('loaded')
     } catch (requestError) {
+      if (requestError.code === 'ERR_CANCELED') {
+        return
+      }
+
       console.error(
         'Failed to load classroom sessions:',
         requestError,
       )
 
-      setBackendConnected(false)
-
-      if (requestError.response?.status === 401) {
-        setError(
-          'Authentication expired. Please log in again.',
-        )
-      } else {
-        setError(
-          requestError.response?.data?.detail ||
-            'Unable to connect to the classroom backend.',
-        )
+      if (
+        mountedRef.current &&
+        requestVersion === requestVersionRef.current
+      ) {
+        setBackendConnected(false)
+        setSessionState('error')
+        setError(getSessionErrorMessage(requestError))
       }
     } finally {
-      setLoading(false)
+      if (
+        mountedRef.current &&
+        requestVersion === requestVersionRef.current
+      ) {
+        setLoading(false)
+      }
     }
   }, [])
 
   useEffect(() => {
+    mountedRef.current = true
     loadSessions()
+
+    return () => {
+      mountedRef.current = false
+      activeRequestRef.current?.abort()
+      actionRequestRef.current?.abort()
+      historyRequestRef.current?.abort()
+    }
   }, [loadSessions])
+
+  const loadMoreHistory = async () => {
+    if (
+      historyLoading ||
+      historyRequestRef.current ||
+      !hasMoreHistory
+    ) {
+      return
+    }
+
+    const controller = new AbortController()
+    historyRequestRef.current = controller
+    setHistoryLoading(true)
+    setError('')
+
+    try {
+      const nextPage = await getSessions({
+        limit: HISTORY_PAGE_SIZE,
+        offset: historyOffset,
+        signal: controller.signal,
+      })
+
+      if (
+        !mountedRef.current ||
+        historyRequestRef.current !== controller
+      ) {
+        return
+      }
+
+      setSessions((current) => {
+        const existingIds = new Set(
+          current.map((session) => session.session_id),
+        )
+        return [
+          ...current,
+          ...nextPage.filter(
+            (session) => !existingIds.has(session.session_id),
+          ),
+        ]
+      })
+      setHistoryOffset((current) => current + nextPage.length)
+      setHasMoreHistory(nextPage.length === HISTORY_PAGE_SIZE)
+    } catch (requestError) {
+      if (requestError.code !== 'ERR_CANCELED' && mountedRef.current) {
+        console.error('Failed to load more classroom sessions:', requestError)
+        setError(getSessionErrorMessage(requestError))
+      }
+    } finally {
+      if (mountedRef.current) {
+        setHistoryLoading(false)
+      }
+      if (historyRequestRef.current === controller) {
+        historyRequestRef.current = null
+      }
+    }
+  }
 
   const completedHistory = useMemo(() => {
     return sessions.filter(
@@ -162,6 +271,10 @@ export default function SessionControl() {
   }, [sessions])
 
   const handleStartSession = async () => {
+    if (actionInProgressRef.current || sessionState !== 'loaded') {
+      return
+    }
+
     if (activeSession) {
       setError(
         'An active classroom session already exists. Stop it before starting a new one.',
@@ -169,15 +282,20 @@ export default function SessionControl() {
       return
     }
 
+    actionInProgressRef.current = true
+    const controller = new AbortController()
+    actionRequestRef.current = controller
     setActionLoading(true)
     setError('')
     setSuccess('')
 
     try {
-      const newSession = await startSession()
+      const newSession = await startSession({ signal: controller.signal })
+      if (!mountedRef.current) {
+        return
+      }
 
       setActiveSession(newSession)
-
       setSessions((current) => [
         newSession,
         ...current.filter(
@@ -190,34 +308,39 @@ export default function SessionControl() {
       setSuccess(
         `Session ${newSession.session_id} started successfully.`,
       )
+      await loadSessions({ showLoader: false })
     } catch (requestError) {
+      if (requestError.code === 'ERR_CANCELED') {
+        return
+      }
+
       console.error(
         'Failed to start classroom session:',
         requestError,
       )
 
-      if (requestError.response?.status === 401) {
-        setError(
-          'Authentication expired. Please log in again.',
-        )
-      } else if (requestError.response?.status === 409) {
-        setError(
-          'An active classroom session already exists. Refresh the page to load it.',
-        )
-
-        await loadSessions()
-      } else {
-        setError(
-          requestError.response?.data?.detail ||
-            'Unable to start classroom session.',
-        )
+      if (mountedRef.current) {
+        const message = getSessionErrorMessage(requestError, 'start')
+        if (requestError.response?.status === 409) {
+          await loadSessions({ showLoader: false })
+        }
+        if (mountedRef.current) {
+          setError(message)
+        }
       }
     } finally {
-      setActionLoading(false)
+      actionInProgressRef.current = false
+      if (mountedRef.current) {
+        setActionLoading(false)
+      }
     }
   }
 
   const handleStopSession = async (session) => {
+    if (actionInProgressRef.current) {
+      return
+    }
+
     if (!session?.session_id) {
       setError('Unable to stop session: session ID is missing.')
       return
@@ -231,62 +354,57 @@ export default function SessionControl() {
       return
     }
 
+    actionInProgressRef.current = true
+    const controller = new AbortController()
+    actionRequestRef.current = controller
     setActionLoading(true)
     setError('')
     setSuccess('')
 
     try {
-      await stopSession(session.session_id)
+      const stoppedSession = await stopSession(session.session_id, {
+        signal: controller.signal,
+      })
+      if (!mountedRef.current) {
+        return
+      }
 
       setActiveSession(null)
-
-      setSessions((current) =>
-        current.map((item) =>
-          item.session_id === session.session_id
-            ? {
-                ...item,
-                status: STATUS.COMPLETED,
-                ended_at: new Date().toISOString(),
-              }
-            : item,
+      setSessions((current) => [
+        stoppedSession,
+        ...current.filter(
+          (item) => item.session_id !== stoppedSession.session_id,
         ),
-      )
-
+      ])
       setBackendConnected(true)
-
       setSuccess(
         `Session ${session.session_id} stopped successfully.`,
       )
-
-      /*
-       * Reload from backend so the UI uses the real
-       * database state instead of relying only on local state.
-       */
-      await loadSessions()
+      await loadSessions({ showLoader: false })
     } catch (requestError) {
+      if (requestError.code === 'ERR_CANCELED') {
+        return
+      }
+
       console.error(
         'Failed to stop classroom session:',
         requestError,
       )
 
-      if (requestError.response?.status === 401) {
-        setError(
-          'Authentication expired. Please log in again.',
-        )
-      } else if (requestError.response?.status === 404) {
-        setError(
-          'The selected classroom session no longer exists.',
-        )
-
-        await loadSessions()
-      } else {
-        setError(
-          requestError.response?.data?.detail ||
-            'Unable to stop classroom session.',
-        )
+      if (mountedRef.current) {
+        const message = getSessionErrorMessage(requestError, 'stop')
+        if ([404, 409].includes(requestError.response?.status)) {
+          await loadSessions({ showLoader: false })
+        }
+        if (mountedRef.current) {
+          setError(message)
+        }
       }
     } finally {
-      setActionLoading(false)
+      actionInProgressRef.current = false
+      if (mountedRef.current) {
+        setActionLoading(false)
+      }
     }
   }
 
@@ -322,7 +440,9 @@ export default function SessionControl() {
                 ) : (
                   <>
                     <WifiOff size={12} />
-                    Backend disconnected
+                    {sessionState === 'loading'
+                      ? 'Checking backend'
+                      : 'Backend unavailable'}
                   </>
                 )}
               </span>
@@ -360,7 +480,10 @@ export default function SessionControl() {
               disabled={
                 Boolean(activeSession) ||
                 loading ||
-                actionLoading
+                actionLoading ||
+                sessionState !== 'loaded' ||
+                !Number.isSafeInteger(CLASSROOM_ID) ||
+                CLASSROOM_ID < 1
               }
               className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -380,7 +503,19 @@ export default function SessionControl() {
               className="mt-0.5 shrink-0"
             />
 
-            <div>{error}</div>
+            <div className="flex flex-1 items-center justify-between gap-3">
+              <span>{error}</span>
+              {sessionState === 'error' && (
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  disabled={loading || actionLoading}
+                  className="shrink-0 underline underline-offset-2 hover:text-red-200 disabled:opacity-50"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -418,9 +553,17 @@ export default function SessionControl() {
           <MetricCard
             icon={<Activity size={18} />}
             label="Active Sessions"
-            value={activeSession ? '1' : '0'}
+            value={
+              sessionState === 'loaded'
+                ? activeSession
+                  ? '1'
+                  : '0'
+                : '—'
+            }
             description={
-              activeSession
+              sessionState !== 'loaded'
+                ? 'Status unavailable'
+                : activeSession
                 ? 'Currently active'
                 : 'No active session'
             }
@@ -429,7 +572,11 @@ export default function SessionControl() {
           <MetricCard
             icon={<History size={18} />}
             label="Completed History"
-            value={completedHistory.length}
+            value={
+              sessionState === 'loaded'
+                ? completedHistory.length
+                : '—'
+            }
             description="Completed or interrupted"
           />
 
@@ -437,22 +584,28 @@ export default function SessionControl() {
             icon={<Timer size={18} />}
             label="Latest Session"
             value={
-              sessions[0]?.session_id
+              sessionState === 'loaded' && sessions[0]?.session_id
                 ? sessions[0].session_id.length > 20
                   ? `${sessions[0].session_id.slice(0, 20)}...`
                   : sessions[0].session_id
                 : '—'
             }
             description={
-              sessions[0]?.status || 'No sessions'
+              sessionState !== 'loaded'
+                ? 'Status unavailable'
+                : sessions[0]?.status || 'No sessions'
             }
           />
 
           <MetricCard
             icon={<Users size={18} />}
             label="Classroom"
-            value="AD3B-AI"
-            description="AI & Data Science - 3B"
+            value={
+              Number.isSafeInteger(CLASSROOM_ID) && CLASSROOM_ID > 0
+                ? `ID ${CLASSROOM_ID}`
+                : 'Not configured'
+            }
+            description="Configured classroom"
           />
         </div>
 
@@ -479,11 +632,24 @@ export default function SessionControl() {
             </div>
 
             <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400">
-              {activeSession ? '1 active' : '0 active'}
+              {sessionState === 'loaded'
+                ? activeSession
+                  ? '1 active'
+                  : '0 active'
+                : 'Status unavailable'}
             </span>
           </div>
 
-          {activeSession ? (
+          {sessionState === 'loading' ? (
+            <div className="flex items-center justify-center px-5 py-10 text-sm text-slate-400">
+              <RefreshCw size={16} className="mr-2 animate-spin" />
+              Checking active session...
+            </div>
+          ) : sessionState === 'error' ? (
+            <div className="px-5 py-10 text-center text-sm text-slate-400">
+              Active session status is unavailable. Retry the session request.
+            </div>
+          ) : activeSession ? (
             <div className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-center lg:justify-between">
 
               <div className="flex items-center gap-4">
@@ -566,8 +732,8 @@ export default function SessionControl() {
             </div>
 
             <p className="mt-1 text-xs text-slate-500">
-              Previous classroom sessions and their current
-              database status.
+              Persisted sessions, newest first. Load older records
+              when needed.
             </p>
           </div>
 
@@ -578,6 +744,10 @@ export default function SessionControl() {
                 className="mr-2 animate-spin"
               />
               Loading session history...
+            </div>
+          ) : sessionState === 'error' ? (
+            <div className="px-5 py-12 text-center text-sm text-slate-400">
+              Session history is unavailable. Retry to load the persisted history.
             </div>
           ) : sessions.length === 0 ? (
             <div className="px-5 py-12 text-center text-sm text-slate-500">
@@ -682,6 +852,21 @@ export default function SessionControl() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          {hasMoreHistory && sessionState === 'loaded' && (
+            <div className="border-t border-white/10 px-5 py-4 text-center">
+              <button
+                type="button"
+                onClick={loadMoreHistory}
+                disabled={historyLoading || actionLoading}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {historyLoading && (
+                  <RefreshCw size={14} className="animate-spin" />
+                )}
+                {historyLoading ? 'Loading older sessions...' : 'Load older sessions'}
+              </button>
             </div>
           )}
         </section>
