@@ -22,6 +22,91 @@ import {
   startSession,
   stopSession,
 } from '../services/sessionControlService'
+import {
+  analyzeMonitoringFrame,
+  getFrameInferenceErrorMessage,
+} from '../services/monitoringService'
+import {
+  EMPTY_DETECTION_OVERLAY,
+  expirePersonDetectionOverlay,
+  getNextPersonDetectionExpiry,
+  toVideoCoordinates,
+  updatePersonDetectionOverlay,
+} from '../utils/personDetectionOverlay'
+
+function boundedNumber(value, fallback, minimum, maximum) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed === 0) {
+    return fallback
+  }
+  return Math.min(maximum, Math.max(minimum, parsed))
+}
+
+const FRAME_CAPTURE_INTERVAL_MS = boundedNumber(
+  import.meta.env.VITE_FRAME_CAPTURE_INTERVAL_MS,
+  2500,
+  2000,
+  10000,
+)
+const FRAME_CAPTURE_MAX_EDGE = boundedNumber(
+  import.meta.env.VITE_FRAME_CAPTURE_MAX_EDGE,
+  960,
+  320,
+  1280,
+)
+const FRAME_JPEG_QUALITY = boundedNumber(
+  import.meta.env.VITE_FRAME_JPEG_QUALITY,
+  0.75,
+  0.5,
+  0.9,
+)
+const DETECTION_GRACE_PERIOD_MS = boundedNumber(
+  import.meta.env.VITE_DETECTION_GRACE_PERIOD_MS,
+  FRAME_CAPTURE_INTERVAL_MS * 2 + 1000,
+  1000,
+  30000,
+)
+const FEATURE_LABELS = {
+  person_detection: 'Person detection',
+  face_detection: 'Face detection',
+  face_recognition: 'Student identity recognition',
+  tracking: 'Tracking',
+  attention_estimation: 'Attention estimation',
+  attendance: 'Attendance persistence',
+}
+
+function captureJpegFrame(video) {
+  const scale = Math.min(
+    1,
+    FRAME_CAPTURE_MAX_EDGE / video.videoWidth,
+    FRAME_CAPTURE_MAX_EDGE / video.videoHeight,
+  )
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(video.videoWidth * scale))
+  canvas.height = Math.max(1, Math.round(video.videoHeight * scale))
+
+  const context = canvas.getContext('2d')
+  if (!context) {
+    return Promise.reject(
+      new Error('This browser could not prepare a camera frame for analysis.'),
+    )
+  }
+
+  context.drawImage(video, 0, 0, canvas.width, canvas.height)
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob)
+        } else {
+          reject(new Error('The camera frame could not be encoded as JPEG.'))
+        }
+      },
+      'image/jpeg',
+      FRAME_JPEG_QUALITY,
+    )
+  })
+}
 
 function getCameraErrorMessage(error) {
   switch (error?.name) {
@@ -105,6 +190,12 @@ export default function LiveMonitoring() {
   const sessionRequestRef = useRef(null)
   const monitoringRequestRef = useRef(null)
   const monitoringBusyRef = useRef(false)
+  const frameRequestRef = useRef(null)
+  const frameBusyRef = useRef(false)
+  const frameRateLimitUntilRef = useRef(0)
+  const inferenceRunRef = useRef(0)
+  const frameSequenceRef = useRef(0)
+  const latestAppliedFrameSequenceRef = useRef(0)
 
   const [videoDevices, setVideoDevices] = useState([])
   const [selectedDeviceId, setSelectedDeviceId] = useState('')
@@ -120,6 +211,13 @@ export default function LiveMonitoring() {
     useState(false)
   const [backendState, setBackendState] = useState('checking')
   const [sessionError, setSessionError] = useState('')
+  const [inferenceState, setInferenceState] = useState('idle')
+  const [inferenceError, setInferenceError] = useState('')
+  const [frameResult, setFrameResult] = useState(null)
+  const [detectionOverlay, setDetectionOverlay] = useState(
+    EMPTY_DETECTION_OVERLAY,
+  )
+  const [inferenceRetry, setInferenceRetry] = useState(0)
   const [notice, setNotice] = useState('')
 
   const monitoringInProgress =
@@ -556,6 +654,174 @@ export default function LiveMonitoring() {
     }
   }, [releaseCamera, stream])
 
+  useEffect(() => {
+    const sessionId = monitoringSession?.session_id
+    if (monitoringState !== 'active' || !cameraReady || !sessionId) {
+      setInferenceState(
+        monitoringState === 'active' ? 'paused' : 'idle',
+      )
+      if (monitoringState !== 'active') {
+        setFrameResult(null)
+        setDetectionOverlay(EMPTY_DETECTION_OVERLAY)
+        setInferenceError('')
+      }
+      return undefined
+    }
+
+    const runId = ++inferenceRunRef.current
+    frameRateLimitUntilRef.current = 0
+    const controller = new AbortController()
+    frameRequestRef.current = controller
+    let active = true
+    setInferenceState('processing')
+    setInferenceError('')
+
+    const processFrame = async () => {
+      if (
+        !active ||
+        frameBusyRef.current ||
+        Date.now() < frameRateLimitUntilRef.current ||
+        controller.signal.aborted
+      ) {
+        return
+      }
+
+      const video = videoRef.current
+      if (
+        !video ||
+        video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
+        video.videoWidth < 1 ||
+        video.videoHeight < 1
+      ) {
+        return
+      }
+
+      frameBusyRef.current = true
+      const requestSequence = ++frameSequenceRef.current
+      setInferenceState('processing')
+      try {
+        const frame = await captureJpegFrame(video)
+        if (!active || controller.signal.aborted) {
+          return
+        }
+        const result = await analyzeMonitoringFrame({
+          classroomId: CLASSROOM_ID,
+          sessionId,
+          frame,
+          signal: controller.signal,
+        })
+        if (
+          !active ||
+          controller.signal.aborted ||
+          runId !== inferenceRunRef.current ||
+          requestSequence <= latestAppliedFrameSequenceRef.current
+        ) {
+          return
+        }
+        if (
+          result.session_id !== sessionId ||
+          result.classroom_id !== CLASSROOM_ID
+        ) {
+          throw new Error(
+            'The inference response did not match the active classroom session.',
+          )
+        }
+        latestAppliedFrameSequenceRef.current = requestSequence
+        setFrameResult(result)
+        setDetectionOverlay((current) =>
+          updatePersonDetectionOverlay(
+            current,
+            result,
+            requestSequence,
+            Date.now(),
+            DETECTION_GRACE_PERIOD_MS,
+          ),
+        )
+        setInferenceState('ready')
+        setInferenceError('')
+      } catch (error) {
+        if (
+          !active ||
+          controller.signal.aborted ||
+          error?.code === 'ERR_CANCELED'
+        ) {
+          return
+        }
+        console.error('Failed to process a camera frame:', error)
+        setInferenceState('error')
+        setInferenceError(getFrameInferenceErrorMessage(error))
+        const status = error?.response?.status
+        if (status === 429) {
+          const retryAfter = Number(
+            error.response.headers?.['retry-after'],
+          )
+          if (Number.isFinite(retryAfter) && retryAfter > 0) {
+            frameRateLimitUntilRef.current =
+              Date.now() + retryAfter * 1000
+          }
+        }
+        if (
+          [401, 403, 404, 409, 413, 415, 422, 503, 504].includes(
+            status,
+          )
+        ) {
+          setMonitoringState('error')
+          if ([404, 409].includes(status)) {
+            setActiveSession(null)
+            setMonitoringSession(null)
+            setAttachedToExistingSession(false)
+          }
+        }
+      } finally {
+        frameBusyRef.current = false
+      }
+    }
+
+    processFrame()
+    const interval = window.setInterval(
+      processFrame,
+      FRAME_CAPTURE_INTERVAL_MS,
+    )
+
+    return () => {
+      active = false
+      window.clearInterval(interval)
+      inferenceRunRef.current += 1
+      controller.abort()
+      if (frameRequestRef.current === controller) {
+        frameRequestRef.current = null
+      }
+    }
+  }, [
+    cameraReady,
+    inferenceRetry,
+    monitoringSession?.session_id,
+    monitoringState,
+  ])
+
+  useEffect(() => {
+    const delay = getNextPersonDetectionExpiry(
+      detectionOverlay,
+      Date.now(),
+      DETECTION_GRACE_PERIOD_MS,
+    )
+    if (delay === null) {
+      return undefined
+    }
+
+    const timeout = window.setTimeout(() => {
+      setDetectionOverlay((current) =>
+        expirePersonDetectionOverlay(
+          current,
+          Date.now(),
+          DETECTION_GRACE_PERIOD_MS,
+        ),
+      )
+    }, delay + 1)
+
+    return () => window.clearTimeout(timeout)
+  }, [detectionOverlay])
+
   async function handleSelectCamera(event) {
     const deviceId = event.target.value
     setSelectedDeviceId(deviceId)
@@ -580,6 +846,13 @@ export default function LiveMonitoring() {
     if (cameraError) {
       await enableCamera(selectedDeviceId)
     }
+    if (inferenceError) {
+      setInferenceError('')
+      setInferenceRetry((attempt) => attempt + 1)
+      if (monitoringSession?.status === 'ACTIVE') {
+        setMonitoringState('active')
+      }
+    }
   }
 
   const displayedSession = activeSession || monitoringSession
@@ -589,7 +862,7 @@ export default function LiveMonitoring() {
       : monitoringState === 'stopping'
         ? 'Stopping session'
         : monitoringState === 'active'
-          ? 'Monitoring Session Active — AI Inference Not Connected'
+          ? 'Monitoring Session Active — Person Detection Only'
           : monitoringState === 'error'
             ? 'Monitoring needs attention'
             : backendState === 'checking'
@@ -622,9 +895,10 @@ export default function LiveMonitoring() {
             Live Monitoring
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-            Preview a camera on this device and manage the configured classroom
-            session. Camera video stays in this browser; this page does not
-            upload frames.
+            Manage the configured classroom session and run person detection
+            on periodic, resized camera frames. The authenticated backend
+            receives frames only while monitoring is active; it does not store
+            images or produce identity, attendance, or attention results.
           </p>
         </div>
 
@@ -642,7 +916,7 @@ export default function LiveMonitoring() {
         </button>
       </header>
 
-      <div className="mb-5 grid gap-4 lg:grid-cols-3">
+      <div className="mb-5 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
         <StatusCard
           icon={<ShieldCheck size={18} />}
           label="Classroom"
@@ -670,12 +944,32 @@ export default function LiveMonitoring() {
           detail={
             attachedToExistingSession
               ? 'Using the existing persisted session'
-              : 'AI inference is not connected to this camera preview'
+              : 'Starts person detection only after session activation'
+          }
+        />
+        <StatusCard
+          icon={<Activity size={18} />}
+          label="Frame inference"
+          value={
+            inferenceState === 'processing'
+              ? 'Processing camera frame'
+              : inferenceState === 'ready'
+                ? `${frameResult?.detection_count ?? 0} people detected`
+                : inferenceState === 'error'
+                  ? 'Person detection unavailable'
+                  : inferenceState === 'paused'
+                    ? 'Waiting for camera and active session'
+                    : 'Not started'
+          }
+          detail={
+            inferenceState === 'ready'
+              ? `${frameResult.inference_duration_ms.toFixed(1)} ms inference · last processed ${new Date(frameResult.processed_at).toLocaleTimeString()}`
+              : 'Authenticated JPEG frames are sent every few seconds while active'
           }
         />
       </div>
 
-      {(sessionError || cameraError) && (
+      {(sessionError || cameraError || inferenceError) && (
         <div
           className="mb-5 flex flex-col gap-3 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-300 sm:flex-row sm:items-start sm:justify-between"
           role="alert"
@@ -685,6 +979,7 @@ export default function LiveMonitoring() {
             <div className="space-y-1">
               {sessionError && <p>{sessionError}</p>}
               {cameraError && <p>{cameraError}</p>}
+              {inferenceError && <p>{inferenceError}</p>}
             </div>
           </div>
           <button
@@ -757,6 +1052,58 @@ export default function LiveMonitoring() {
                   cameraState === 'ready' ? 'block' : 'hidden'
                 }`}
               />
+              {cameraState === 'ready' &&
+                detectionOverlay.boxes.length > 0 && (
+                  <svg
+                    className="pointer-events-none absolute inset-0 h-full w-full"
+                    viewBox={`0 0 ${videoRef.current?.videoWidth || 1} ${videoRef.current?.videoHeight || 1}`}
+                    preserveAspectRatio="xMidYMid meet"
+                    role="img"
+                    aria-label={`Up to ${detectionOverlay.boxes.length} people recently detected; boxes expire after a missed-detection grace period`}
+                  >
+                    {detectionOverlay.boxes.map((box, index) => {
+                      const detection = toVideoCoordinates(
+                        box,
+                        videoRef.current?.videoWidth || 1,
+                        videoRef.current?.videoHeight || 1,
+                      )
+                      const age = Date.now() - box.lastSeenAt
+                      const opacity = Math.max(
+                        0.25,
+                        1 - age / DETECTION_GRACE_PERIOD_MS,
+                      )
+                      return (
+                        <g
+                          key={`${index}-${box.lastSeenAt}-${box.x1}-${box.y1}`}
+                          opacity={opacity}
+                        >
+                          <rect
+                            x={detection.x1}
+                            y={detection.y1}
+                            width={detection.x2 - detection.x1}
+                            height={detection.y2 - detection.y1}
+                            fill="none"
+                            stroke="#4ade80"
+                            strokeWidth="3"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <text
+                            x={detection.x1 + 4}
+                            y={Math.max(16, detection.y1 + 18)}
+                            fill="#dcfce7"
+                            stroke="#052e16"
+                            strokeWidth="3"
+                            paintOrder="stroke"
+                            fontSize="16"
+                          >
+                            Person detected recently ·{' '}
+                            {(box.confidence * 100).toFixed(1)}%
+                          </text>
+                        </g>
+                      )
+                    })}
+                  </svg>
+                )}
               {cameraState !== 'ready' && (
                 <div className="mx-auto flex max-w-sm flex-col items-center px-6 text-center">
                   {cameraState === 'requesting' ? (
@@ -778,7 +1125,7 @@ export default function LiveMonitoring() {
                   </p>
                   <p className="mt-2 text-sm leading-6 text-slate-500">
                     {cameraState === 'idle'
-                      ? 'Enable the camera to show its live feed here. No recording or upload is performed.'
+                      ? 'Enable the camera to show its live feed here. Frames are sent only after you start monitoring.'
                       : cameraState === 'requesting'
                         ? 'Choose Allow in the browser permission prompt to continue.'
                         : 'Resolve the camera issue and use Retry Camera.'}
@@ -898,8 +1245,10 @@ export default function LiveMonitoring() {
             <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500">
               <CircleHelp size={15} className="mt-0.5 shrink-0" />
               Camera permission is requested only after you click Enable Camera.
-              Video is not recorded, persisted, or sent to the backend. Access
-              generally requires HTTPS or localhost.
+              While monitoring is active, resized JPEG frames are sent to the
+              authenticated backend for person detection; the frames are not
+              recorded or persisted. Access generally requires HTTPS or
+              localhost.
             </p>
           </div>
         </section>
@@ -946,30 +1295,95 @@ export default function LiveMonitoring() {
             )}
             {monitoringState === 'active' && (
               <p className="mt-3 rounded-lg border border-blue-400/20 bg-blue-500/5 px-3 py-2 text-xs leading-5 text-blue-200">
-                The session API is active, but this page does not connect the
-                camera stream to AI inference. No attention detections,
-                attendance, alerts, or analytics are produced here.
+                This session is connected to backend person detection. It
+                detects people in the latest sampled frame only; student identity,
+                attention, attendance, alerts, and analytics are not inferred.
               </p>
             )}
           </section>
 
-          <section className="rounded-2xl border border-amber-400/20 bg-amber-500/5 p-5">
+          <section className="rounded-2xl border border-white/10 bg-[#0b1220] p-5">
             <div className="flex items-start gap-3">
-              <AlertCircle
-                size={18}
-                className="mt-0.5 shrink-0 text-amber-300"
-              />
+              <Activity size={18} className="mt-0.5 shrink-0 text-blue-300" />
               <div>
-                <h2 className="text-sm font-semibold text-amber-100">
-                  AI inference not connected
+                <h2 className="text-sm font-semibold text-slate-100">
+                  Latest person-detection frame
                 </h2>
-                <p className="mt-2 text-xs leading-5 text-amber-100/70">
-                  This page provides a local camera preview and manages the
-                  classroom session only. It does not send frames to an AI
-                  model, so no detection or attention results are claimed.
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  {frameResult
+                    ? `${frameResult.detection_count} person${
+                        frameResult.detection_count === 1 ? '' : 's'
+                      } detected at ${new Date(
+                        frameResult.processed_at,
+                      ).toLocaleTimeString()} after receipt at ${new Date(
+                        frameResult.frame_received_at,
+                      ).toLocaleTimeString()} (${frameResult.inference_duration_ms.toFixed(
+                        1,
+                      )} ms inference). These are person detections, not student identities.`
+                    : inferenceState === 'processing'
+                      ? 'Waiting for the first backend inference result.'
+                      : 'No frame has been processed in this monitoring session.'}
                 </p>
-                <p className="mt-2 text-xs leading-5 text-amber-100/70">
-                  Leaving this page releases the camera, but does not end a
+                {frameResult?.detections?.length > 0 && (
+                  <ul className="mt-3 space-y-1 text-xs text-slate-300">
+                    {frameResult.detections.slice(0, 5).map(
+                      (detection, index) => (
+                        <li key={`${index}-${detection.x1}-${detection.y1}`}>
+                          Detection {index + 1} · person · detector confidence{' '}
+                          {(detection.confidence * 100).toFixed(1)}%
+                        </li>
+                      ),
+                    )}
+                    {frameResult.detection_count > 5 && (
+                      <li>
+                        {frameResult.detection_count - 5} more person detections
+                      </li>
+                    )}
+                  </ul>
+                )}
+                {detectionOverlay.boxes.length > 0 && (
+                  <p className="mt-2 text-xs text-emerald-200/80">
+                    Overlay boxes are from recent real detections and fade out
+                    after {DETECTION_GRACE_PERIOD_MS / 1000} seconds without a
+                    matching detection.
+                  </p>
+                )}
+                {frameResult && (
+                  <>
+                    <p className="mt-3 text-xs text-slate-500">
+                      No inference results are persisted. Feature availability
+                      reported by the backend:
+                    </p>
+                    <ul className="mt-2 space-y-2">
+                      {Object.entries(frameResult.features).map(
+                        ([feature, result]) => (
+                          <li
+                            key={feature}
+                            className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3"
+                          >
+                            <span className="text-xs text-slate-300">
+                              {FEATURE_LABELS[feature]}
+                            </span>
+                            <span
+                              className={`text-xs ${
+                                result.status === 'available'
+                                  ? 'text-emerald-300'
+                                  : 'text-amber-200'
+                              }`}
+                              title={result.detail}
+                            >
+                              {result.status === 'available'
+                                ? 'Available for this response'
+                                : 'Not connected'}
+                            </span>
+                          </li>
+                        ),
+                      )}
+                    </ul>
+                  </>
+                )}
+                <p className="mt-3 text-xs leading-5 text-slate-500">
+                  Leaving this page releases the camera but does not end the
                   persisted classroom session. Stop it before leaving or use
                   Session Control to end it later.
                 </p>

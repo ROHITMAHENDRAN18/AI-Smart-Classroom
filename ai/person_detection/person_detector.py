@@ -1,15 +1,16 @@
 from ultralytics import YOLO
 
+from configs.settings import YOLO_MODEL
 
 class PersonDetector:
 
-    def __init__(self):
+    def __init__(self, model_path=None):
 
         print("=" * 60)
         print("Loading YOLOv8 Person Detector...")
         print("=" * 60)
 
-        self.model = YOLO("yolov8m.pt")
+        self.model = YOLO(model_path or YOLO_MODEL)
 
         print("YOLOv8 Loaded Successfully.")
         print("=" * 60)

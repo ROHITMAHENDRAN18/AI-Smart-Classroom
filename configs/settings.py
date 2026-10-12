@@ -44,6 +44,36 @@ def get_int(name: str, default: int) -> int:
     return int(value)
 
 
+def get_bounded_int(
+    name: str,
+    default: int,
+    minimum: int,
+    maximum: int,
+) -> int:
+    value = get_int(name, default)
+    if not minimum <= value <= maximum:
+        raise RuntimeError(
+            f"Environment variable '{name}' must be between "
+            f"{minimum} and {maximum}."
+        )
+    return value
+
+
+def get_bounded_float(
+    name: str,
+    default: float,
+    minimum: float,
+    maximum: float,
+) -> float:
+    value = get_float(name, default)
+    if not minimum <= value <= maximum:
+        raise RuntimeError(
+            f"Environment variable '{name}' must be between "
+            f"{minimum} and {maximum}."
+        )
+    return value
+
+
 PROJECT_NAME = os.getenv(
     "PROJECT_NAME",
     "AI Smart Classroom Attention Monitoring",
@@ -116,6 +146,48 @@ DASHBOARD_UPDATE_INTERVAL = get_float(
 DATABASE_ATTENTION_UPDATE_INTERVAL = get_float(
     "DATABASE_ATTENTION_UPDATE_INTERVAL",
     1.0,
+)
+
+FRAME_MAX_PAYLOAD_BYTES = get_bounded_int(
+    "FRAME_MAX_PAYLOAD_BYTES",
+    2 * 1024 * 1024,
+    1024,
+    10 * 1024 * 1024,
+)
+
+FRAME_MAX_WIDTH = get_bounded_int(
+    "FRAME_MAX_WIDTH",
+    1920,
+    320,
+    4096,
+)
+
+FRAME_MAX_HEIGHT = get_bounded_int(
+    "FRAME_MAX_HEIGHT",
+    1920,
+    320,
+    4096,
+)
+
+FRAME_MAX_PIXELS = get_bounded_int(
+    "FRAME_MAX_PIXELS",
+    2_073_600,
+    102_400,
+    16_777_216,
+)
+
+FRAME_MIN_INTERVAL_SECONDS = get_bounded_float(
+    "FRAME_MIN_INTERVAL_SECONDS",
+    1.5,
+    0.25,
+    60.0,
+)
+
+FRAME_INFERENCE_TIMEOUT_SECONDS = get_bounded_float(
+    "FRAME_INFERENCE_TIMEOUT_SECONDS",
+    30.0,
+    1.0,
+    300.0,
 )
 
 DASHBOARD_HOST = os.getenv(

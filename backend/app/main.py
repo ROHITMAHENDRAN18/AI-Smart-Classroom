@@ -21,6 +21,9 @@ from backend.routes.classroom_sessions import (
 from backend.routes.classroom_overview import (
     router as classroom_overview_router,
 )
+from backend.routes.frame_inference import (
+    router as frame_inference_router,
+)
 
 from configs.config import (
     API_VERSION,
@@ -118,6 +121,11 @@ app.include_router(
     classroom_overview_router,
     prefix=API_VERSION,
     tags=["Classroom Overview"],
+)
+
+app.include_router(
+    frame_inference_router,
+    prefix=API_VERSION,
 )
 
 @app.get("/")
