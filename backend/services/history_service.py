@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from backend.models.classroom_session import ClassroomSession
 from backend.models.attendance_record import AttendanceRecord
@@ -35,12 +36,19 @@ def get_session_by_id(
 def get_session_attendance(
     db: Session,
     session_id: str,
+    *,
+    start_at: datetime | None = None,
+    end_at: datetime | None = None,
 ):
+    query = db.query(AttendanceRecord).filter(
+        AttendanceRecord.session_id == session_id
+    )
+    if start_at is not None:
+        query = query.filter(AttendanceRecord.recorded_at >= start_at)
+    if end_at is not None:
+        query = query.filter(AttendanceRecord.recorded_at < end_at)
     return (
-        db.query(AttendanceRecord)
-        .filter(
-            AttendanceRecord.session_id == session_id
-        )
+        query
         .order_by(
             AttendanceRecord.recorded_at.asc()
         )
@@ -51,12 +59,19 @@ def get_session_attendance(
 def get_session_attention(
     db: Session,
     session_id: str,
+    *,
+    start_at: datetime | None = None,
+    end_at: datetime | None = None,
 ):
+    query = db.query(AttentionRecord).filter(
+        AttentionRecord.session_id == session_id
+    )
+    if start_at is not None:
+        query = query.filter(AttentionRecord.recorded_at >= start_at)
+    if end_at is not None:
+        query = query.filter(AttentionRecord.recorded_at < end_at)
     return (
-        db.query(AttentionRecord)
-        .filter(
-            AttentionRecord.session_id == session_id
-        )
+        query
         .order_by(
             AttentionRecord.recorded_at.asc()
         )

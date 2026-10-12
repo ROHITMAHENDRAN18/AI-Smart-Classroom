@@ -1,10 +1,16 @@
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from backend.auth.classroom_access import (
+    get_owned_classroom_ids,
+    require_classroom_access,
+)
+from backend.auth.dependencies import get_current_user
 from backend.database.session import get_db
-
+from backend.models.classroom_session import ClassroomSession
+from backend.models.user import User
 from backend.schemas.history import (
     SessionHistoryResponse,
     AttendanceHistoryResponse,
@@ -19,6 +25,7 @@ from backend.services.history_service import (
     get_session_attention,
     get_session_summary,
 )
+from backend.utils.date_range import get_utc_date_range
 
 
 router = APIRouter(
@@ -32,26 +39,35 @@ router = APIRouter(
     response_model=list[SessionHistoryResponse],
 )
 def list_history_sessions(
-    limit: int = 50,
-    offset: int = 0,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    classroom_id: int | None = Query(default=None, ge=1),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if limit < 1 or limit > 100:
-        raise HTTPException(
-            status_code=400,
-            detail="limit must be between 1 and 100",
+    if classroom_id is not None:
+        require_classroom_access(classroom_id, current_user, db)
+        return (
+            db.query(ClassroomSession)
+            .filter(ClassroomSession.classroom_id == classroom_id)
+            .order_by(ClassroomSession.started_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
         )
 
-    if offset < 0:
-        raise HTTPException(
-            status_code=400,
-            detail="offset must be >= 0",
-        )
-
-    return get_all_sessions(
-        db,
-        limit=limit,
-        offset=offset,
+    classroom_ids = get_owned_classroom_ids(current_user, db)
+    if classroom_ids is None:
+        return get_all_sessions(db, limit=limit, offset=offset)
+    if not classroom_ids:
+        return []
+    return (
+        db.query(ClassroomSession)
+        .filter(ClassroomSession.classroom_id.in_(classroom_ids))
+        .order_by(ClassroomSession.started_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
     )
 
 
@@ -61,6 +77,7 @@ def list_history_sessions(
 )
 def get_history_session(
     session_id: str,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     session = get_session_by_id(
@@ -74,6 +91,7 @@ def get_history_session(
             detail="Classroom session not found",
         )
 
+    require_classroom_access(session.classroom_id, current_user, db)
     return session
 
 
@@ -83,6 +101,9 @@ def get_history_session(
 )
 def get_history_attendance(
     session_id: str,
+    from_date: date | None = Query(default=None),
+    to_date: date | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     session = get_session_by_id(
@@ -96,9 +117,13 @@ def get_history_attendance(
             detail="Classroom session not found",
         )
 
+    require_classroom_access(session.classroom_id, current_user, db)
+    start_at, end_at = get_utc_date_range(from_date, to_date)
     return get_session_attendance(
         db,
         session_id,
+        start_at=start_at,
+        end_at=end_at,
     )
 
 
@@ -108,6 +133,9 @@ def get_history_attendance(
 )
 def get_history_attention(
     session_id: str,
+    from_date: date | None = Query(default=None),
+    to_date: date | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     session = get_session_by_id(
@@ -121,9 +149,13 @@ def get_history_attention(
             detail="Classroom session not found",
         )
 
+    require_classroom_access(session.classroom_id, current_user, db)
+    start_at, end_at = get_utc_date_range(from_date, to_date)
     return get_session_attention(
         db,
         session_id,
+        start_at=start_at,
+        end_at=end_at,
     )
 
 
@@ -133,6 +165,7 @@ def get_history_attention(
 )
 def get_history_summary(
     session_id: str,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     summary = get_session_summary(
@@ -146,4 +179,9 @@ def get_history_summary(
             detail="Classroom session not found",
         )
 
+    require_classroom_access(
+        summary["session"].classroom_id,
+        current_user,
+        db,
+    )
     return summary

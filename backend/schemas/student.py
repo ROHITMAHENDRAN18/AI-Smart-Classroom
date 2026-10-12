@@ -71,3 +71,4 @@ class StudentResponse(BaseModel):
     section: str
     email: str | None
     face_registered: bool
+    classroom_is_active: bool | None = None

@@ -1,354 +1,212 @@
-from sqlalchemy import text
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from backend.analytics.student_analytics import (
     calculate_attendance_analytics,
     calculate_attention_analytics,
 )
+from backend.models.attendance_record import AttendanceRecord
+from backend.models.attention_record import AttentionRecord
+from backend.models.classroom_member import ClassroomMember
+from backend.models.classroom_session import ClassroomSession
+from backend.models.student import Student
 
 
-# ============================================================
-# TOTAL CLASSROOM SESSIONS
-# ============================================================
+def _session_ids(db: Session, classroom_ids: list[int] | None):
+    query = db.query(ClassroomSession.session_id)
+    if classroom_ids is not None:
+        query = query.filter(ClassroomSession.classroom_id.in_(classroom_ids))
+    return query
+
 
 def get_total_sessions(
-    db: Session
+    db: Session,
+    classroom_ids: list[int] | None = None,
 ) -> int:
+    query = db.query(func.count(ClassroomSession.id))
+    if classroom_ids is not None:
+        query = query.filter(ClassroomSession.classroom_id.in_(classroom_ids))
+    return int(query.scalar() or 0)
 
-    query = text(
-        """
-        SELECT COUNT(*)
-        FROM classroom_sessions
-        """
-    )
-
-    return int(
-        db.execute(query).scalar() or 0
-    )
-
-
-# ============================================================
-# STUDENT ATTENDED SESSIONS
-# ============================================================
 
 def get_student_attended_sessions(
     db: Session,
-    student_id: str
+    student_id: str,
+    classroom_ids: list[int] | None = None,
 ) -> int:
-
-    query = text(
-        """
-        SELECT COUNT(DISTINCT session_id)
-        FROM attendance_records
-        WHERE student_id = :student_id
-        AND LOWER(status) = 'present'
-        """
+    query = (
+        db.query(func.count(func.distinct(AttendanceRecord.session_id)))
+        .filter(
+            AttendanceRecord.student_id == student_id,
+            func.lower(AttendanceRecord.status) == "present",
+            AttendanceRecord.session_id.in_(_session_ids(db, classroom_ids)),
+        )
     )
+    return int(query.scalar() or 0)
 
-    return int(
-        db.execute(
-            query,
-            {
-                "student_id": student_id
-            }
-        ).scalar() or 0
+
+def get_student_info(db: Session, student_id: str):
+    student = (
+        db.query(Student.student_id, Student.name)
+        .filter(Student.student_id == student_id)
+        .first()
     )
-
-
-# ============================================================
-# STUDENT INFORMATION
-# ============================================================
-
-def get_student_info(
-    db: Session,
-    student_id: str
-):
-
-    query = text(
-        """
-        SELECT
-            student_id,
-            name
-        FROM students
-        WHERE student_id = :student_id
-        LIMIT 1
-        """
-    )
-
-    row = db.execute(
-        query,
-        {
-            "student_id": student_id
-        }
-    ).mappings().first()
-
-    if not row:
+    if student is None:
         return None
+    return {"student_id": student.student_id, "name": student.name}
 
-    return dict(row)
-
-
-# ============================================================
-# STUDENT ATTENTION RECORDS
-# ============================================================
 
 def get_student_attention_records(
     db: Session,
-    student_id: str
+    student_id: str,
+    classroom_ids: list[int] | None = None,
 ):
-
-    query = text(
-        """
-        SELECT
-            attention_state,
-            attention_score,
-            fusion_state,
-            fusion_score,
-            fusion_confidence,
-            temporal_state,
-            temporal_score,
-            temporal_confidence,
-            temporal_stable,
-            recorded_at
-        FROM attention_records
-        WHERE student_id = :student_id
-        ORDER BY recorded_at ASC
-        """
+    rows = (
+        db.query(
+            AttentionRecord.attention_state,
+            AttentionRecord.attention_score,
+            AttentionRecord.recorded_at,
+        )
+        .filter(
+            AttentionRecord.student_id == student_id,
+            AttentionRecord.session_id.in_(_session_ids(db, classroom_ids)),
+        )
+        .order_by(AttentionRecord.recorded_at.asc())
+        .all()
     )
-
-    rows = db.execute(
-        query,
-        {
-            "student_id": student_id
-        }
-    ).mappings().all()
-
     return [
-        dict(row)
+        {
+            "attention_state": row.attention_state,
+            "attention_score": row.attention_score,
+            "recorded_at": row.recorded_at,
+        }
         for row in rows
     ]
 
 
-# ============================================================
-# STUDENT ANALYTICS
-# ============================================================
-
 def get_student_analytics(
     db: Session,
-    student_id: str
+    student_id: str,
+    classroom_ids: list[int] | None = None,
 ):
-
-    student = get_student_info(
+    student = get_student_info(db, student_id)
+    total_sessions = get_total_sessions(db, classroom_ids)
+    attended_sessions = get_student_attended_sessions(
         db,
-        student_id
+        student_id,
+        classroom_ids,
     )
-
-    total_sessions = get_total_sessions(
-        db
-    )
-
-    attended_sessions = (
-        get_student_attended_sessions(
-            db,
-            student_id
-        )
-    )
-
     records = get_student_attention_records(
         db,
-        student_id
+        student_id,
+        classroom_ids,
     )
-
     attendance = calculate_attendance_analytics(
         student_id=student_id,
         total_sessions=total_sessions,
-        attended_sessions=attended_sessions
+        attended_sessions=attended_sessions,
     )
-
     attention = calculate_attention_analytics(
         student_id=student_id,
-        records=records
+        records=records,
     )
-
     return {
         "student_id": student_id,
-        "student_name": (
-            student["name"]
-            if student
-            else None
-        ),
+        "student_name": student["name"] if student else None,
         "attendance": attendance,
         "attention": attention,
     }
 
 
-# ============================================================
-# ALL STUDENTS ANALYTICS
-# ============================================================
-
 def get_all_students_analytics(
-    db: Session
+    db: Session,
+    classroom_ids: list[int] | None = None,
 ):
-
-    query = text(
-        """
-        SELECT student_id
-        FROM students
-        ORDER BY student_id
-        """
-    )
-
-    students = db.execute(
-        query
-    ).mappings().all()
+    query = db.query(Student.student_id).order_by(Student.student_id)
+    if classroom_ids is not None:
+        query = (
+            query.join(
+                ClassroomMember,
+                ClassroomMember.student_id == Student.student_id,
+            )
+            .filter(
+                ClassroomMember.classroom_id.in_(classroom_ids),
+                ClassroomMember.is_active.is_(True),
+            )
+            .distinct()
+        )
 
     return [
-        get_student_analytics(
-            db,
-            student["student_id"]
-        )
-        for student in students
+        get_student_analytics(db, student_id, classroom_ids)
+        for (student_id,) in query.all()
     ]
 
-
-# ============================================================
-# STUDENT ATTENTION TIMELINE
-# ============================================================
 
 def get_student_attention_timeline(
     db: Session,
-    student_id: str
+    student_id: str,
+    classroom_ids: list[int] | None = None,
 ):
-
-    query = text(
-        """
-        SELECT
-            recorded_at,
-            attention_state,
-            attention_score,
-            fusion_state,
-            fusion_score,
-            temporal_state,
-            temporal_score,
-            temporal_confidence,
-            temporal_stable
-        FROM attention_records
-        WHERE student_id = :student_id
-        ORDER BY recorded_at ASC
-        """
+    query = (
+        db.query(
+            AttentionRecord.recorded_at,
+            AttentionRecord.attention_state,
+            AttentionRecord.attention_score,
+            AttentionRecord.fusion_state,
+            AttentionRecord.fusion_score,
+            AttentionRecord.temporal_state,
+            AttentionRecord.temporal_score,
+            AttentionRecord.temporal_confidence,
+            AttentionRecord.temporal_stable,
+        )
+        .filter(
+            AttentionRecord.student_id == student_id,
+            AttentionRecord.session_id.in_(_session_ids(db, classroom_ids)),
+        )
+        .order_by(AttentionRecord.recorded_at.asc())
     )
-
-    rows = db.execute(
-        query,
-        {
-            "student_id": student_id
-        }
-    ).mappings().all()
-
     return [
-        dict(row)
-        for row in rows
+        {
+            "recorded_at": row.recorded_at,
+            "attention_state": row.attention_state,
+            "attention_score": row.attention_score,
+            "fusion_state": row.fusion_state,
+            "fusion_score": row.fusion_score,
+            "temporal_state": row.temporal_state,
+            "temporal_score": row.temporal_score,
+            "temporal_confidence": row.temporal_confidence,
+            "temporal_stable": row.temporal_stable,
+        }
+        for row in query.all()
     ]
 
 
-# ============================================================
-# CLASSROOM ANALYTICS
-# ============================================================
-
-def get_classroom_analytics(db: Session):
-    query = text("""
-        SELECT
-            COUNT(*) AS total_records,
-
-            AVG(
-                CASE
-                    WHEN attention_score > 1
-                        THEN attention_score / 100.0
-                    ELSE attention_score
-                END
-            ) AS average_attention_score,
-
-            COUNT(*) FILTER (
-                WHERE REPLACE(
-                    UPPER(attention_state),
-                    ' ',
-                    ''
-                ) = 'ATTENTIVE'
-            ) AS attentive_records,
-
-            COUNT(*) FILTER (
-                WHERE REPLACE(
-                    UPPER(attention_state),
-                    ' ',
-                    ''
-                ) = 'PARTIAL'
-            ) AS partial_records,
-
-            COUNT(*) FILTER (
-                WHERE REPLACE(
-                    UPPER(attention_state),
-                    ' ',
-                    ''
-                ) = 'NOTATTENTIVE'
-            ) AS not_attentive_records,
-
-            COUNT(*) FILTER (
-                WHERE attention_state IS NULL
-                   OR REPLACE(
-                        UPPER(attention_state),
-                        ' ',
-                        ''
-                   ) = 'UNKNOWN'
-            ) AS unknown_records
-
-        FROM attention_records
-    """)
-
-    row = db.execute(query).mappings().first()
-
-    if not row:
-        return {
-            "total_records": 0,
-            "average_attention_score": 0.0,
-            "attention_percentage": 0.0,
-            "attentive_records": 0,
-            "partial_records": 0,
-            "not_attentive_records": 0,
-            "unknown_records": 0,
+def get_classroom_analytics(
+    db: Session,
+    classroom_ids: list[int] | None = None,
+):
+    query = db.query(
+        AttentionRecord.attention_state,
+        AttentionRecord.attention_score,
+    ).filter(AttentionRecord.session_id.in_(_session_ids(db, classroom_ids)))
+    rows = query.all()
+    records = [
+        {
+            "attention_state": state,
+            "attention_score": score,
         }
-
-    average_score = float(
-        row["average_attention_score"] or 0.0
+        for state, score in rows
+    ]
+    summary = calculate_attention_analytics(
+        student_id="",
+        records=records,
     )
-
     return {
-        "total_records": int(
-            row["total_records"] or 0
-        ),
-
-        "average_attention_score": round(
-            average_score,
-            4
-        ),
-
-        "attention_percentage": round(
-            average_score * 100,
-            2
-        ),
-
-        "attentive_records": int(
-            row["attentive_records"] or 0
-        ),
-
-        "partial_records": int(
-            row["partial_records"] or 0
-        ),
-
-        "not_attentive_records": int(
-            row["not_attentive_records"] or 0
-        ),
-
-        "unknown_records": int(
-            row["unknown_records"] or 0
-        ),
+        "total_records": summary.total_records,
+        "average_attention_score": summary.average_attention_score,
+        "attention_percentage": summary.attention_percentage,
+        "attentive_records": summary.attentive_records,
+        "partial_records": summary.partial_records,
+        "not_attentive_records": summary.not_attentive_records,
+        "unknown_records": summary.unknown_records,
     }

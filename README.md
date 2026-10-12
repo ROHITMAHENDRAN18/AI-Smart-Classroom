@@ -77,6 +77,21 @@ or localhost is generally required by the browser. During an active monitoring
 session, camera frames are transmitted to the configured backend for detection;
 the live video preview itself remains in the browser.
 
+## Classroom data pages
+
+Dashboard, Students, Attendance, Analytics, and Reports use the authenticated
+API client and the configured `VITE_DEFAULT_CLASSROOM_ID`. Classroom session
+history and student records are scoped to the authorized classroom. Attendance
+history is served by
+`GET /api/v1/classrooms/{classroom_id}/attendance`, which supports UTC `date`
+or inclusive `from_date`/`to_date` filters and bounded `limit`/`offset`
+pagination. Its summary counts cover the full filtered dataset, independent of
+the current page. The attendance rate is present divided by known present plus
+absent records; it is unavailable when that denominator is zero. Person
+detections are not converted to student attendance. Reports display records
+for a selected session; a report file export endpoint is not currently
+implemented.
+
 ---
 
 ## Project Status

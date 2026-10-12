@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ClipboardCheck,
   Clock,
-  ExternalLink,
   FileText,
   RefreshCw,
   User,
@@ -26,8 +25,6 @@ import {
   getSessionAttendance,
   getSessionAttention,
   getSessionSummary,
-  getStudentAnalytics,
-  getStudentReportUrl,
   getStudents,
 } from '../services/reports'
 import {
@@ -118,23 +115,25 @@ export default function Reports() {
   const [selectedSessionId, setSelectedSessionId] = useState('')
   const [attendanceRecords, setAttendanceRecords] = useState([])
   const [attentionRecords, setAttentionRecords] = useState([])
-  const [studentAnalytics, setStudentAnalytics] = useState(null)
   const [sessionSummary, setSessionSummary] = useState(null)
+  const [reportGeneratedAt, setReportGeneratedAt] = useState(null)
   const [activeTab, setActiveTab] = useState('attendance') // 'attendance' | 'attention'
   const [loadingInitial, setLoadingInitial] = useState(true)
   const [loadingData, setLoadingData] = useState(false)
   const [error, setError] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
 
-  const loadInitialData = useCallback(async () => {
+  const loadInitialData = useCallback(async (signal) => {
     setLoadingInitial(true)
     setError('')
 
     try {
       const [loadedStudents, loadedSessions] = await Promise.all([
-        getStudents(),
-        getHistorySessions(50, 0),
+        getStudents({ signal }),
+        getHistorySessions(50, 0, { signal }),
       ])
 
+      if (signal?.aborted) return
       setStudents(loadedStudents)
       setSessions(loadedSessions)
 
@@ -148,6 +147,7 @@ export default function Reports() {
           : loadedSessions[0]?.session_id ?? ''
       })
     } catch (err) {
+      if (signal?.aborted) return
       console.error('Failed to load Reports data:', err)
 
       setStudents([])
@@ -158,17 +158,18 @@ export default function Reports() {
           'Unable to load Reports data. Check the backend and try again.',
       )
     } finally {
-      setLoadingInitial(false)
+      if (!signal?.aborted) setLoadingInitial(false)
     }
   }, [])
 
   // Load session summary, attendance, attention, and analytics for selected session/student
-  const loadReportDetails = useCallback(async (sessionId, studentId) => {
+  const loadReportDetails = useCallback(async (sessionId, signal) => {
     if (!sessionId) {
       setSessionSummary(null)
       setAttendanceRecords([])
       setAttentionRecords([])
-      setStudentAnalytics(null)
+      setReportGeneratedAt(null)
+      setLoadingData(false)
       return
     }
 
@@ -176,27 +177,26 @@ export default function Reports() {
       setLoadingData(true)
       setError('')
 
-      const [summaryData, attendanceData, attentionData, analyticsData] =
+      const [summaryData, attendanceData, attentionData] =
         await Promise.all([
-          getSessionSummary(sessionId),
-          getSessionAttendance(sessionId),
-          getSessionAttention(sessionId),
-          studentId !== 'ALL'
-            ? getStudentAnalytics(studentId)
-            : Promise.resolve(null),
+          getSessionSummary(sessionId, { signal }),
+          getSessionAttendance(sessionId, { signal }),
+          getSessionAttention(sessionId, { signal }),
         ])
 
+      if (signal?.aborted) return
       setSessionSummary(summaryData)
       setAttendanceRecords(attendanceData)
       setAttentionRecords(attentionData)
-      setStudentAnalytics(analyticsData)
+      setReportGeneratedAt(new Date().toISOString())
     } catch (err) {
+      if (signal?.aborted) return
       console.error(`Failed to load report details for ${sessionId}:`, err)
 
       setSessionSummary(null)
       setAttendanceRecords([])
       setAttentionRecords([])
-      setStudentAnalytics(null)
+      setReportGeneratedAt(null)
 
       if (err.response?.status === 401) {
         setError('Your session has expired. Please log in again.')
@@ -206,26 +206,23 @@ export default function Reports() {
         setError('Unable to load report records. Please try again.')
       }
     } finally {
-      setLoadingData(false)
+      if (!signal?.aborted) setLoadingData(false)
     }
   }, [])
 
   useEffect(() => {
-    loadInitialData()
-  }, [loadInitialData])
+    const controller = new AbortController()
+    loadInitialData(controller.signal)
+    return () => controller.abort()
+  }, [loadInitialData, refreshKey])
 
   useEffect(() => {
-    if (selectedSessionId) {
-      loadReportDetails(selectedSessionId, selectedStudentId)
-    }
-  }, [selectedSessionId, selectedStudentId, loadReportDetails])
+    const controller = new AbortController()
+    loadReportDetails(selectedSessionId, controller.signal)
+    return () => controller.abort()
+  }, [selectedSessionId, loadReportDetails, refreshKey])
 
-  const handleRefresh = async () => {
-    await loadInitialData()
-    if (selectedSessionId) {
-      await loadReportDetails(selectedSessionId, selectedStudentId)
-    }
-  }
+  const handleRefresh = () => setRefreshKey((current) => current + 1)
 
   // Selected student object
   const selectedStudent = useMemo(() => {
@@ -265,12 +262,10 @@ export default function Reports() {
       (r) => r.status === 'ABSENT',
     ).length
 
-    let attendancePct = null
-    if (total > 0) {
-      attendancePct = Number(((presentCount / total) * 100).toFixed(1))
-    } else if (studentAnalytics?.attendance?.attendance_percentage !== undefined) {
-      attendancePct = Number(studentAnalytics.attendance.attendance_percentage.toFixed(1))
-    }
+    const knownRecords = presentCount + absentCount
+    const attendancePct = knownRecords > 0
+      ? Number(((presentCount / knownRecords) * 100).toFixed(1))
+      : null
 
     return {
       total,
@@ -278,7 +273,7 @@ export default function Reports() {
       absentCount,
       attendancePercentage: attendancePct,
     }
-  }, [filteredAttendance, studentAnalytics])
+  }, [filteredAttendance])
 
   // Attention metrics
   const attentionStats = useMemo(() => {
@@ -341,13 +336,6 @@ export default function Reports() {
     return getStatusBadge(selectedSession?.status)
   }, [selectedSession])
 
-  const reportUrl = useMemo(() => {
-    if (!selectedStudent?.student_id) {
-      return null
-    }
-    return getStudentReportUrl(selectedStudent.student_id)
-  }, [selectedStudent])
-
   const noSessionsAvailable = !loadingInitial && sessions.length === 0
   const noStudentsAvailable = !loadingInitial && students.length === 0
 
@@ -364,7 +352,7 @@ export default function Reports() {
             Reports
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-400">
-            Generate and review detailed classroom attendance and attention reports.
+            Review persisted attendance and attention records by classroom session. File export is not implemented.
           </p>
         </div>
 
@@ -474,7 +462,7 @@ export default function Reports() {
       )}
 
       {/* Main Content when sessions/students exist */}
-      {!noSessionsAvailable && !noStudentsAvailable && (
+      {!noSessionsAvailable && (
         <>
           {/* Top Row: 3. Student Summary + 7. Session Report */}
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -487,16 +475,10 @@ export default function Reports() {
                     <h2 className="text-base font-semibold text-white">Student Summary</h2>
                   </div>
 
-                  {selectedStudent && reportUrl && (
-                    <a
-                      href={reportUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400 transition hover:bg-blue-500/20 hover:text-blue-300"
-                    >
-                      <span>View HTML Report</span>
-                      <ExternalLink size={12} />
-                    </a>
+                  {selectedStudent && (
+                    <span className="rounded-lg border border-slate-700 px-3 py-1 text-xs text-slate-500">
+                      Export unavailable
+                    </span>
                   )}
                 </div>
 
@@ -659,6 +641,26 @@ export default function Reports() {
                           : '—'}
                     </p>
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                      <span className="text-[11px] text-slate-500">Reporting period</span>
+                      <p className="mt-1 text-xs font-medium text-slate-300">
+                        {selectedSession?.started_at
+                          ? `${formatDateTime(selectedSession.started_at)} – ${
+                            selectedSession.ended_at
+                              ? formatDateTime(selectedSession.ended_at)
+                              : 'In progress'
+                          }`
+                          : '—'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                      <span className="text-[11px] text-slate-500">Data fetched</span>
+                      <p className="mt-1 text-xs font-medium text-slate-300">
+                        {formatDateTime(reportGeneratedAt)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -670,8 +672,8 @@ export default function Reports() {
             <ReportMetricCard
               icon={<ClipboardCheck size={18} />}
               label="Attendance Records"
-              value={loadingData ? null : attendanceStats.total}
-              description={`Present: ${attendanceStats.presentCount} | Absent: ${attendanceStats.absentCount}`}
+              value={loadingData ? null : error ? '—' : attendanceStats.total}
+              description={error ? 'Report data unavailable' : `Present: ${attendanceStats.presentCount} | Absent: ${attendanceStats.absentCount}`}
               iconClass="bg-indigo-500/10 text-indigo-400"
             />
 
@@ -682,12 +684,16 @@ export default function Reports() {
               value={
                 loadingData
                   ? null
+                  : error
+                    ? '—'
                   : attendanceStats.attendancePercentage !== null
                     ? `${attendanceStats.attendancePercentage}%`
                     : '—'
               }
               description={
-                attendanceStats.total > 0
+                error
+                  ? 'Report data unavailable'
+                  : attendanceStats.total > 0
                   ? `${attendanceStats.presentCount} verified check-ins`
                   : 'No attendance records logged'
               }
@@ -698,8 +704,8 @@ export default function Reports() {
             <ReportMetricCard
               icon={<Activity size={18} />}
               label="Attention Records"
-              value={loadingData ? null : attentionStats.total}
-              description={`Attentive frames: ${attentionStats.attentiveCount}`}
+              value={loadingData ? null : error ? '—' : attentionStats.total}
+              description={error ? 'Report data unavailable' : `Attentive records: ${attentionStats.attentiveCount}`}
               iconClass="bg-purple-500/10 text-purple-400"
             />
 
@@ -710,11 +716,15 @@ export default function Reports() {
               value={
                 loadingData
                   ? null
+                  : error
+                    ? '—'
                   : attentionStats.total > 0
                     ? `${attentionStats.attentivePct}%`
                     : '—'
               }
-              description={`Not Attentive: ${attentionStats.notAttentivePct}% | Unknown: ${attentionStats.unknownPct}%`}
+              description={error
+                ? 'Report data unavailable'
+                : `Not Attentive: ${attentionStats.notAttentivePct}% | Unknown: ${attentionStats.unknownPct}%`}
               iconClass="bg-emerald-500/10 text-emerald-400"
             />
           </section>
@@ -743,6 +753,8 @@ export default function Reports() {
                       <div className="h-36 w-36 rounded-full border-4 border-slate-800 border-t-blue-500 animate-spin" />
                       <p className="text-xs text-slate-500">Loading chart data...</p>
                     </div>
+                  ) : error ? (
+                    <p className="text-sm text-red-300">Attention records could not be loaded.</p>
                   ) : chartData.length > 0 ? (
                     <div className="w-full">
                       <div className="relative h-[220px] w-full">

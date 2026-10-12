@@ -18,9 +18,10 @@ import {
 
 import {
   getAttendanceSessions,
-  getSessionAttendance,
-  normalizeAttendanceRecords,
+  getClassroomAttendance,
 } from '../services/attendanceService'
+
+const PAGE_SIZE = 50
 
 export default function Attendance() {
   const [sessions, setSessions] = useState([])
@@ -28,6 +29,10 @@ export default function Attendance() {
     useState('')
 
   const [records, setRecords] = useState([])
+  const [attendanceReport, setAttendanceReport] = useState(null)
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [offset, setOffset] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const [loadingSessions, setLoadingSessions] =
     useState(true)
@@ -38,14 +43,14 @@ export default function Attendance() {
   const [error, setError] = useState('')
 
   const loadSessions = useCallback(
-    async () => {
+    async (signal) => {
       try {
         setLoadingSessions(true)
         setError('')
 
-        const data =
-          await getAttendanceSessions()
+        const data = await getAttendanceSessions({ signal })
 
+        if (signal?.aborted) return
         setSessions(data)
 
         setSelectedSessionId(
@@ -65,6 +70,7 @@ export default function Attendance() {
           },
         )
       } catch (requestError) {
+        if (signal?.aborted) return
         console.error(
           'Failed to load attendance sessions:',
           requestError,
@@ -77,16 +83,18 @@ export default function Attendance() {
           ),
         )
       } finally {
-        setLoadingSessions(false)
+        if (!signal?.aborted) setLoadingSessions(false)
       }
     },
     [],
   )
 
   const loadAttendance = useCallback(
-    async (sessionId) => {
+    async (sessionId, signal) => {
       if (!sessionId) {
         setRecords([])
+        setAttendanceReport(null)
+        setLoadingAttendance(false)
         return
       }
 
@@ -94,21 +102,32 @@ export default function Attendance() {
         setLoadingAttendance(true)
         setError('')
 
-        const data =
-          await getSessionAttendance(
-            sessionId,
-          )
+        const data = await getClassroomAttendance({
+          sessionId,
+          date,
+          limit: PAGE_SIZE,
+          offset,
+          signal,
+        })
 
-        setRecords(
-          normalizeAttendanceRecords(data),
-        )
+        if (signal?.aborted) return
+        setAttendanceReport(data)
+        setRecords(data.records.map((record) => ({
+          ...record,
+          studentId: record.student_name
+            ? `${record.student_name} (${record.student_id})`
+            : record.student_id,
+          recordedAt: record.recorded_at,
+        })))
       } catch (requestError) {
+        if (signal?.aborted) return
         console.error(
           'Failed to load attendance:',
           requestError,
         )
 
         setRecords([])
+        setAttendanceReport(null)
 
         setError(
           getErrorMessage(
@@ -117,56 +136,37 @@ export default function Attendance() {
           ),
         )
       } finally {
-        setLoadingAttendance(false)
+        if (!signal?.aborted) setLoadingAttendance(false)
       }
     },
-    [],
+    [date, offset],
   )
 
   useEffect(() => {
-    loadSessions()
-  }, [loadSessions])
+    const controller = new AbortController()
+    loadSessions(controller.signal)
+    return () => controller.abort()
+  }, [loadSessions, refreshKey])
 
   useEffect(() => {
-    loadAttendance(
-      selectedSessionId,
-    )
+    const controller = new AbortController()
+    loadAttendance(selectedSessionId, controller.signal)
+    return () => controller.abort()
   }, [
     selectedSessionId,
     loadAttendance,
+    refreshKey,
   ])
 
   const summary = useMemo(() => {
-    const present = records.filter(
-      (record) =>
-        record.status === 'PRESENT',
-    ).length
-
-    const absent = records.filter(
-      (record) =>
-        record.status === 'ABSENT',
-    ).length
-
-    const unknown = records.filter(
-      (record) =>
-        record.status === 'UNKNOWN',
-    ).length
-
-    const total = records.length
-
-    const percentage =
-      total > 0
-        ? (present / total) * 100
-        : 0
-
     return {
-      present,
-      absent,
-      unknown,
-      total,
-      percentage,
+      present: attendanceReport?.present_count ?? null,
+      absent: attendanceReport?.absent_count ?? null,
+      unknown: attendanceReport?.unknown_count ?? null,
+      total: attendanceReport?.total_records ?? null,
+      percentage: attendanceReport?.attendance_rate ?? null,
     }
-  }, [records])
+  }, [attendanceReport])
 
   const selectedSession = useMemo(
     () =>
@@ -182,13 +182,7 @@ export default function Attendance() {
   )
 
   async function handleRefresh() {
-    await loadSessions()
-
-    if (selectedSessionId) {
-      await loadAttendance(
-        selectedSessionId,
-      )
-    }
+    setRefreshKey((current) => current + 1)
   }
 
   return (
@@ -302,6 +296,25 @@ export default function Attendance() {
             </select>
           </div>
 
+          <div className="w-full lg:w-auto">
+            <label
+              htmlFor="attendance-date"
+              className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500"
+            >
+              UTC date
+            </label>
+            <input
+              id="attendance-date"
+              type="date"
+              value={date}
+              onChange={(event) => {
+                setDate(event.target.value)
+                setOffset(0)
+              }}
+              className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50"
+            />
+          </div>
+
           {selectedSession && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-auto">
               <SessionInfo
@@ -343,11 +356,11 @@ export default function Attendance() {
         </div>
       </section>
 
-      <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <SummaryCard
           icon={<Users size={19} />}
           label="Total Records"
-          value={summary.total}
+          value={loadingAttendance ? '…' : summary.total ?? '—'}
           description="Attendance records"
           iconClass="bg-blue-500/10 text-blue-400"
         />
@@ -357,7 +370,7 @@ export default function Attendance() {
             <CheckCircle2 size={19} />
           }
           label="Present"
-          value={summary.present}
+          value={loadingAttendance ? '…' : summary.present ?? '—'}
           description="Marked present"
           iconClass="bg-emerald-500/10 text-emerald-400"
         />
@@ -365,9 +378,17 @@ export default function Attendance() {
         <SummaryCard
           icon={<UserX size={19} />}
           label="Absent"
-          value={summary.absent}
+          value={loadingAttendance ? '…' : summary.absent ?? '—'}
           description="Marked absent"
           iconClass="bg-red-500/10 text-red-400"
+        />
+
+        <SummaryCard
+          icon={<AlertCircle size={19} />}
+          label="Unknown"
+          value={loadingAttendance ? '…' : summary.unknown ?? '—'}
+          description="Persisted records with unknown status"
+          iconClass="bg-slate-500/10 text-slate-400"
         />
 
         <SummaryCard
@@ -375,10 +396,12 @@ export default function Attendance() {
             <ClipboardCheck size={19} />
           }
           label="Attendance Rate"
-          value={`${summary.percentage.toFixed(
-            1,
-          )}%`}
-          description="Present / total records"
+          value={loadingAttendance
+            ? '…'
+            : summary.percentage === null
+              ? '—'
+              : `${summary.percentage.toFixed(1)}%`}
+          description="Present / known present + absent"
           iconClass="bg-violet-500/10 text-violet-400"
         />
       </section>
@@ -408,7 +431,32 @@ export default function Attendance() {
         ) : records.length === 0 ? (
           <EmptyState />
         ) : (
-          <AttendanceTable records={records} />
+          <>
+            <AttendanceTable records={records} />
+            <div className="flex items-center justify-between border-t border-slate-800 px-5 py-4">
+              <p className="text-xs text-slate-500">
+                {attendanceReport?.total_records ?? 0} records for {attendanceReport?.from_date ?? date} (UTC)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOffset((value) => Math.max(0, value - PAGE_SIZE))}
+                  disabled={offset === 0 || loadingAttendance}
+                  className="rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOffset((value) => value + PAGE_SIZE)}
+                  disabled={offset + records.length >= (attendanceReport?.total_records ?? 0) || loadingAttendance}
+                  className="rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </section>
     </div>

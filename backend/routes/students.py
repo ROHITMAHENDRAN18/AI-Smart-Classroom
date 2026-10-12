@@ -1,7 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from backend.auth.classroom_access import (
+    get_owned_classroom_ids,
+    require_classroom_access,
+)
 from backend.auth.dependencies import get_current_user
+from backend.models.classroom_member import ClassroomMember
+from backend.models.classroom import Classroom
 from backend.database.session import get_db
 from backend.models.student import Student
 from backend.models.user import User
@@ -25,6 +31,30 @@ def require_teacher_or_admin(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only teachers and admins can manage students",
+        )
+
+
+def require_student_classroom_access(
+    student_id: str,
+    current_user: User,
+    db: Session,
+) -> None:
+    if current_user.role == "ADMIN":
+        return
+
+    classroom_ids = get_owned_classroom_ids(current_user, db)
+    membership = (
+        db.query(ClassroomMember.id)
+        .filter(
+            ClassroomMember.student_id == student_id,
+            ClassroomMember.classroom_id.in_(classroom_ids or []),
+        )
+        .first()
+    )
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found",
         )
 
 
@@ -87,13 +117,68 @@ def create_student(
     response_model=list[StudentResponse],
 )
 def get_students(
+    classroom_id: int | None = Query(default=None, ge=1),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     require_teacher_or_admin(current_user)
 
+    if classroom_id is not None:
+        require_classroom_access(classroom_id, current_user, db)
+        members = (
+            db.query(Student, ClassroomMember.is_active)
+            .join(
+                ClassroomMember,
+                ClassroomMember.student_id == Student.student_id,
+            )
+            .filter(ClassroomMember.classroom_id == classroom_id)
+            .order_by(Student.id)
+            .all()
+        )
+        return [
+            {
+                **{
+                    field: getattr(student, field)
+                    for field in (
+                        "id",
+                        "student_id",
+                        "name",
+                        "department",
+                        "year",
+                        "section",
+                        "email",
+                        "face_registered",
+                    )
+                },
+                "classroom_is_active": membership_is_active,
+            }
+            for student, membership_is_active in members
+        ]
+
+    owned_classroom_ids = get_owned_classroom_ids(current_user, db)
+    if owned_classroom_ids is None:
+        students = (
+            db.query(Student)
+            .order_by(Student.id)
+            .all()
+        )
+        return students
+
     students = (
         db.query(Student)
+        .join(
+            ClassroomMember,
+            ClassroomMember.student_id == Student.student_id,
+        )
+        .join(
+            Classroom,
+            Classroom.id == ClassroomMember.classroom_id,
+        )
+        .filter(
+            Classroom.id.in_(owned_classroom_ids),
+            ClassroomMember.is_active.is_(True),
+        )
+        .distinct()
         .order_by(Student.id)
         .all()
     )
@@ -124,6 +209,7 @@ def get_student(
             detail="Student not found",
         )
 
+    require_student_classroom_access(student_id, current_user, db)
     return student
 
 
@@ -150,6 +236,8 @@ def update_student(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Student not found",
         )
+
+    require_student_classroom_access(student_id, current_user, db)
 
     update_data = request.model_dump(
         exclude_unset=True,
@@ -207,6 +295,8 @@ def deactivate_student(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Student not found",
         )
+
+    require_student_classroom_access(student_id, current_user, db)
 
     student.face_registered = False
 

@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { RefreshCw, Users } from 'lucide-react'
 import { getStudents } from '../services/reports'
 
@@ -24,40 +24,48 @@ function getStudentName(student) {
   )
 }
 
-function normalizeStudents(data) {
-  if (Array.isArray(data)) return data
-  if (Array.isArray(data?.students)) return data.students
-  if (Array.isArray(data?.items)) return data.items
-  if (Array.isArray(data?.data)) return data.data
-  return []
-}
-
 export default function Students() {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [search, setSearch] = useState('')
 
-  const loadStudents = useCallback(async () => {
+  const loadStudents = useCallback(async (signal) => {
     setLoading(true)
     setError('')
 
     try {
-      const response = await getStudents()
-      setStudents(normalizeStudents(response))
+      const response = await getStudents({ signal })
+      if (!signal?.aborted) setStudents(response)
     } catch (err) {
-      setError(
-        err?.response?.data?.detail ||
-          err?.message ||
-          'Unable to load students. Check the backend connection.'
-      )
+      if (!signal?.aborted) {
+        setStudents([])
+        setError(
+          err?.response?.data?.detail ||
+            err?.message ||
+            'Unable to load students. Check the backend connection.'
+        )
+      }
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    loadStudents()
+    const controller = new AbortController()
+    loadStudents(controller.signal)
+    return () => controller.abort()
   }, [loadStudents])
+
+  const filteredStudents = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase()
+    if (!query) return students
+    return students.filter((student) =>
+      [student.student_id, student.name, student.email, student.department, student.section]
+        .filter(Boolean)
+        .some((value) => String(value).toLocaleLowerCase().includes(query)),
+    )
+  }, [search, students])
 
   return (
     <main className="space-y-6 p-6">
@@ -72,7 +80,7 @@ export default function Students() {
 
         <button
           type="button"
-          onClick={loadStudents}
+          onClick={() => loadStudents()}
           disabled={loading}
           className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm text-white hover:bg-slate-800 disabled:opacity-50"
         >
@@ -89,7 +97,7 @@ export default function Students() {
           <div>
             <p className="text-sm text-slate-400">Registered students</p>
             <p className="text-2xl font-bold text-white">
-              {loading ? '…' : students.length}
+              {loading ? '…' : error ? '—' : students.length}
             </p>
           </div>
         </div>
@@ -101,7 +109,10 @@ export default function Students() {
 
       {!loading && error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
-          {error}
+          <p>{error}</p>
+          <button type="button" onClick={() => loadStudents()} className="mt-3 underline">
+            Retry
+          </button>
         </div>
       )}
 
@@ -118,16 +129,33 @@ export default function Students() {
 
       {!loading && !error && students.length > 0 && (
         <div className="overflow-x-auto rounded-xl border border-slate-800">
-          <table className="w-full text-left text-sm">
+          <div className="border-b border-slate-800 p-4">
+            <label htmlFor="student-search" className="sr-only">Search students</label>
+            <input
+              id="student-search"
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search this classroom…"
+              className="w-full max-w-sm rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-500"
+            />
+            <p className="mt-2 text-xs text-slate-500">
+              Showing {filteredStudents.length} of {students.length} classroom students.
+            </p>
+          </div>
+          {filteredStudents.length === 0 ? (
+            <p className="p-6 text-sm text-slate-400">No students match this search.</p>
+          ) : <table className="w-full text-left text-sm">
             <thead className="bg-slate-900 text-slate-400">
               <tr>
                 <th className="px-5 py-3 font-medium">Student ID</th>
                 <th className="px-5 py-3 font-medium">Name</th>
                 <th className="px-5 py-3 font-medium">Email</th>
+                <th className="px-5 py-3 font-medium">Classroom membership</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((student, index) => (
+              {filteredStudents.map((student, index) => (
                 <tr
                   key={String(getStudentId(student)) + '-' + index}
                   className="border-t border-slate-800 text-slate-200"
@@ -137,10 +165,16 @@ export default function Students() {
                   <td className="px-5 py-4">
                     {student.email ?? student.email_address ?? '—'}
                   </td>
+                  <td className="px-5 py-4">
+                    {student.classroom_is_active === null
+                      ? 'Not provided'
+                      : student.classroom_is_active ? 'Active' : 'Inactive'}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          }
         </div>
       )}
     </main>

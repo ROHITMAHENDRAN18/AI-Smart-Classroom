@@ -14,14 +14,21 @@ import {
   Users,
 } from 'lucide-react'
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
   Cell,
+  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts'
 
 import {
+  getClassroomAttendance,
   getHistorySessions,
   getSessionSummary,
 } from '../services/analytics'
@@ -109,17 +116,22 @@ export default function Analytics() {
   const [sessions, setSessions] = useState([])
   const [selectedSessionId, setSelectedSessionId] = useState('')
   const [summaryData, setSummaryData] = useState(null)
+  const [attendanceTrend, setAttendanceTrend] = useState(null)
+  const [trendError, setTrendError] = useState('')
+  const [loadingTrend, setLoadingTrend] = useState(true)
   const [loadingSessions, setLoadingSessions] = useState(true)
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [error, setError] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
 
   // Load list of sessions
-  const loadSessions = useCallback(async () => {
+  const loadSessions = useCallback(async (signal) => {
     try {
       setLoadingSessions(true)
       setError('')
 
-      const fetchedSessions = await getHistorySessions(50, 0)
+      const fetchedSessions = await getHistorySessions(50, 0, { signal })
+      if (signal?.aborted) return
       setSessions(fetchedSessions)
 
       if (fetchedSessions.length > 0) {
@@ -132,19 +144,24 @@ export default function Analytics() {
         setSummaryData(null)
       }
     } catch (err) {
+      if (signal?.aborted) return
       console.error('Failed to load sessions:', err)
+      setSessions([])
+      setSelectedSessionId('')
+      setSummaryData(null)
       setError(
         'Unable to load analytics. Please check that the backend is running.',
       )
     } finally {
-      setLoadingSessions(false)
+      if (!signal?.aborted) setLoadingSessions(false)
     }
   }, [])
 
   // Load summary for selected session
-  const loadSummary = useCallback(async (sessionId) => {
+  const loadSummary = useCallback(async (sessionId, signal) => {
     if (!sessionId) {
       setSummaryData(null)
+      setLoadingSummary(false)
       return
     }
 
@@ -152,35 +169,68 @@ export default function Analytics() {
       setLoadingSummary(true)
       setError('')
 
-      const summary = await getSessionSummary(sessionId)
+      const summary = await getSessionSummary(sessionId, { signal })
+      if (signal?.aborted) return
       setSummaryData(summary)
     } catch (err) {
+      if (signal?.aborted) return
       console.error(`Failed to load summary for session ${sessionId}:`, err)
       const detail =
         err?.response?.data?.detail ||
         'Unable to load session analytics. Please check that the backend is running.'
       setError(detail)
     } finally {
-      setLoadingSummary(false)
+      if (!signal?.aborted) setLoadingSummary(false)
     }
   }, [])
 
   useEffect(() => {
-    loadSessions()
-  }, [loadSessions])
+    const controller = new AbortController()
+    loadSessions(controller.signal)
+    return () => controller.abort()
+  }, [loadSessions, refreshKey])
 
   useEffect(() => {
-    if (selectedSessionId) {
-      loadSummary(selectedSessionId)
-    }
-  }, [selectedSessionId, loadSummary])
+    const controller = new AbortController()
+    loadSummary(selectedSessionId, controller.signal)
+    return () => controller.abort()
+  }, [selectedSessionId, loadSummary, refreshKey])
 
-  const handleRefresh = async () => {
-    await loadSessions()
-    if (selectedSessionId) {
-      await loadSummary(selectedSessionId)
+  useEffect(() => {
+    const controller = new AbortController()
+    const toDate = new Date().toISOString().slice(0, 10)
+    const from = new Date()
+    from.setUTCDate(from.getUTCDate() - 29)
+    const fromDate = from.toISOString().slice(0, 10)
+
+    async function loadTrend() {
+      setLoadingTrend(true)
+      setTrendError('')
+      try {
+        const data = await getClassroomAttendance({
+          fromDate,
+          toDate,
+          limit: 1,
+          signal: controller.signal,
+        })
+        if (!controller.signal.aborted) setAttendanceTrend(data)
+      } catch (requestError) {
+        if (!controller.signal.aborted) {
+          setTrendError(
+            requestError?.response?.data?.detail ||
+              'Unable to load the 30-day attendance trend.',
+          )
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoadingTrend(false)
+      }
     }
-  }
+
+    loadTrend()
+    return () => controller.abort()
+  }, [refreshKey])
+
+  const handleRefresh = () => setRefreshKey((current) => current + 1)
 
   const selectedSession = useMemo(() => {
     return (
@@ -339,26 +389,63 @@ export default function Analytics() {
       {/* When sessions exist or during loading */}
       {(sessions.length > 0 || isInitialLoading) && (
         <>
+          <section className="surface p-5 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-white">Attendance trend</h2>
+                <p className="mt-1 text-xs text-slate-400">
+                  Persisted present and absent records by UTC date over the last 30 days.
+                </p>
+              </div>
+              <span className="text-xs text-slate-500">
+                {attendanceTrend
+                  ? `${attendanceTrend.from_date} – ${attendanceTrend.to_date} UTC`
+                  : 'Last 30 days'}
+              </span>
+            </div>
+            {trendError ? (
+              <p role="alert" className="mt-5 text-sm text-red-300">{trendError}</p>
+            ) : loadingTrend ? (
+              <p className="mt-5 text-sm text-slate-400">Loading attendance history…</p>
+            ) : attendanceTrend?.daily_trend.length ? (
+              <div className="mt-5 h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={attendanceTrend.daily_trend}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <YAxis allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="present_count" name="Present" fill="#34d399" />
+                    <Bar dataKey="absent_count" name="Absent" fill="#fb7185" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="mt-5 text-sm text-slate-500">No persisted attendance records in this period.</p>
+            )}
+          </section>
+
           {/* 2. Summary Cards Grid */}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <SummaryCard
               icon={<Users size={18} />}
               label="Total Students"
-              value={loadingSummary ? null : stats?.unique_students ?? 0}
+              value={loadingSummary ? null : stats ? stats.unique_students : '—'}
               description="Unique students identified"
               iconClass="bg-blue-500/10 text-blue-400"
             />
             <SummaryCard
               icon={<ClipboardCheck size={18} />}
               label="Attendance Records"
-              value={loadingSummary ? null : stats?.attendance_records ?? 0}
+              value={loadingSummary ? null : stats ? stats.attendance_records : '—'}
               description="Session attendance logs"
               iconClass="bg-indigo-500/10 text-indigo-400"
             />
             <SummaryCard
               icon={<Activity size={18} />}
               label="Attention Records"
-              value={loadingSummary ? null : stats?.attention_records ?? 0}
+              value={loadingSummary ? null : stats ? stats.attention_records : '—'}
               description="Captured frame detections"
               iconClass="bg-purple-500/10 text-purple-400"
             />
@@ -368,9 +455,9 @@ export default function Analytics() {
               value={
                 loadingSummary
                   ? null
-                  : `${stats?.attentive_percentage ?? 0}%`
+                  : stats ? `${stats.attentive_percentage}%` : '—'
               }
-              description={`${stats?.attentive_count ?? 0} attentive detections`}
+              description={stats ? `${stats.attentive_count} attentive records` : 'No summary available'}
               iconClass="bg-emerald-500/10 text-emerald-400"
             />
             <SummaryCard
@@ -379,9 +466,9 @@ export default function Analytics() {
               value={
                 loadingSummary
                   ? null
-                  : `${stats?.not_attentive_percentage ?? 0}%`
+                  : stats ? `${stats.not_attentive_percentage}%` : '—'
               }
-              description={`${stats?.not_attentive_count ?? 0} inattentive detections`}
+              description={stats ? `${stats.not_attentive_count} inattentive records` : 'No summary available'}
               iconClass="bg-rose-500/10 text-rose-400"
             />
             <SummaryCard
@@ -390,9 +477,9 @@ export default function Analytics() {
               value={
                 loadingSummary
                   ? null
-                  : `${stats?.unknown_percentage ?? 0}%`
+                  : stats ? `${stats.unknown_percentage}%` : '—'
               }
-              description={`${stats?.unknown_count ?? 0} unclassified detections`}
+              description={stats ? `${stats.unknown_count} unclassified records` : 'No summary available'}
               iconClass="bg-slate-500/10 text-slate-400"
             />
           </section>
@@ -448,7 +535,7 @@ export default function Analytics() {
                         {/* Center donut label */}
                         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                           <span className="text-2xl font-bold tracking-tight text-white">
-                            {stats?.attentive_percentage ?? 0}%
+                            {stats?.attentive_percentage ?? '—'}{stats ? '%' : ''}
                           </span>
                           <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
                             Attentive

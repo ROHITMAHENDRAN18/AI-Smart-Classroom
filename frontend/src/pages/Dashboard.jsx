@@ -12,24 +12,32 @@ import {
 import { Link } from 'react-router-dom'
 
 import { getClassroomOverview } from '../services/classroomService'
-
-const classroomId = import.meta.env.VITE_DEFAULT_CLASSROOM_ID
+import { getClassroomAttendance } from '../services/classroomDataService'
 
 export default function Dashboard() {
   const [overview, setOverview] = useState(null)
+  const [attendance, setAttendance] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const loadOverview = useCallback(async () => {
+  const loadOverview = useCallback(async (signal) => {
     try {
       setLoading(true)
       setError('')
 
-      const data = await getClassroomOverview(classroomId)
-
+      const today = new Date().toISOString().slice(0, 10)
+      const [data, attendanceData] = await Promise.all([
+        getClassroomOverview(undefined, { signal }),
+        getClassroomAttendance({ date: today, signal }),
+      ])
+      if (signal?.aborted) return
       setOverview(data)
+      setAttendance(attendanceData)
     } catch (requestError) {
+      if (signal?.aborted) return
       console.error('Failed to load dashboard overview:', requestError)
+      setOverview(null)
+      setAttendance(null)
 
       const message =
         requestError?.response?.data?.detail ||
@@ -38,12 +46,14 @@ export default function Dashboard() {
 
       setError(message)
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    loadOverview()
+    const controller = new AbortController()
+    loadOverview(controller.signal)
+    return () => controller.abort()
   }, [loadOverview])
 
   return (
@@ -58,8 +68,8 @@ export default function Dashboard() {
         </h2>
 
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-          Monitor classroom activity, students, attendance, alerts,
-          analytics, and session performance from one workspace.
+          Review persisted classroom roster, attendance, and session data.
+          Attention analytics and alerts are not connected to persisted data yet.
         </p>
       </section>
 
@@ -94,34 +104,32 @@ export default function Dashboard() {
 
         <MetricCard
           icon={<Activity size={19} />}
-          label="Attention"
-          value="—"
-          description="Live AI attention metric"
+          label="Present records today"
+          description={
+            loading ? 'Loading persisted attendance' : `${attendance?.from_date ?? 'Today'} UTC`
+          }
           iconClass="bg-emerald-500/10 text-emerald-400"
-          pending
+          value={loading ? '…' : attendance?.present_count ?? '—'}
         />
 
         <MetricCard
           icon={<CheckCircle2 size={19} />}
-          label="Classroom"
-          value={
-            loading
-              ? '...'
-              : overview?.classroom_code || '—'
-          }
-          description={
-            overview?.classroom_name || 'Classroom information'
-          }
+          label="Attendance rate today"
+          value={loading
+            ? '…'
+            : attendance?.attendance_rate === null || attendance?.attendance_rate === undefined
+              ? '—'
+              : `${attendance.attendance_rate.toFixed(1)}%`}
+          description="Present / known present + absent"
           iconClass="bg-cyan-500/10 text-cyan-400"
         />
 
         <MetricCard
           icon={<AlertTriangle size={19} />}
-          label="Alerts"
-          value="—"
-          description="Live AI alerts"
+          label="Classroom"
+          value={loading ? '…' : overview?.classroom_code || '—'}
+          description={overview?.classroom_name || 'Classroom information'}
           iconClass="bg-amber-500/10 text-amber-400"
-          pending
         />
       </section>
 
@@ -166,16 +174,22 @@ export default function Dashboard() {
 
             <OverviewItem
               icon={<CheckCircle2 size={17} />}
+              label="Absent records today"
+              value={loading ? 'Loading...' : attendance?.absent_count ?? '—'}
+            />
+
+            <OverviewItem
+              icon={<CheckCircle2 size={17} />}
               label="Classroom status"
               value={
-                overview?.is_active
-                  ? 'Active'
-                  : 'Inactive'
+                overview
+                  ? overview.is_active ? 'Active' : 'Inactive'
+                  : loading ? 'Loading...' : '—'
               }
               valueClass={
                 overview?.is_active
                   ? 'text-emerald-400'
-                  : 'text-red-400'
+                  : overview ? 'text-red-400' : 'text-slate-500'
               }
             />
 
@@ -183,9 +197,11 @@ export default function Dashboard() {
               icon={<Clock3 size={17} />}
               label="Session"
               value={
-                overview?.active_session
-                  ? overview.active_session.status
-                  : 'No active session'
+                overview
+                  ? overview.active_session
+                    ? overview.active_session.status
+                    : 'No active session'
+                  : loading ? 'Loading...' : '—'
               }
               valueClass={
                 overview?.active_session
@@ -226,7 +242,7 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-            ) : (
+            ) : overview ? (
               <div className="flex items-start gap-3">
                 <span className="mt-1 status-dot status-dot-neutral" />
 
@@ -236,9 +252,13 @@ export default function Dashboard() {
                   </p>
 
                   <p className="mt-1 text-xs text-slate-600">
-                    Session controls will be connected later.
+                    Use Session Control to start a classroom session.
                   </p>
                 </div>
+              </div>
+            ) : (
+              <div className="text-sm text-slate-500">
+                {loading ? 'Loading session status…' : 'Session status unavailable.'}
               </div>
             )}
           </div>
