@@ -8,11 +8,6 @@ import time
 from collections import defaultdict, deque
 from datetime import datetime
 
-from ultralytics import YOLO
-import supervision as sv
-
-from insightface.app import FaceAnalysis
-
 from configs.settings import (
     YOLO_MODEL,
     CAMERA_INDEX,
@@ -806,6 +801,19 @@ def estimate_attention(
 
 # ============================================================
 def main():
+    # Keep optional vision runtimes out of module import so geometry helpers
+    # and their tests remain usable without the full legacy CV stack.
+    try:
+        from ultralytics import YOLO
+        import supervision as sv
+        from insightface.app import FaceAnalysis
+    except ImportError as error:
+        raise RuntimeError(
+            "The legacy face/person pipeline requires ultralytics, "
+            "supervision, and insightface. Install those optional runtimes "
+            "before starting this pipeline."
+        ) from error
+
     global last_dashboard_update
 
     # YOLO PERSON DETECTOR

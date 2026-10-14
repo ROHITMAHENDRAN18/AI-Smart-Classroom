@@ -6,6 +6,7 @@ from backend.models.user import User
 from backend.models.teacher import Teacher
 from backend.models.classroom import Classroom
 from backend.models.classroom_member import ClassroomMember
+from backend.models.frame_inference_summary import FrameInferenceSummary
 
 __all__ = [
     "Student",
@@ -16,4 +17,5 @@ __all__ = [
     "Teacher",
     "Classroom",
     "ClassroomMember",
+    "FrameInferenceSummary",
 ]

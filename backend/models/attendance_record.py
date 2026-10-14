@@ -3,6 +3,7 @@ from sqlalchemy import DateTime
 from sqlalchemy import Float
 from sqlalchemy import Integer
 from sqlalchemy import String
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.sql import func
 
 from backend.database.base import Base
@@ -10,6 +11,13 @@ from backend.database.base import Base
 
 class AttendanceRecord(Base):
     __tablename__ = "attendance_records"
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "student_id",
+            name="uq_attendance_session_student",
+        ),
+    )
 
     id = Column(
         Integer,

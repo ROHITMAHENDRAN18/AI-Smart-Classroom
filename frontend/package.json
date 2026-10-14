@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "test:monitoring": "node --test src/utils/personDetectionOverlay.test.js",
+    "test:monitoring": "node --test src/utils/personDetectionOverlay.test.js src/utils/classroomConfig.test.js src/utils/sessionErrors.test.js src/utils/classroomDataEvents.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

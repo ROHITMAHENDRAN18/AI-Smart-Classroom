@@ -4,19 +4,13 @@
 
 AI Smart Classroom Attention Monitoring is a computer vision-based intelligent classroom monitoring system.
 
-The system provides:
-
-- Automatic Attendance
-- Face Recognition
-- Multi-person Tracking
-- Head Pose Estimation
-- Eye State Detection
-- Sleep Detection
-- Phone Detection
-- Hand Raise Detection
-- Student Attention Score
-- Teacher Dashboard
-- Analytics Reports
+The repository contains experimental and legacy modules for several vision
+tasks. The authenticated browser monitoring flow provides live YOLO person
+detection, session-scoped IoU track IDs, OpenCV Haar face boxes when the
+compatible OpenCV runtime is installed, persisted teacher-entered attendance,
+and API-backed classroom reporting. Tracking IDs are not student identities.
+Student recognition, attention estimation, and AI attendance remain
+unavailable in the live API.
 
 ---
 
@@ -37,11 +31,26 @@ The system provides:
 The authenticated Live Monitoring page can send resized JPEG camera frames to
 the backend while an authorized classroom session is active. The backend uses
 the configured YOLO model for person detection and returns real bounding-box
-coordinates and detector confidence for the most recently processed frame.
-Frame results and images are not persisted. The current API does not connect
-face identity, attendance, attention scoring, alerts, or analytics to this
-browser frame flow; a detected person must not be treated as a student or an
-attention result.
+coordinates and detector confidence for the most recently processed frame. The
+latest person and face boxes and frame metadata are saved in one bounded
+summary row per session; raw images and face crops are not persisted. Face
+detection uses the repository Haar cascade and reports no calibrated
+confidence. It requires OpenCV 4.11 (`requirements.txt`); OpenCV 5 removed the
+legacy cascade API, and the service reports face detection as an error when it
+cannot process a frame. The session-local IoU tracker tolerates brief misses,
+but is not ByteTrack and may switch IDs during crossings or large motion.
+Student identity recognition, attention scoring, AI attendance, alerts, and
+analytics are not connected to browser frame processing. A detected person,
+face, or track must not be treated as a student or an attention result.
+
+## Local startup
+
+Configure the backend environment with `DATABASE_URL` and `JWT_SECRET_KEY`,
+start PostgreSQL, then run `uvicorn backend.app.main:app --reload` from the
+project root. In another terminal, set `VITE_DEFAULT_CLASSROOM_ID` in
+`frontend/.env` to a classroom owned by the logged-in teacher and run
+`npm run dev` from `frontend/`. Install backend dependencies from the root
+`requirements.txt` and frontend dependencies with `npm install` first.
 
 Set `YOLO_MODEL` in the backend environment to an available Ultralytics model
 path. The default is `yolov8m.pt`, which is included in this repository.
@@ -61,6 +70,8 @@ safe defaults and can be configured with
 `FRAME_MIN_INTERVAL_SECONDS` (1.5; 0.25–60), and
 `FRAME_INFERENCE_TIMEOUT_SECONDS` (30; 1–300). Multi-worker deployments need
 a shared rate-limit store to enforce the limit across workers.
+Authorized teachers can reload the latest persisted result with
+`GET /api/v1/classrooms/{classroom_id}/sessions/{session_id}/frame-summary`.
 
 Frontend frame capture can be tuned with these non-secret Vite settings:
 
@@ -80,7 +91,11 @@ the live video preview itself remains in the browser.
 ## Classroom data pages
 
 Dashboard, Students, Attendance, Analytics, and Reports use the authenticated
-API client and the configured `VITE_DEFAULT_CLASSROOM_ID`. Classroom session
+API client and `VITE_DEFAULT_CLASSROOM_ID`, which must be set in
+`frontend/.env` to a positive classroom ID owned by the logged-in teacher
+(discoverable through authenticated `GET /api/v1/classrooms`). Use only a
+classroom returned for the logged-in account and restart Vite after changing
+the value. Classroom session
 history and student records are scoped to the authorized classroom. Attendance
 history is served by
 `GET /api/v1/classrooms/{classroom_id}/attendance`, which supports UTC `date`
@@ -91,6 +106,14 @@ absent records; it is unavailable when that denominator is zero. Person
 detections are not converted to student attendance. Reports display records
 for a selected session; a report file export endpoint is not currently
 implemented.
+
+For an existing PostgreSQL database, run
+`python -m scripts.migrations.migrate_frame_inference_summaries` and
+`python -m scripts.migrations.migrate_attendance_session_student_unique`.
+The attendance migration lists duplicate `(session_id, student_id)` keys and
+stops without deleting records; review and resolve those records before
+rerunning it. New databases receive both schema changes through SQLAlchemy
+table creation.
 
 ---
 

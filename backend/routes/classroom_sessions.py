@@ -17,7 +17,6 @@ from backend.schemas.classroom_session import (
 )
 from backend.utils.logger import logger
 
-
 router = APIRouter(
     prefix="/classrooms",
     tags=["Classroom Sessions"],
@@ -34,11 +33,7 @@ def get_current_teacher(
             detail="Only teachers can manage classroom sessions",
         )
 
-    teacher = (
-        db.query(Teacher)
-        .filter(Teacher.user_id == current_user.id)
-        .first()
-    )
+    teacher = db.query(Teacher).filter(Teacher.user_id == current_user.id).first()
 
     if teacher is None:
         raise HTTPException(
@@ -56,12 +51,9 @@ def get_teacher_classroom(
     *,
     lock: bool = False,
 ) -> Classroom:
-    query = (
-        db.query(Classroom)
-        .filter(
-            Classroom.id == classroom_id,
-            Classroom.teacher_id == teacher_id,
-        )
+    query = db.query(Classroom).filter(
+        Classroom.id == classroom_id,
+        Classroom.teacher_id == teacher_id,
     )
 
     if lock:
@@ -139,7 +131,6 @@ def start_classroom_session(
         db.add(session)
         db.commit()
         db.refresh(session)
-
         return {
             "session": session,
         }
@@ -349,6 +340,9 @@ def stop_classroom_session(
 
         db.commit()
         db.refresh(session)
+        from backend.routes.frame_inference import frame_inference_service
+
+        frame_inference_service.clear_session(session_id)
 
         return {
             "session": session,

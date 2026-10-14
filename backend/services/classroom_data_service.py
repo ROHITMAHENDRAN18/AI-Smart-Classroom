@@ -4,6 +4,7 @@ from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
 from backend.models.attendance_record import AttendanceRecord
+from backend.models.classroom_member import ClassroomMember
 from backend.models.classroom_session import ClassroomSession
 from backend.models.student import Student
 from backend.schemas.classroom_data import (
@@ -11,6 +12,8 @@ from backend.schemas.classroom_data import (
     ClassroomAttendanceResponse,
     DailyAttendanceSummary,
 )
+
+from fastapi import HTTPException, status
 
 
 def _attendance_query(db: Session, classroom_id: int):
@@ -26,6 +29,99 @@ def _attendance_query(db: Session, classroom_id: int):
         )
         .filter(ClassroomSession.classroom_id == classroom_id)
     )
+
+
+def mark_manual_session_attendance(
+    db: Session,
+    classroom_id: int,
+    session_id: str,
+    records: list[tuple[str, str]],
+) -> list[AttendanceRecord]:
+    session = (
+        db.query(ClassroomSession)
+        .filter(
+            ClassroomSession.classroom_id == classroom_id,
+            ClassroomSession.session_id == session_id,
+        )
+        .with_for_update()
+        .first()
+    )
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Classroom session not found",
+        )
+    if session.status != "ACTIVE":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Attendance can only be marked for an active classroom session.",
+        )
+
+    student_ids = [student_id for student_id, _ in records]
+    if len(student_ids) != len(set(student_ids)):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Each student can appear only once in a manual attendance update.",
+        )
+
+    enrolled_ids = {
+        student_id
+        for (student_id,) in (
+            db.query(ClassroomMember.student_id)
+            .filter(
+                ClassroomMember.classroom_id == classroom_id,
+                ClassroomMember.student_id.in_(student_ids),
+                ClassroomMember.is_active.is_(True),
+            )
+            .all()
+        )
+    }
+    if enrolled_ids != set(student_ids):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="One or more students are not active members of this classroom.",
+        )
+
+    existing_records = (
+        db.query(AttendanceRecord)
+        .filter(
+            AttendanceRecord.session_id == session_id,
+            AttendanceRecord.student_id.in_(student_ids),
+        )
+        .order_by(AttendanceRecord.id)
+        .all()
+    )
+    existing_by_student: dict[str, AttendanceRecord] = {}
+    for record in existing_records:
+        if record.student_id in existing_by_student:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "Duplicate attendance rows already exist for this session "
+                    "and student. Resolve the existing data before updating it."
+                ),
+            )
+        existing_by_student[record.student_id] = record
+
+    recorded_at = datetime.now(timezone.utc)
+    updated_records = []
+    for student_id, attendance_status in records:
+        record = existing_by_student.get(student_id)
+        if record is None:
+            record = AttendanceRecord(
+                session_id=session_id,
+                student_id=student_id,
+            )
+            db.add(record)
+        record.status = attendance_status
+        record.confidence = None
+        record.recorded_at = recorded_at
+        updated_records.append(record)
+
+    db.commit()
+    for record in updated_records:
+        db.refresh(record)
+    return updated_records
 
 
 def get_classroom_attendance(

@@ -36,6 +36,7 @@ import {
   formatDateTime,
   formatDuration,
 } from '../utils/formatters'
+import { subscribeToClassroomDataChanges } from '../utils/classroomDataEvents'
 
 const ATTENTION_COLORS = {
   attentive: '#10b981', // emerald-500
@@ -165,6 +166,7 @@ export default function Analytics() {
       return
     }
 
+    setSummaryData(null)
     try {
       setLoadingSummary(true)
       setError('')
@@ -230,6 +232,14 @@ export default function Analytics() {
     return () => controller.abort()
   }, [refreshKey])
 
+  useEffect(
+    () =>
+      subscribeToClassroomDataChanges(() =>
+        setRefreshKey((current) => current + 1),
+      ),
+    [],
+  )
+
   const handleRefresh = () => setRefreshKey((current) => current + 1)
 
   const selectedSession = useMemo(() => {
@@ -290,7 +300,8 @@ export default function Analytics() {
             Analytics
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-400">
-            Analyze classroom attendance and attention performance.
+            Analyze persisted attendance and available attention observations.
+            Browser YOLO detections are not student identities or attendance.
           </p>
         </div>
 

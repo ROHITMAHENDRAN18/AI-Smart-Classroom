@@ -11,8 +11,7 @@ import {
 } from 'lucide-react'
 
 import { getClassroomOverview } from '../services/classroomService'
-
-const classroomId = import.meta.env.VITE_DEFAULT_CLASSROOM_ID
+import { subscribeToClassroomDataChanges } from '../utils/classroomDataEvents'
 
 export default function ClassroomOverview() {
   const [overview, setOverview] = useState(null)
@@ -20,7 +19,7 @@ export default function ClassroomOverview() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
 
-  const loadOverview = useCallback(async (isRefresh = false) => {
+  const loadOverview = useCallback(async (isRefresh = false, signal) => {
     try {
       if (isRefresh) {
         setRefreshing(true)
@@ -30,10 +29,12 @@ export default function ClassroomOverview() {
 
       setError('')
 
-      const data = await getClassroomOverview(classroomId)
+      const data = await getClassroomOverview(undefined, { signal })
 
+      if (signal?.aborted) return
       setOverview(data)
     } catch (requestError) {
+      if (signal?.aborted) return
       console.error('Failed to load classroom overview:', requestError)
 
       const message =
@@ -43,13 +44,31 @@ export default function ClassroomOverview() {
 
       setError(message)
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+        setRefreshing(false)
+      }
     }
   }, [])
 
   useEffect(() => {
-    loadOverview()
+    const controller = new AbortController()
+    loadOverview(false, controller.signal)
+    return () => controller.abort()
+  }, [loadOverview])
+
+  useEffect(() => {
+    let controller
+    const reload = () => {
+      controller?.abort()
+      controller = new AbortController()
+      loadOverview(true, controller.signal)
+    }
+    const unsubscribe = subscribeToClassroomDataChanges(reload)
+    return () => {
+      unsubscribe()
+      controller?.abort()
+    }
   }, [loadOverview])
 
   const sessionStatus = useMemo(() => {

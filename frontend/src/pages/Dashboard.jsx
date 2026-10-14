@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom'
 
 import { getClassroomOverview } from '../services/classroomService'
 import { getClassroomAttendance } from '../services/classroomDataService'
+import { subscribeToClassroomDataChanges } from '../utils/classroomDataEvents'
 
 export default function Dashboard() {
   const [overview, setOverview] = useState(null)
@@ -54,6 +55,20 @@ export default function Dashboard() {
     const controller = new AbortController()
     loadOverview(controller.signal)
     return () => controller.abort()
+  }, [loadOverview])
+
+  useEffect(() => {
+    let controller
+    const reload = () => {
+      controller?.abort()
+      controller = new AbortController()
+      loadOverview(controller.signal)
+    }
+    const unsubscribe = subscribeToClassroomDataChanges(reload)
+    return () => {
+      unsubscribe()
+      controller?.abort()
+    }
   }, [loadOverview])
 
   return (

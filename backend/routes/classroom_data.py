@@ -8,8 +8,15 @@ from backend.auth.classroom_access import require_classroom_access
 from backend.auth.dependencies import get_current_user
 from backend.database.session import get_db
 from backend.models.user import User
-from backend.schemas.classroom_data import ClassroomAttendanceResponse
-from backend.services.classroom_data_service import get_classroom_attendance
+from backend.schemas.classroom_data import (
+    ClassroomAttendanceResponse,
+    ManualAttendanceRequest,
+)
+from backend.schemas.history import AttendanceHistoryResponse
+from backend.services.classroom_data_service import (
+    get_classroom_attendance,
+    mark_manual_session_attendance,
+)
 from backend.utils.date_range import get_utc_date_range
 from backend.utils.logger import logger
 
@@ -18,6 +25,48 @@ router = APIRouter(
     prefix="/classrooms",
     tags=["Classroom Data"],
 )
+
+
+@router.post(
+    "/{classroom_id}/sessions/{session_id}/attendance/manual",
+    response_model=list[AttendanceHistoryResponse],
+)
+def mark_manual_attendance(
+    classroom_id: int,
+    session_id: str,
+    request: ManualAttendanceRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "TEACHER":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only teachers can mark classroom attendance.",
+        )
+    require_classroom_access(
+        classroom_id,
+        current_user,
+        db,
+        require_active=True,
+    )
+
+    try:
+        return mark_manual_session_attendance(
+            db,
+            classroom_id,
+            session_id,
+            [
+                (entry.student_id, entry.status)
+                for entry in request.records
+            ],
+        )
+    except SQLAlchemyError as error:
+        db.rollback()
+        logger.exception("Database failure while marking manual attendance")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Attendance data is temporarily unavailable.",
+        ) from error
 
 
 @router.get(

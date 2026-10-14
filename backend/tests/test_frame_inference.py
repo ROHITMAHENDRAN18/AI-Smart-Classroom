@@ -20,15 +20,18 @@ from backend.models.attendance_record import AttendanceRecord
 from backend.models.attention_record import AttentionRecord
 from backend.models.classroom import Classroom
 from backend.models.classroom_session import ClassroomSession
+from backend.models.frame_inference_summary import FrameInferenceSummary
 from backend.models.teacher import Teacher
 from backend.models.user import User
 from backend.routes import frame_inference as frame_route
 from backend.services.frame_inference_service import (
     FrameInferenceBusyError,
     FrameInferenceService,
+    IoUTrackManager,
     InvalidFrameError,
     decode_jpeg,
 )
+from backend.services.frame_summary_service import persist_frame_summary
 from configs.settings import API_VERSION
 
 
@@ -62,17 +65,22 @@ class FakeDetector:
 
 
 class StubInferenceService:
-    def analyze(self, _image):
-        return [
-            {
-                "class_label": "person",
-                "x1": 1.0,
-                "y1": 2.0,
-                "x2": 30.0,
-                "y2": 40.0,
-                "confidence": 0.91,
-            }
-        ]
+    def analyze(self, _image, _session_id="default"):
+        return {
+            "detections": [
+                {
+                    "class_label": "person",
+                    "x1": 1.0,
+                    "y1": 2.0,
+                    "x2": 30.0,
+                    "y2": 40.0,
+                    "confidence": 0.91,
+                    "track_id": 1,
+                }
+            ],
+            "faces": [],
+            "face_error": None,
+        }
 
 
 @pytest.fixture
@@ -259,7 +267,7 @@ def test_frame_service_returns_only_valid_person_boxes():
         detector_factory=FakeDetector,
     ).analyze(image)
 
-    assert detections == [
+    assert detections["detections"] == [
         {
             "class_label": "person",
             "x1": 0.0,
@@ -267,8 +275,10 @@ def test_frame_service_returns_only_valid_person_boxes():
             "x2": 45.0,
             "y2": 90.0,
             "confidence": 0.9,
+            "track_id": 1,
         }
     ]
+    assert detections["faces"] == []
 
 
 def test_frame_service_rejects_concurrent_model_use():
@@ -279,6 +289,49 @@ def test_frame_service_rejects_concurrent_model_use():
             service.analyze(np.zeros((10, 10, 3), dtype=np.uint8))
     finally:
         service._inference_lock.release()
+
+
+def test_iou_tracker_keeps_ids_through_a_missed_frame_and_expires():
+    tracker = IoUTrackManager(max_missed=1, min_iou=0.1)
+    first = {"x1": 0, "y1": 0, "x2": 20, "y2": 20}
+    track_id = tracker.update([first])[0]["track_id"]
+    moved = {"x1": 1, "y1": 0, "x2": 21, "y2": 20}
+    assert tracker.update([moved])[0]["track_id"] == track_id
+    assert tracker.update([]) == []
+    returned = {"x1": 2, "y1": 0, "x2": 22, "y2": 20}
+    assert tracker.update([returned])[0]["track_id"] == track_id
+    tracker.update([])
+    tracker.update([])
+    fresh = {"x1": 2, "y1": 0, "x2": 22, "y2": 20}
+    assert tracker.update([fresh])[0]["track_id"] != track_id
+
+
+def test_face_detector_processes_no_face_frame_and_maps_multiple_boxes(monkeypatch):
+    service = FrameInferenceService(detector_factory=FakeDetector)
+
+    class FakeCascade:
+        def detectMultiScale(self, _gray, **_kwargs):
+            return [(2, 3, 10, 11), (30, 20, 40, 30)]
+
+    service._face_cascade = FakeCascade()
+    faces = service._detect_faces(np.zeros((64, 80, 3), dtype=np.uint8))
+    assert len(faces) == 2
+    assert faces[0] == {
+        "x1": 2,
+        "y1": 3,
+        "x2": 12,
+        "y2": 14,
+        "confidence": None,
+        "quality": "detected_unscored",
+    }
+
+    class EmptyCascade:
+        def detectMultiScale(self, _gray, **_kwargs):
+            return ()
+
+    service._face_cascade = EmptyCascade()
+    no_faces = service._detect_faces(np.zeros((64, 80, 3), dtype=np.uint8))
+    assert no_faces == []
 
 
 def test_jpeg_decoder_rejects_invalid_and_oversized_images():
@@ -292,7 +345,7 @@ def test_jpeg_decoder_rejects_invalid_and_oversized_images():
         decode_jpeg(encoded.tobytes())
 
 
-def test_frame_endpoint_returns_real_contract_without_persisting_results(
+def test_frame_endpoint_persists_bounded_summary_without_storing_images(
     frame_context,
 ):
     db, user, classroom, session = frame_context
@@ -316,10 +369,93 @@ def test_frame_endpoint_returns_real_contract_without_persisting_results(
     assert result.detections[0].confidence == 0.91
     assert result.frame_width == 64
     assert result.frame_height == 48
-    assert result.results_persisted is False
+    assert result.results_persisted is True
+    assert result.features.result_persistence.status == "available"
     assert db.query(AttendanceRecord).count() == 0
     assert db.query(AttentionRecord).count() == 0
     assert db.query(ClassroomSession).count() == 1
+    summary = db.query(FrameInferenceSummary).one()
+    assert summary.session_id == session.session_id
+    assert summary.frames_processed == 1
+    assert summary.detection_count == 1
+    assert summary.detections[0]["class_label"] == "person"
+    retrieved = frame_route.get_classroom_frame_summary(
+        classroom.id,
+        session.session_id,
+        user,
+        db,
+    )
+    assert retrieved.results_persisted is True
+    assert retrieved.frames_processed == 1
+    assert retrieved.detection_count == 1
+
+
+def test_frame_summary_persistence_failure_is_reported_without_failing_inference(
+    frame_context,
+    monkeypatch,
+):
+    db, user, classroom, session = frame_context
+    monkeypatch.setattr(
+        frame_route,
+        "persist_frame_summary",
+        lambda *_args, **_kwargs: False,
+    )
+
+    result = post_frame(db, user, classroom, session)
+
+    assert result.processing_status == "completed"
+    assert result.detection_count == 1
+    assert result.results_persisted is False
+    assert result.features.result_persistence.status == "error"
+    assert db.query(FrameInferenceSummary).count() == 0
+
+
+def test_frame_summary_updates_one_row_per_session(frame_context):
+    db, _, classroom, session = frame_context
+    first_time = datetime.now(timezone.utc)
+    second_time = datetime.now(timezone.utc)
+    first_detection = {
+        "class_label": "person",
+        "x1": 1.0,
+        "y1": 2.0,
+        "x2": 30.0,
+        "y2": 40.0,
+        "confidence": 0.91,
+    }
+
+    assert persist_frame_summary(
+        db,
+        classroom_id=classroom.id,
+        session_id=session.session_id,
+        frame_received_at=first_time,
+        processed_at=first_time,
+        frame_width=64,
+        frame_height=48,
+        inference_duration_ms=12.5,
+        detections=[first_detection],
+    )
+    assert persist_frame_summary(
+        db,
+        classroom_id=classroom.id,
+        session_id=session.session_id,
+        frame_received_at=second_time,
+        processed_at=second_time,
+        frame_width=64,
+        frame_height=48,
+        inference_duration_ms=9.5,
+        detections=[],
+    )
+
+    summaries = db.query(FrameInferenceSummary).all()
+    assert len(summaries) == 1
+    assert summaries[0].frames_processed == 2
+    assert summaries[0].detection_count == 0
+    assert summaries[0].inference_duration_ms == 9.5
+    assert summaries[0].detections == []
+    stored_timestamp = summaries[0].latest_frame_received_at
+    if stored_timestamp.tzinfo is None:
+        stored_timestamp = stored_timestamp.replace(tzinfo=timezone.utc)
+    assert stored_timestamp == second_time
 
 
 def test_http_frame_endpoint_requires_authentication_and_serializes_results(
@@ -345,9 +481,7 @@ def test_http_frame_endpoint_requires_authentication_and_serializes_results(
         assert status_code == 401
 
         app.dependency_overrides[get_current_user] = lambda: user
-        status_code, body = asyncio.run(
-            make_asgi_request(path, payload, headers)
-        )
+        status_code, body = asyncio.run(make_asgi_request(path, payload, headers))
     finally:
         app.dependency_overrides.clear()
 
@@ -477,7 +611,9 @@ def test_frame_endpoint_sanitizes_model_unavailable_error(
         def analyze(self, _image):
             raise RuntimeError("internal model path and filesystem details")
 
-    monkeypatch.setattr(frame_route, "frame_inference_service", BrokenInferenceService())
+    monkeypatch.setattr(
+        frame_route, "frame_inference_service", BrokenInferenceService()
+    )
     with pytest.raises(HTTPException) as unavailable:
         post_frame(db, user, classroom, session)
 
@@ -516,9 +652,7 @@ def test_frame_inference_openapi_is_authenticated_and_documents_response():
         "type": "string",
         "format": "binary",
     }
-    response_schema = app.openapi()["components"]["schemas"][
-        "FrameInferenceResponse"
-    ]
+    response_schema = app.openapi()["components"]["schemas"]["FrameInferenceResponse"]
     assert response_schema["properties"]["pipeline"]["type"] == "string"
     assert response_schema["properties"]["detections"]["type"] == "array"
     assert response_schema["properties"]["results_persisted"]["type"] == "boolean"

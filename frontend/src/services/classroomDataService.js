@@ -1,13 +1,9 @@
 import api from './api'
 import { CLASSROOM_ID } from './sessionControlService'
+import { requireClassroomId as requireConfiguredClassroomId } from '../utils/classroomConfig'
 
 function requireClassroomId(classroomId) {
-  if (!Number.isSafeInteger(classroomId) || classroomId < 1) {
-    throw new Error(
-      'Set VITE_DEFAULT_CLASSROOM_ID to a valid classroom ID before loading classroom data.',
-    )
-  }
-  return classroomId
+  return requireConfiguredClassroomId(classroomId)
 }
 
 function requireArray(data, label) {
@@ -170,6 +166,53 @@ export async function getStudents({
   return requireArray(response.data, 'student').map(normalizeStudent)
 }
 
+export async function createClassroomStudent(
+  student,
+  { classroomId = CLASSROOM_ID, signal } = {},
+) {
+  const response = await api.post(
+    `/classrooms/${requireClassroomId(classroomId)}/students`,
+    student,
+    { signal },
+  )
+  return normalizeStudent(response.data)
+}
+
+export async function updateStudent(
+  studentId,
+  updates,
+  { signal } = {},
+) {
+  if (!studentId || typeof studentId !== 'string') {
+    throw new Error('A student ID is required to save student changes.')
+  }
+  const response = await api.put(
+    `/students/${encodeURIComponent(studentId)}`,
+    updates,
+    { signal },
+  )
+  return normalizeStudent(response.data)
+}
+
+export async function setClassroomStudentActive(
+  studentId,
+  isActive,
+  { classroomId = CLASSROOM_ID, signal } = {},
+) {
+  if (!studentId || typeof studentId !== 'string') {
+    throw new Error('A student ID is required to update classroom membership.')
+  }
+  const path = `/classrooms/${requireClassroomId(classroomId)}/members/${encodeURIComponent(studentId)}`
+  const response = isActive
+    ? await api.post(
+        `/classrooms/${requireClassroomId(classroomId)}/members`,
+        { student_id: studentId },
+        { signal },
+      )
+    : await api.delete(path, { signal })
+  return response.data
+}
+
 export async function getClassroomSessions({
   classroomId = CLASSROOM_ID,
   limit = 50,
@@ -219,6 +262,27 @@ export async function getClassroomAttendance({
     },
   )
   return normalizeAttendanceReport(response.data)
+}
+
+export async function markSessionAttendance(
+  sessionId,
+  records,
+  { classroomId = CLASSROOM_ID, signal } = {},
+) {
+  if (!sessionId || typeof sessionId !== 'string') {
+    throw new Error('A session ID is required to mark attendance.')
+  }
+  if (!Array.isArray(records) || records.length === 0) {
+    throw new Error('Select at least one enrolled student to mark.')
+  }
+  const response = await api.post(
+    `/classrooms/${requireClassroomId(classroomId)}/sessions/${encodeURIComponent(sessionId)}/attendance/manual`,
+    { records },
+    { signal },
+  )
+  return requireArray(response.data, 'manual attendance').map(
+    normalizeAttendanceRecord,
+  )
 }
 
 export async function getSessionSummary(sessionId, { signal } = {}) {

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.auth.dependencies import get_current_user
@@ -8,6 +9,7 @@ from backend.models.classroom_member import ClassroomMember
 from backend.models.student import Student
 from backend.models.teacher import Teacher
 from backend.models.user import User
+from backend.schemas.student import StudentCreateRequest, StudentResponse
 from backend.schemas.classroom_member import (
     ClassroomMemberCreateRequest,
     ClassroomMemberResponse,
@@ -18,6 +20,84 @@ router = APIRouter(
     prefix="/classrooms",
     tags=["Classroom Members"],
 )
+
+
+@router.post(
+    "/{classroom_id}/students",
+    response_model=StudentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_and_enroll_student(
+    classroom_id: int,
+    request: StudentCreateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    teacher = get_current_teacher(current_user, db)
+    get_teacher_classroom(classroom_id, teacher.id, db)
+
+    if db.query(Student.id).filter(Student.student_id == request.student_id).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Student ID already exists.",
+        )
+    if request.email is not None and db.query(Student.id).filter(
+        Student.email == str(request.email)
+    ).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Student email already exists.",
+        )
+
+    student = Student(
+        student_id=request.student_id,
+        name=request.name,
+        department=request.department,
+        year=request.year,
+        section=request.section,
+        email=str(request.email) if request.email else None,
+        face_registered=False,
+    )
+    try:
+        db.add(student)
+        db.flush()
+        db.add(
+            ClassroomMember(
+                classroom_id=classroom_id,
+                student_id=student.student_id,
+                is_active=True,
+            )
+        )
+        db.commit()
+        db.refresh(student)
+        return {
+            **{
+                field: getattr(student, field)
+                for field in (
+                    "id",
+                    "student_id",
+                    "name",
+                    "department",
+                    "year",
+                    "section",
+                    "email",
+                    "face_registered",
+                )
+            },
+            "classroom_is_active": True,
+        }
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Student ID or email already exists.",
+        ) from error
+    except SQLAlchemyError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Student enrollment is temporarily unavailable.",
+        ) from error
 
 
 def get_current_teacher(

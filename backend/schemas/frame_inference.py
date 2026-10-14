@@ -11,15 +11,26 @@ class PersonDetection(BaseModel):
     x2: float
     y2: float
     confidence: float
+    track_id: int | None = Field(default=None, ge=1)
+
+
+class FaceDetection(BaseModel):
+    x1: int = Field(ge=0)
+    y1: int = Field(ge=0)
+    x2: int = Field(gt=0)
+    y2: int = Field(gt=0)
+    confidence: float | None = None
+    quality: Literal["detected_unscored"]
 
 
 class FeatureAvailability(BaseModel):
-    status: Literal["available", "not_connected"]
+    status: Literal["available", "not_connected", "error"]
     detail: str
 
 
 class InferenceFeatureStatuses(BaseModel):
     person_detection: FeatureAvailability
+    result_persistence: FeatureAvailability
     face_detection: FeatureAvailability
     face_recognition: FeatureAvailability
     tracking: FeatureAvailability
@@ -42,5 +53,11 @@ class FrameInferenceResponse(BaseModel):
     attention_inference: Literal["not_connected"]
     features: InferenceFeatureStatuses
     detections: list[PersonDetection]
+    face_detections: list[FaceDetection] = Field(default_factory=list)
     detection_count: int
     results_persisted: bool
+
+
+class FrameInferenceSummaryResponse(FrameInferenceResponse):
+    frames_processed: int = Field(ge=1)
+    updated_at: datetime

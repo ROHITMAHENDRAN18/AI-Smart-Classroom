@@ -32,6 +32,7 @@ import {
   formatDateTime,
   formatDuration,
 } from '../utils/formatters'
+import { subscribeToClassroomDataChanges } from '../utils/classroomDataEvents'
 
 const ATTENTION_COLORS = {
   attentive: '#10b981', // emerald-500
@@ -173,6 +174,10 @@ export default function Reports() {
       return
     }
 
+    setSessionSummary(null)
+    setAttendanceRecords([])
+    setAttentionRecords([])
+    setReportGeneratedAt(null)
     try {
       setLoadingData(true)
       setError('')
@@ -221,6 +226,14 @@ export default function Reports() {
     loadReportDetails(selectedSessionId, controller.signal)
     return () => controller.abort()
   }, [selectedSessionId, loadReportDetails, refreshKey])
+
+  useEffect(
+    () =>
+      subscribeToClassroomDataChanges(() =>
+        setRefreshKey((current) => current + 1),
+      ),
+    [],
+  )
 
   const handleRefresh = () => setRefreshKey((current) => current + 1)
 
@@ -352,7 +365,10 @@ export default function Reports() {
             Reports
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-400">
-            Review persisted attendance and attention records by classroom session. File export is not implemented.
+            Review persisted attendance and available attention records by
+            classroom session. Browser YOLO detections are ephemeral, do not
+            identify students, and are not report records. File export is not
+            implemented.
           </p>
         </div>
 

@@ -24,6 +24,7 @@ import {
 } from '../services/sessionControlService'
 import {
   analyzeMonitoringFrame,
+  getMonitoringSummary,
   getFrameInferenceErrorMessage,
 } from '../services/monitoringService'
 import {
@@ -33,6 +34,7 @@ import {
   toVideoCoordinates,
   updatePersonDetectionOverlay,
 } from '../utils/personDetectionOverlay'
+import { notifyClassroomDataChanged } from '../utils/classroomDataEvents'
 
 function boundedNumber(value, fallback, minimum, maximum) {
   const parsed = Number(value)
@@ -68,6 +70,7 @@ const DETECTION_GRACE_PERIOD_MS = boundedNumber(
 )
 const FEATURE_LABELS = {
   person_detection: 'Person detection',
+  result_persistence: 'Detection summary persistence',
   face_detection: 'Face detection',
   face_recognition: 'Student identity recognition',
   tracking: 'Tracking',
@@ -440,6 +443,7 @@ export default function LiveMonitoring() {
       setNotice(
         `Session ${stopped.session_id} was stopped. The camera has been released.`,
       )
+      notifyClassroomDataChanged()
       releaseCamera()
     } catch (error) {
       if (error?.code === 'ERR_CANCELED') {
@@ -531,6 +535,7 @@ export default function LiveMonitoring() {
           ? `Attached to existing session ${session.session_id}. No duplicate session was created.`
           : `Monitoring session ${session.session_id} started.`,
       )
+      notifyClassroomDataChanged()
     } catch (error) {
       if (error?.code === 'ERR_CANCELED') {
         return
@@ -599,6 +604,44 @@ export default function LiveMonitoring() {
       mediaDevices?.removeEventListener?.('devicechange', onDeviceChange)
     }
   }, [refreshActiveSession, refreshVideoDevices, releaseCamera])
+
+  useEffect(() => {
+    const sessionId = monitoringSession?.session_id
+    if (!sessionId || !classroomConfigured) return undefined
+
+    const controller = new AbortController()
+    getMonitoringSummary({
+      classroomId: CLASSROOM_ID,
+      sessionId,
+      signal: controller.signal,
+    })
+      .then((summary) => {
+        if (
+          !controller.signal.aborted &&
+          summary.classroom_id === CLASSROOM_ID &&
+          summary.session_id === sessionId
+        ) {
+          setFrameResult(summary)
+        }
+      })
+      .catch((error) => {
+        if (controller.signal.aborted || error?.code === 'ERR_CANCELED') return
+        if (
+          error?.response?.status === 404 &&
+          error?.response?.data?.detail ===
+            'No frame summary exists for this session'
+        ) {
+          return
+        }
+        console.error('Failed to load the persisted frame summary:', error)
+        setInferenceError(
+          error?.response?.data?.detail ||
+            getFrameInferenceErrorMessage(error),
+        )
+      })
+
+    return () => controller.abort()
+  }, [classroomConfigured, monitoringSession?.session_id])
 
   useEffect(() => {
     if (!stream || !videoRef.current) {
@@ -1053,7 +1096,8 @@ export default function LiveMonitoring() {
                 }`}
               />
               {cameraState === 'ready' &&
-                detectionOverlay.boxes.length > 0 && (
+                (detectionOverlay.boxes.length > 0 ||
+                  frameResult?.face_detections?.length > 0) && (
                   <svg
                     className="pointer-events-none absolute inset-0 h-full w-full"
                     viewBox={`0 0 ${videoRef.current?.videoWidth || 1} ${videoRef.current?.videoHeight || 1}`}
@@ -1061,6 +1105,23 @@ export default function LiveMonitoring() {
                     role="img"
                     aria-label={`Up to ${detectionOverlay.boxes.length} people recently detected; boxes expire after a missed-detection grace period`}
                   >
+                    {(frameResult?.face_detections || []).map((face, index) => {
+                      const scaleX = (videoRef.current?.videoWidth || 1) / frameResult.frame_width
+                      const scaleY = (videoRef.current?.videoHeight || 1) / frameResult.frame_height
+                      return (
+                        <rect
+                          key={`face-${index}-${face.x1}-${face.y1}`}
+                          x={face.x1 * scaleX}
+                          y={face.y1 * scaleY}
+                          width={(face.x2 - face.x1) * scaleX}
+                          height={(face.y2 - face.y1) * scaleY}
+                          fill="none"
+                          stroke="#facc15"
+                          strokeWidth="2"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      )
+                    })}
                     {detectionOverlay.boxes.map((box, index) => {
                       const detection = toVideoCoordinates(
                         box,
@@ -1096,7 +1157,7 @@ export default function LiveMonitoring() {
                             paintOrder="stroke"
                             fontSize="16"
                           >
-                            Person detected recently ·{' '}
+                            Person {box.trackId ? `#${box.trackId} · ` : ''}
                             {(box.confidence * 100).toFixed(1)}%
                           </text>
                         </g>
@@ -1330,7 +1391,7 @@ export default function LiveMonitoring() {
                       (detection, index) => (
                         <li key={`${index}-${detection.x1}-${detection.y1}`}>
                           Detection {index + 1} · person · detector confidence{' '}
-                          {(detection.confidence * 100).toFixed(1)}%
+                          {(detection.confidence * 100).toFixed(1)}% · track #{detection.track_id}
                         </li>
                       ),
                     )}
@@ -1340,6 +1401,11 @@ export default function LiveMonitoring() {
                       </li>
                     )}
                   </ul>
+                )}
+                {frameResult?.face_detections?.length > 0 && (
+                  <p className="mt-2 text-xs text-yellow-200">
+                    {frameResult.face_detections.length} face box(es) detected independently; identity is unavailable and Haar confidence is unscored.
+                  </p>
                 )}
                 {detectionOverlay.boxes.length > 0 && (
                   <p className="mt-2 text-xs text-emerald-200/80">
@@ -1351,8 +1417,10 @@ export default function LiveMonitoring() {
                 {frameResult && (
                   <>
                     <p className="mt-3 text-xs text-slate-500">
-                      No inference results are persisted. Feature availability
-                      reported by the backend:
+                      {frameResult.results_persisted
+                        ? 'Latest bounding boxes and frame metadata were saved in a bounded session summary. Raw images are not stored.'
+                        : 'Detection succeeded, but the session summary could not be saved. Check backend logs for the database error and confirm the frame-summary migration has been applied.'}{' '}
+                      Other capability status:
                     </p>
                     <ul className="mt-2 space-y-2">
                       {Object.entries(frameResult.features).map(
@@ -1368,13 +1436,17 @@ export default function LiveMonitoring() {
                               className={`text-xs ${
                                 result.status === 'available'
                                   ? 'text-emerald-300'
-                                  : 'text-amber-200'
+                                  : result.status === 'error'
+                                    ? 'text-rose-300'
+                                    : 'text-amber-200'
                               }`}
                               title={result.detail}
                             >
                               {result.status === 'available'
                                 ? 'Available for this response'
-                                : 'Not connected'}
+                                : result.status === 'error'
+                                  ? 'Failed for this response'
+                                  : 'Not connected'}
                             </span>
                           </li>
                         ),

@@ -1,18 +1,23 @@
 import api from './api'
+import { parseClassroomId } from '../utils/classroomConfig'
+import { isNoActiveSessionError } from '../utils/sessionErrors'
+export { getSessionErrorMessage } from '../utils/sessionErrors'
 
-const configuredClassroomId = import.meta.env.VITE_DEFAULT_CLASSROOM_ID
-export const CLASSROOM_ID = configuredClassroomId
-  ? Number(configuredClassroomId)
-  : null
+const classroomConfiguration = parseClassroomId(
+  import.meta.env.VITE_DEFAULT_CLASSROOM_ID,
+)
+export const CLASSROOM_ID = classroomConfiguration.classroomId
 
-function getClassroomId() {
-  if (!Number.isSafeInteger(CLASSROOM_ID) || CLASSROOM_ID < 1) {
-    throw new Error(
-      'Set VITE_DEFAULT_CLASSROOM_ID to a valid classroom ID before using Session Control.',
-    )
+export function getConfiguredClassroomId() {
+  if (classroomConfiguration.error) {
+    throw new Error(classroomConfiguration.error)
   }
 
   return CLASSROOM_ID
+}
+
+function getClassroomId() {
+  return getConfiguredClassroomId()
 }
 
 function normalizeSession(session) {
@@ -85,10 +90,7 @@ export async function getActiveSession({ signal } = {}) {
 
     return normalizeSession(response.data)
   } catch (error) {
-    if (
-      error.response?.status === 404 &&
-      error.response?.data?.detail === 'No active classroom session'
-    ) {
+    if (isNoActiveSessionError(error)) {
       return null
     }
 
@@ -120,51 +122,4 @@ export async function stopSession(sessionId, { signal } = {}) {
   )
 
   return unwrapSession(response.data)
-}
-
-export function getSessionErrorMessage(error, action = 'load') {
-  if (error?.code === 'ERR_CANCELED') {
-    return ''
-  }
-
-  if (!error?.response) {
-    if (error?.isAxiosError) {
-      return 'Cannot reach the classroom session service. Check that the FastAPI backend is running, then retry.'
-    }
-
-    return error?.message ||
-      'The session service returned an unexpected response. Please retry.'
-  }
-
-  const { status } = error.response
-
-  if (status === 401) {
-    return 'Your session has expired. Please log in again.'
-  }
-
-  if (status === 403) {
-    return 'You do not have permission to manage this classroom.'
-  }
-
-  if (status === 404) {
-    return action === 'stop'
-      ? 'The selected session or classroom could not be found.'
-      : 'The configured classroom could not be found.'
-  }
-
-  if (status === 409) {
-    return action === 'start'
-      ? 'An active classroom session already exists. Refresh to load it.'
-      : 'This session is no longer active. Refresh the session status.'
-  }
-
-  if (status === 400 || status === 422) {
-    return 'The session request was invalid. Check the classroom configuration and retry.'
-  }
-
-  if (status >= 500) {
-    return 'The session service encountered a server error. Please retry shortly.'
-  }
-
-  return `The session request failed (HTTP ${status}). Please retry.`
 }

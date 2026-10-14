@@ -1,7 +1,25 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { RefreshCw, Users } from 'lucide-react'
+import { Check, Pencil, Plus, RefreshCw, UserMinus, UserPlus, Users, X } from 'lucide-react'
 import { getStudents } from '../services/reports'
+import {
+  createClassroomStudent,
+  setClassroomStudentActive,
+  updateStudent,
+} from '../services/classroomDataService'
+import {
+  notifyClassroomDataChanged,
+  subscribeToClassroomDataChanges,
+} from '../utils/classroomDataEvents'
+
+const EMPTY_STUDENT_FORM = {
+  student_id: '',
+  name: '',
+  department: '',
+  year: '1',
+  section: '',
+  email: '',
+}
 
 function getStudentId(student) {
   return (
@@ -29,6 +47,11 @@ export default function Students() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [newStudent, setNewStudent] = useState(EMPTY_STUDENT_FORM)
+  const [editingStudentId, setEditingStudentId] = useState('')
+  const [editStudent, setEditStudent] = useState(EMPTY_STUDENT_FORM)
+  const [savingAction, setSavingAction] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   const loadStudents = useCallback(async (signal) => {
     setLoading(true)
@@ -51,10 +74,97 @@ export default function Students() {
     }
   }, [])
 
+  async function handleCreateStudent(event) {
+    event.preventDefault()
+    if (savingAction) return
+    setSavingAction(true)
+    setActionError('')
+    try {
+      await createClassroomStudent({
+        ...newStudent,
+        year: Number(newStudent.year),
+        email: newStudent.email.trim() || null,
+      })
+      setNewStudent(EMPTY_STUDENT_FORM)
+      notifyClassroomDataChanged()
+    } catch (err) {
+      setActionError(
+        err?.response?.data?.detail || err?.message || 'Unable to enroll this student.',
+      )
+    } finally {
+      setSavingAction(false)
+    }
+  }
+
+  function startEditing(student) {
+    setActionError('')
+    setEditingStudentId(student.student_id)
+    setEditStudent({
+      student_id: student.student_id,
+      name: student.name,
+      department: student.department,
+      year: String(student.year),
+      section: student.section,
+      email: student.email ?? '',
+    })
+  }
+
+  async function handleSaveStudent(event) {
+    event.preventDefault()
+    if (savingAction || !editingStudentId) return
+    setSavingAction(true)
+    setActionError('')
+    try {
+      await updateStudent(editingStudentId, {
+        name: editStudent.name,
+        department: editStudent.department,
+        year: Number(editStudent.year),
+        section: editStudent.section,
+        email: editStudent.email.trim() || null,
+      })
+      setEditingStudentId('')
+      notifyClassroomDataChanged()
+    } catch (err) {
+      setActionError(
+        err?.response?.data?.detail || err?.message || 'Unable to save student changes.',
+      )
+    } finally {
+      setSavingAction(false)
+    }
+  }
+
+  async function handleMembershipChange(student) {
+    if (savingAction) return
+    setSavingAction(true)
+    setActionError('')
+    try {
+      await setClassroomStudentActive(
+        student.student_id,
+        student.classroom_is_active !== true,
+      )
+      notifyClassroomDataChanged()
+    } catch (err) {
+      setActionError(
+        err?.response?.data?.detail || err?.message || 'Unable to update classroom enrollment.',
+      )
+    } finally {
+      setSavingAction(false)
+    }
+  }
+
   useEffect(() => {
-    const controller = new AbortController()
-    loadStudents(controller.signal)
-    return () => controller.abort()
+    let controller
+    const reload = () => {
+      controller?.abort()
+      controller = new AbortController()
+      loadStudents(controller.signal)
+    }
+    reload()
+    const unsubscribe = subscribeToClassroomDataChanges(reload)
+    return () => {
+      unsubscribe()
+      controller?.abort()
+    }
   }, [loadStudents])
 
   const filteredStudents = useMemo(() => {
@@ -102,6 +212,54 @@ export default function Students() {
           </div>
         </div>
       </section>
+
+      <form
+        onSubmit={handleCreateStudent}
+        className="rounded-xl border border-slate-800 bg-slate-900/60 p-5"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <Plus size={18} className="text-sky-400" />
+          <h2 className="font-semibold text-white">Enroll a student</h2>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ['student_id', 'Student ID'],
+            ['name', 'Name'],
+            ['department', 'Department'],
+            ['year', 'Year'],
+            ['section', 'Section'],
+            ['email', 'Email (optional)'],
+          ].map(([field, label]) => (
+            <label key={field} className="space-y-1 text-xs text-slate-400">
+              {label}
+              <input
+                required={field !== 'email'}
+                type={field === 'year' ? 'number' : field === 'email' ? 'email' : 'text'}
+                min={field === 'year' ? 1 : undefined}
+                max={field === 'year' ? 8 : undefined}
+                value={newStudent[field]}
+                onChange={(event) =>
+                  setNewStudent((current) => ({ ...current, [field]: event.target.value }))
+                }
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+          ))}
+        </div>
+        <button
+          type="submit"
+          disabled={savingAction}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          <Plus size={16} /> Create and enroll
+        </button>
+      </form>
+
+      {actionError && (
+        <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          {actionError}
+        </div>
+      )}
 
       {loading && (
         <p className="text-sm text-slate-400">Loading students…</p>
@@ -152,6 +310,7 @@ export default function Students() {
                 <th className="px-5 py-3 font-medium">Name</th>
                 <th className="px-5 py-3 font-medium">Email</th>
                 <th className="px-5 py-3 font-medium">Classroom membership</th>
+                <th className="px-5 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -161,14 +320,51 @@ export default function Students() {
                   className="border-t border-slate-800 text-slate-200"
                 >
                   <td className="px-5 py-4">{getStudentId(student)}</td>
-                  <td className="px-5 py-4">{getStudentName(student)}</td>
                   <td className="px-5 py-4">
-                    {student.email ?? student.email_address ?? '—'}
+                    {editingStudentId === student.student_id ? (
+                      <input aria-label="Student name" value={editStudent.name} onChange={(event) => setEditStudent((current) => ({ ...current, name: event.target.value }))} className="rounded border border-slate-700 bg-slate-950 px-2 py-1" />
+                    ) : getStudentName(student)}
+                  </td>
+                  <td className="px-5 py-4">
+                    {editingStudentId === student.student_id ? (
+                      <input aria-label="Student email" type="email" value={editStudent.email} onChange={(event) => setEditStudent((current) => ({ ...current, email: event.target.value }))} className="rounded border border-slate-700 bg-slate-950 px-2 py-1" />
+                    ) : student.email ?? student.email_address ?? '—'}
                   </td>
                   <td className="px-5 py-4">
                     {student.classroom_is_active === null
                       ? 'Not provided'
                       : student.classroom_is_active ? 'Active' : 'Inactive'}
+                  </td>
+                  <td className="px-5 py-4">
+                    {editingStudentId === student.student_id ? (
+                      <form onSubmit={handleSaveStudent} className="flex flex-wrap gap-2">
+                        {[
+                          ['department', 'Department'],
+                          ['year', 'Year'],
+                          ['section', 'Section'],
+                        ].map(([field, label]) => (
+                          <input
+                            key={field}
+                            aria-label={`Student ${label.toLowerCase()}`}
+                            type={field === 'year' ? 'number' : 'text'}
+                            min={field === 'year' ? 1 : undefined}
+                            max={field === 'year' ? 8 : undefined}
+                            value={editStudent[field]}
+                            onChange={(event) => setEditStudent((current) => ({ ...current, [field]: event.target.value }))}
+                            className="w-24 rounded border border-slate-700 bg-slate-950 px-2 py-1"
+                          />
+                        ))}
+                        <button type="submit" disabled={savingAction} aria-label="Save student" className="rounded p-2 text-emerald-300 hover:bg-slate-800"><Check size={16} /></button>
+                        <button type="button" onClick={() => setEditingStudentId('')} aria-label="Cancel edit" className="rounded p-2 text-slate-400 hover:bg-slate-800"><X size={16} /></button>
+                      </form>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => startEditing(student)} className="inline-flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800"><Pencil size={13} /> Edit</button>
+                        <button type="button" disabled={savingAction} onClick={() => handleMembershipChange(student)} className="inline-flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800">
+                          {student.classroom_is_active ? <><UserMinus size={13} /> Remove</> : <><UserPlus size={13} /> Enroll</>}
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

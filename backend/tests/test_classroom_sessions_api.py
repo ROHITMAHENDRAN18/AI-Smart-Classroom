@@ -1,14 +1,20 @@
+import asyncio
+import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import HTTPException
 from sqlalchemy import create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.app.main import app
+from backend.auth.dependencies import get_current_user
 from backend.database.base import Base
+from backend.database.session import get_db
+from backend.models.attendance_record import AttendanceRecord
 from backend.models.classroom import Classroom
 from backend.models.classroom_session import ClassroomSession
 from backend.models.teacher import Teacher
@@ -90,6 +96,59 @@ def make_session(
     db.commit()
     db.refresh(session)
     return session
+
+
+def asgi_request(method, path, payload=None):
+    body = json.dumps(payload).encode("utf-8") if payload is not None else b""
+
+    async def request():
+        incoming = [{"type": "http.request", "body": body, "more_body": False}]
+        outgoing = []
+
+        async def receive():
+            if incoming:
+                return incoming.pop(0)
+            return {"type": "http.disconnect"}
+
+        async def send(message):
+            outgoing.append(message)
+
+        headers = []
+        if payload is not None:
+            headers = [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode("ascii")),
+            ]
+        await app(
+            {
+                "type": "http",
+                "asgi": {"version": "3.0", "spec_version": "2.3"},
+                "http_version": "1.1",
+                "method": method,
+                "scheme": "http",
+                "path": path,
+                "raw_path": path.encode("ascii"),
+                "query_string": b"",
+                "headers": headers,
+                "client": ("test", 1234),
+                "server": ("test", 80),
+            },
+            receive,
+            send,
+        )
+        status_code = next(
+            message["status"]
+            for message in outgoing
+            if message["type"] == "http.response.start"
+        )
+        response_body = b"".join(
+            message.get("body", b"")
+            for message in outgoing
+            if message["type"] == "http.response.body"
+        )
+        return status_code, json.loads(response_body)
+
+    return asyncio.run(request())
 
 
 def test_start_session_persists_active_session_with_timestamps(session_context):
@@ -363,6 +422,198 @@ def test_endpoints_require_bearer_auth_and_document_history_pagination(
             db=db,
         )
     assert forbidden.value.status_code == 403
+
+
+def test_active_session_http_route_is_registered_and_returns_expected_404(
+    session_context,
+):
+    db, user, _, classroom = session_context
+    path = (
+        f"{API_VERSION.rstrip('/')}/classrooms/{classroom.id}/sessions/active"
+    )
+
+    def override_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_db
+    try:
+        unauthenticated_status, _ = asgi_request("GET", path)
+        assert unauthenticated_status == 401
+
+        app.dependency_overrides[get_current_user] = lambda: user
+        no_active_status, no_active_body = asgi_request("GET", path)
+        assert no_active_status == 404
+        assert no_active_body["detail"] == "No active classroom session"
+
+        make_session(db, classroom.id, "SESSION_HTTP_ACTIVE")
+        active_status, active_body = asgi_request("GET", path)
+        missing_route_status, missing_route_body = asgi_request(
+            "GET",
+            (
+                f"{API_VERSION.rstrip('/')}/classrooms/{classroom.id}/"
+                "sessions/active/missing"
+            ),
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert active_status == 200
+    assert active_body["session_id"] == "SESSION_HTTP_ACTIVE"
+    assert active_body["classroom_id"] == classroom.id
+    assert missing_route_status == 404
+    assert missing_route_body["detail"] == "Not Found"
+
+
+def test_manual_attendance_is_authorized_upsert_and_active_session_only(
+    session_context,
+):
+    db, user, _, classroom = session_context
+    from backend.models.classroom_member import ClassroomMember
+    from backend.models.student import Student
+
+    student = Student(
+        student_id="S_MANUAL",
+        name="Manual Student",
+        department="Computing",
+        year=1,
+        section="A",
+        face_registered=False,
+    )
+    db.add(student)
+    db.flush()
+    db.add(
+        ClassroomMember(
+            classroom_id=classroom.id,
+            student_id=student.student_id,
+            is_active=True,
+        )
+    )
+    active_session = make_session(
+        db,
+        classroom.id,
+        "SESSION_MANUAL_ATTENDANCE",
+    )
+    path = (
+        f"{API_VERSION.rstrip('/')}/classrooms/{classroom.id}/sessions/"
+        f"{active_session.session_id}/attendance/manual"
+    )
+    payload = {
+        "records": [
+            {"student_id": student.student_id, "status": "PRESENT"},
+        ],
+    }
+
+    def override_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_db
+    try:
+        app.dependency_overrides[get_current_user] = lambda: user
+        created_status, created = asgi_request("POST", path, payload)
+        payload["records"][0]["status"] = "UNKNOWN"
+        updated_status, updated = asgi_request("POST", path, payload)
+
+        user.role = "STUDENT"
+        forbidden_status, forbidden = asgi_request("POST", path, payload)
+        user.role = "TEACHER"
+
+        active_session.status = "COMPLETED"
+        db.commit()
+        completed_status, completed = asgi_request("POST", path, payload)
+    finally:
+        app.dependency_overrides.clear()
+
+    records = (
+        db.query(AttendanceRecord)
+        .filter(
+            AttendanceRecord.session_id == active_session.session_id,
+            AttendanceRecord.student_id == student.student_id,
+        )
+        .all()
+    )
+    assert created_status == 200
+    assert created[0]["status"] == "PRESENT"
+    assert updated_status == 200
+    assert updated[0]["status"] == "UNKNOWN"
+    assert forbidden_status == 403
+    assert completed_status == 409
+    assert len(records) == 1
+    assert records[0].status == "UNKNOWN"
+
+
+def test_attendance_table_rejects_duplicate_session_student_pairs(
+    session_context,
+):
+    db, _, _, classroom = session_context
+    session = make_session(db, classroom.id, "SESSION_UNIQUE_ATTENDANCE")
+    db.add_all(
+        [
+            AttendanceRecord(
+                session_id=session.session_id,
+                student_id="S_UNIQUE",
+                status="PRESENT",
+            ),
+            AttendanceRecord(
+                session_id=session.session_id,
+                student_id="S_UNIQUE",
+                status="ABSENT",
+            ),
+        ]
+    )
+
+    with pytest.raises(IntegrityError):
+        db.commit()
+    db.rollback()
+    assert (
+        db.query(AttendanceRecord)
+        .filter(
+            AttendanceRecord.session_id == session.session_id,
+            AttendanceRecord.student_id == "S_UNIQUE",
+        )
+        .count()
+        == 0
+    )
+
+
+def test_teacher_can_create_and_enroll_student_atomically(session_context):
+    db, user, _, classroom = session_context
+    payload = {
+        "student_id": "S_ENROLLED",
+        "name": "New Student",
+        "department": "Computing",
+        "year": 2,
+        "section": "B",
+        "email": "new-student@example.org",
+    }
+
+    def override_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[get_current_user] = lambda: user
+    try:
+        path = f"{API_VERSION.rstrip('/')}/classrooms/{classroom.id}/students"
+        created_status, created = asgi_request("POST", path, payload)
+    finally:
+        app.dependency_overrides.clear()
+
+    assert created_status == 201, created
+    from backend.models.classroom_member import ClassroomMember
+    from backend.models.student import Student
+
+    student = db.query(Student).filter_by(student_id="S_ENROLLED").one()
+    member = (
+        db.query(ClassroomMember)
+        .filter_by(
+            classroom_id=classroom.id,
+            student_id="S_ENROLLED",
+        )
+        .one()
+    )
+    assert created_status == 201
+    assert created["student_id"] == student.student_id
+    assert created["classroom_is_active"] is True
+    assert member.is_active is True
 
 
 def test_session_database_failure_is_sanitized():

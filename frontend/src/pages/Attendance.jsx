@@ -19,7 +19,14 @@ import {
 import {
   getAttendanceSessions,
   getClassroomAttendance,
+  getSessionAttendance,
+  getStudents,
+  markSessionAttendance,
 } from '../services/attendanceService'
+import {
+  notifyClassroomDataChanged,
+  subscribeToClassroomDataChanges,
+} from '../utils/classroomDataEvents'
 
 const PAGE_SIZE = 50
 
@@ -33,6 +40,9 @@ export default function Attendance() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [offset, setOffset] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [students, setStudents] = useState([])
+  const [manualStatuses, setManualStatuses] = useState({})
+  const [savingManual, setSavingManual] = useState(false)
 
   const [loadingSessions, setLoadingSessions] =
     useState(true)
@@ -75,7 +85,6 @@ export default function Attendance() {
           'Failed to load attendance sessions:',
           requestError,
         )
-
         setError(
           getErrorMessage(
             requestError,
@@ -101,6 +110,9 @@ export default function Attendance() {
       try {
         setLoadingAttendance(true)
         setError('')
+        setManualStatuses({})
+        setRecords([])
+        setAttendanceReport(null)
 
         const data = await getClassroomAttendance({
           sessionId,
@@ -158,6 +170,63 @@ export default function Attendance() {
     refreshKey,
   ])
 
+  useEffect(
+    () =>
+      subscribeToClassroomDataChanges(() =>
+        setRefreshKey((current) => current + 1),
+      ),
+    [],
+  )
+
+  useEffect(() => {
+    const controller = new AbortController()
+    getStudents({ signal: controller.signal })
+      .then((data) => {
+        if (!controller.signal.aborted) setStudents(data)
+      })
+      .catch((requestError) => {
+        if (!controller.signal.aborted) {
+          console.error('Failed to load the attendance roster:', requestError)
+          setError(
+            requestError?.response?.data?.detail ||
+              requestError?.message ||
+              'Unable to load the classroom roster for manual attendance.',
+          )
+        }
+      })
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    setManualStatuses({})
+    if (!selectedSessionId) return () => controller.abort()
+
+    getSessionAttendance(selectedSessionId, { signal: controller.signal })
+      .then((existingRecords) => {
+        if (controller.signal.aborted) return
+        setManualStatuses(
+          Object.fromEntries(
+            existingRecords.map((record) => [
+              record.student_id,
+              record.status,
+            ]),
+          ),
+        )
+      })
+      .catch((requestError) => {
+        if (!controller.signal.aborted) {
+          console.error('Failed to load existing session attendance:', requestError)
+          setError(
+            requestError?.response?.data?.detail ||
+              requestError?.message ||
+              'Unable to load existing attendance for this session.',
+          )
+        }
+      })
+    return () => controller.abort()
+  }, [selectedSessionId, refreshKey])
+
   const summary = useMemo(() => {
     return {
       present: attendanceReport?.present_count ?? null,
@@ -180,9 +249,61 @@ export default function Attendance() {
       selectedSessionId,
     ],
   )
+  const activeStudents = useMemo(
+    () =>
+      students.filter(
+        (student) => student.classroom_is_active === true,
+      ),
+    [students],
+  )
+  const hasCompleteManualStatuses = activeStudents.every((student) =>
+    ['PRESENT', 'ABSENT', 'UNKNOWN'].includes(
+      manualStatuses[student.student_id],
+    ),
+  )
 
   async function handleRefresh() {
     setRefreshKey((current) => current + 1)
+  }
+
+  async function handleSaveManualAttendance() {
+    if (
+      savingManual ||
+      selectedSession?.status !== 'ACTIVE' ||
+      !selectedSessionId
+    ) {
+      return
+    }
+
+    setSavingManual(true)
+    setError('')
+    try {
+      if (!activeStudents.length) {
+        setError('No active enrolled students are available to mark.')
+        return
+      }
+      if (!hasCompleteManualStatuses) {
+        setError('Choose a status for every active enrolled student.')
+        return
+      }
+      await markSessionAttendance(
+        selectedSessionId,
+        activeStudents.map((student) => ({
+          student_id: student.student_id,
+          status: manualStatuses[student.student_id],
+        })),
+      )
+      notifyClassroomDataChanged()
+    } catch (requestError) {
+      console.error('Failed to save manual attendance:', requestError)
+      setError(
+        requestError?.response?.data?.detail ||
+          requestError?.message ||
+          'Unable to save manual attendance.',
+      )
+    } finally {
+      setSavingManual(false)
+    }
   }
 
   return (
@@ -355,6 +476,73 @@ export default function Attendance() {
           )}
         </div>
       </section>
+
+      {selectedSession?.status === 'ACTIVE' && (
+        <section className="surface mb-6 p-5 sm:p-6">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-white">
+                Manual attendance
+              </h2>
+              <p className="mt-1 text-xs text-slate-400">
+                YOLO detections do not identify students. Review each enrolled
+                student and explicitly choose PRESENT, ABSENT, or UNKNOWN.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveManualAttendance}
+              disabled={
+                savingManual ||
+                loadingAttendance ||
+                activeStudents.length === 0 ||
+                !hasCompleteManualStatuses
+              }
+              className="rounded-lg border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-200 hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {savingManual ? 'Saving…' : 'Save attendance'}
+            </button>
+          </div>
+          {activeStudents.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              No enrolled students are available to mark.
+            </p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {activeStudents.map((student) => (
+                <label
+                  key={student.student_id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2"
+                >
+                  <span className="min-w-0 truncate text-sm text-slate-200">
+                    {student.name} <span className="text-slate-500">({student.student_id})</span>
+                  </span>
+                  <select
+                    aria-label={`Attendance status for ${student.name}`}
+                    value={manualStatuses[student.student_id] || ''}
+                    onChange={(event) =>
+                      {
+                        setError('')
+                        setManualStatuses((current) => ({
+                          ...current,
+                          [student.student_id]: event.target.value,
+                        }))
+                      }
+                    }
+                    disabled={savingManual}
+                    className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-200"
+                  >
+                    <option value="">Choose status</option>
+                    <option value="PRESENT">Present</option>
+                    <option value="ABSENT">Absent</option>
+                    <option value="UNKNOWN">Unknown</option>
+                  </select>
+                </label>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <SummaryCard

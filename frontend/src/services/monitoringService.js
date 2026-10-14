@@ -14,9 +14,10 @@ export class MonitoringServiceError extends Error {
   }
 }
 
-function normalizeFrameInference(result) {
+function normalizeFrameInference(result, { requireSummary = false } = {}) {
   const featureNames = [
     'person_detection',
+    'result_persistence',
     'face_detection',
     'face_recognition',
     'tracking',
@@ -58,7 +59,7 @@ function normalizeFrameInference(result) {
     !featureNames.every(
       (name) =>
         result.features[name] &&
-        ['available', 'not_connected'].includes(
+        ['available', 'not_connected', 'error'].includes(
           result.features[name].status,
         ) &&
         typeof result.features[name].detail === 'string',
@@ -72,7 +73,11 @@ function normalizeFrameInference(result) {
         detection.y2 <= result.frame_height,
     ) ||
     result.detection_count !== result.detections.length ||
-    typeof result.results_persisted !== 'boolean'
+    typeof result.results_persisted !== 'boolean' ||
+    (requireSummary &&
+      (!Number.isSafeInteger(result.frames_processed) ||
+        result.frames_processed < 1 ||
+        typeof result.updated_at !== 'string'))
   ) {
     throw new FrameInferenceServiceError(
       'The inference service returned an unexpected response. Retry the frame.',
@@ -106,9 +111,19 @@ function normalizeFrameInference(result) {
       x2: detection.x2,
       y2: detection.y2,
       confidence: detection.confidence,
+      track_id: Number.isSafeInteger(detection.track_id) ? detection.track_id : null,
     })),
+    face_detections: Array.isArray(result.face_detections)
+      ? result.face_detections.map((face) => ({ ...face }))
+      : [],
     detection_count: result.detection_count,
     results_persisted: result.results_persisted,
+    ...(Number.isSafeInteger(result.frames_processed)
+      ? { frames_processed: result.frames_processed }
+      : {}),
+    ...(typeof result.updated_at === 'string'
+      ? { updated_at: result.updated_at }
+      : {}),
   }
 }
 
@@ -145,6 +160,28 @@ export async function analyzeMonitoringFrame({
   )
 
   return normalizeFrameInference(response.data)
+}
+
+export async function getMonitoringSummary({
+  classroomId,
+  sessionId,
+  signal,
+}) {
+  if (!Number.isSafeInteger(classroomId) || classroomId < 1) {
+    throw new FrameInferenceServiceError(
+      'Configure a valid classroom before loading its monitoring summary.',
+    )
+  }
+  if (!sessionId || typeof sessionId !== 'string') {
+    throw new FrameInferenceServiceError(
+      'A classroom session is required to load its monitoring summary.',
+    )
+  }
+  const response = await api.get(
+    `/classrooms/${classroomId}/sessions/${encodeURIComponent(sessionId)}/frame-summary`,
+    { signal },
+  )
+  return normalizeFrameInference(response.data, { requireSummary: true })
 }
 
 function normalizeAlert(alert) {

@@ -13,6 +13,7 @@ function normalizedDetection(detection, frameWidth, frameHeight, seenAt) {
     x2: detection.x2 / frameWidth,
     y2: detection.y2 / frameHeight,
     confidence: detection.confidence,
+    trackId: detection.track_id ?? null,
     lastSeenAt: seenAt,
   }
 }
@@ -29,6 +30,7 @@ function smoothDetection(detection, previous) {
   const currentWeight = 1 - PREVIOUS_BOX_WEIGHT
   return {
     ...detection,
+    trackId: detection.trackId,
     x1: previous.x1 * PREVIOUS_BOX_WEIGHT + detection.x1 * currentWeight,
     y1: previous.y1 * PREVIOUS_BOX_WEIGHT + detection.y1 * currentWeight,
     x2: previous.x2 * PREVIOUS_BOX_WEIGHT + detection.x2 * currentWeight,

@@ -1,6 +1,17 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class ManualAttendanceEntry(BaseModel):
+    student_id: str = Field(min_length=1, max_length=50)
+    status: Literal["PRESENT", "ABSENT", "UNKNOWN"]
+
+
+class ManualAttendanceRequest(BaseModel):
+    records: list[ManualAttendanceEntry] = Field(min_length=1, max_length=200)
 
 
 class ClassroomAttendanceRecord(BaseModel):

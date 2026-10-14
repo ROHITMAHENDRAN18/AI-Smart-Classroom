@@ -28,6 +28,7 @@ import {
   startSession,
   stopSession,
 } from '../services/sessionControlService'
+import { notifyClassroomDataChanged } from '../utils/classroomDataEvents'
 
 const STATUS = {
   ACTIVE: 'ACTIVE',
@@ -308,6 +309,7 @@ export default function SessionControl() {
       setSuccess(
         `Session ${newSession.session_id} started successfully.`,
       )
+      notifyClassroomDataChanged()
       await loadSessions({ showLoader: false })
     } catch (requestError) {
       if (requestError.code === 'ERR_CANCELED') {
@@ -380,6 +382,7 @@ export default function SessionControl() {
       setSuccess(
         `Session ${session.session_id} stopped successfully.`,
       )
+      notifyClassroomDataChanged()
       await loadSessions({ showLoader: false })
     } catch (requestError) {
       if (requestError.code === 'ERR_CANCELED') {
