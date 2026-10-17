@@ -20,7 +20,10 @@ def main():
     database = ClassroomDatabase()
 
     try:
-        database.start_session(session_id=session_id)
+        database.start_session(
+            session_id=session_id,
+            classroom_id=2,
+        )
         database.record_attendance(
             session_id=session_id,
             student_id=student_id,

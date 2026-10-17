@@ -1,4 +1,5 @@
-import api from './api'
+import api from './api.js'
+import { normalizeAttentionStatus } from './monitoringStatus.js'
 
 export class FrameInferenceServiceError extends Error {
   constructor(message) {
@@ -22,6 +23,9 @@ function normalizeFrameInference(result, { requireSummary = false } = {}) {
     'face_recognition',
     'tracking',
     'attention_estimation',
+    'head_pose_estimation',
+    'eye_state_estimation',
+    'attention_persistence',
     'attendance',
   ]
   const validDetection = (detection) =>
@@ -54,7 +58,9 @@ function normalizeFrameInference(result, { requireSummary = false } = {}) {
     !Number.isFinite(result.inference_duration_ms) ||
     result.inference_duration_ms < 0 ||
     result.pipeline !== 'person_detection' ||
-    result.attention_inference !== 'not_connected' ||
+    !['available', 'partial', 'unknown', 'not_connected', 'error'].includes(
+      result.attention_inference,
+    ) ||
     !result.features ||
     !featureNames.every(
       (name) =>
@@ -77,6 +83,8 @@ function normalizeFrameInference(result, { requireSummary = false } = {}) {
     (requireSummary &&
       (!Number.isSafeInteger(result.frames_processed) ||
         result.frames_processed < 1 ||
+        !Number.isSafeInteger(result.unknown_detections) ||
+        result.unknown_detections < 0 ||
         typeof result.updated_at !== 'string'))
   ) {
     throw new FrameInferenceServiceError(
@@ -95,6 +103,7 @@ function normalizeFrameInference(result, { requireSummary = false } = {}) {
     inference_duration_ms: result.inference_duration_ms,
     pipeline: result.pipeline,
     attention_inference: result.attention_inference,
+    ...normalizeAttentionStatus(result),
     features: Object.fromEntries(
       featureNames.map((name) => [
         name,
@@ -120,6 +129,9 @@ function normalizeFrameInference(result, { requireSummary = false } = {}) {
     results_persisted: result.results_persisted,
     ...(Number.isSafeInteger(result.frames_processed)
       ? { frames_processed: result.frames_processed }
+      : {}),
+    ...(Number.isSafeInteger(result.unknown_detections)
+      ? { unknown_detections: result.unknown_detections }
       : {}),
     ...(typeof result.updated_at === 'string'
       ? { updated_at: result.updated_at }

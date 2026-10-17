@@ -1,6 +1,6 @@
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
 import cv2
@@ -281,6 +281,35 @@ def test_frame_service_returns_only_valid_person_boxes():
     assert detections["faces"] == []
 
 
+def test_attention_requires_real_signals_and_returns_unknown_when_missing(monkeypatch):
+    from backend.services import frame_inference_service as module
+
+    monkeypatch.setattr(module, "detect_eye_state_from_face", lambda _crop: {"eye_state": "UNKNOWN"})
+    result = module._estimate_attention(
+        np.zeros((40, 40, 3), dtype=np.uint8),
+        {"x1": 0, "y1": 0, "x2": 40, "y2": 40},
+        None,
+    )
+    assert result["attention_state"] == "UNKNOWN"
+    assert result["attention_score"] is None
+    assert result["attention_confidence"] == 0
+
+
+def test_attention_fuses_only_an_available_eye_signal(monkeypatch):
+    from backend.services import frame_inference_service as module
+
+    monkeypatch.setattr(module, "detect_eye_state_from_face", lambda _crop: {"eye_state": "OPEN"})
+    result = module._estimate_attention(
+        np.zeros((40, 40, 3), dtype=np.uint8),
+        {"x1": 0, "y1": 0, "x2": 40, "y2": 40},
+        None,
+    )
+    assert result["eye_state"] == "OPEN"
+    assert result["attention_state"] == "ATTENTIVE"
+    assert result["attention_score"] == 1
+    assert result["attention_confidence"] == pytest.approx(0.3)
+
+
 def test_frame_service_rejects_concurrent_model_use():
     service = FrameInferenceService(detector_factory=FakeDetector)
     service._inference_lock.acquire()
@@ -316,14 +345,16 @@ def test_face_detector_processes_no_face_frame_and_maps_multiple_boxes(monkeypat
     service._face_cascade = FakeCascade()
     faces = service._detect_faces(np.zeros((64, 80, 3), dtype=np.uint8))
     assert len(faces) == 2
-    assert faces[0] == {
-        "x1": 2,
-        "y1": 3,
-        "x2": 12,
-        "y2": 14,
-        "confidence": None,
-        "quality": "detected_unscored",
-    }
+
+    assert faces[1] == {
+    "x1": 30,
+    "y1": 20,
+    "x2": 70,
+    "y2": 50,
+    "confidence": None,
+    "quality": "detected_unscored",
+    "landmarks": None,
+}
 
     class EmptyCascade:
         def detectMultiScale(self, _gray, **_kwargs):
@@ -345,6 +376,8 @@ def test_face_detector_reports_opencv_build_without_cascade_api(monkeypatch):
 def test_face_detector_uses_installed_cascade_when_project_xml_is_empty(
     monkeypatch, tmp_path
 ):
+    if not hasattr(cv2, "CascadeClassifier"):
+        pytest.skip("Installed OpenCV build has no Haar cascade API")
     empty_cascade = tmp_path / "empty.xml"
     empty_cascade.write_bytes(b"")
     monkeypatch.setattr(
@@ -383,10 +416,14 @@ def test_frame_endpoint_persists_bounded_summary_without_storing_images(
     assert result.processed_at is not None
     assert result.inference_duration_ms >= 0
     assert result.pipeline == "person_detection"
-    assert result.attention_inference == "not_connected"
+    assert result.attention_inference == "unknown"
+    assert result.attention_state == "UNKNOWN"
+    assert result.attention_score is None
+    assert result.attention_confidence == 0
     assert result.features.person_detection.status == "available"
     assert result.features.face_recognition.status == "not_connected"
     assert result.features.attention_estimation.status == "not_connected"
+    assert result.features.attention_persistence.status == "available"
     assert result.features.attendance.status == "not_connected"
     assert result.detection_count == len(result.detections) == 1
     assert result.detections[0].class_label == "person"
@@ -401,6 +438,7 @@ def test_frame_endpoint_persists_bounded_summary_without_storing_images(
     summary = db.query(FrameInferenceSummary).one()
     assert summary.session_id == session.session_id
     assert summary.frames_processed == 1
+    assert summary.unknown_detections == 0
     assert summary.detection_count == 1
     assert summary.detections[0]["class_label"] == "person"
     retrieved = frame_route.get_classroom_frame_summary(
@@ -411,7 +449,61 @@ def test_frame_endpoint_persists_bounded_summary_without_storing_images(
     )
     assert retrieved.results_persisted is True
     assert retrieved.frames_processed == 1
+    assert retrieved.unknown_detections == 0
     assert retrieved.detection_count == 1
+
+
+def test_frame_endpoint_counts_only_unknown_face_observations(
+    frame_context,
+    monkeypatch,
+):
+    db, user, classroom, session = frame_context
+    faces = [
+        {
+            "x1": 1,
+            "y1": 1,
+            "x2": 10,
+            "y2": 10,
+            "quality": "detected_unscored",
+            "recognition_status": recognition_status,
+        }
+        for recognition_status in (
+            "unknown",
+            "unknown",
+            "recognized",
+            "unavailable",
+        )
+    ]
+
+    class FacesInferenceService(StubInferenceService):
+        def analyze(self, _image, _session_id="default"):
+            result = super().analyze(_image, _session_id)
+            result["faces"] = faces
+            return result
+
+    monkeypatch.setattr(
+        frame_route,
+        "frame_inference_service",
+        FacesInferenceService(),
+    )
+    monkeypatch.setattr(
+        frame_route,
+        "verify_face_identities",
+        lambda **kwargs: kwargs["face_detections"],
+    )
+
+    result = post_frame(db, user, classroom, session)
+
+    assert result.results_persisted is True
+    summary = db.query(FrameInferenceSummary).one()
+    assert summary.unknown_detections == 2
+    response = frame_route.get_classroom_frame_summary(
+        classroom.id,
+        session.session_id,
+        user,
+        db,
+    )
+    assert response.unknown_detections == 2
 
 
 def test_frame_summary_persistence_failure_is_reported_without_failing_inference(
@@ -434,8 +526,36 @@ def test_frame_summary_persistence_failure_is_reported_without_failing_inference
     assert db.query(FrameInferenceSummary).count() == 0
 
 
+def test_attention_persistence_is_verified_student_scoped_and_rate_limited(
+    frame_context, monkeypatch
+):
+    db, _user, _classroom, session = frame_context
+    from backend.routes.frame_inference import persist_attention_observations
+
+    monkeypatch.setattr(frame_route, "DATABASE_ATTENTION_UPDATE_INTERVAL", 10)
+    face = {
+        "student_id": "S_ATTENTION",
+        "recognition_status": "recognized",
+        "attention_state": "ATTENTIVE",
+        "attention_score": 0.9,
+        "attention_confidence": 0.3,
+    }
+    start = datetime.now(timezone.utc)
+    assert persist_attention_observations(db, session.session_id, [face], start) == (True, 1)
+    assert persist_attention_observations(
+        db, session.session_id, [face], start + timedelta(seconds=2)
+    ) == (True, 0)
+    assert persist_attention_observations(
+        db, session.session_id, [face], start + timedelta(seconds=11)
+    ) == (True, 1)
+    records = db.query(AttentionRecord).all()
+    assert len(records) == 2
+    assert all(record.student_id == "S_ATTENTION" for record in records)
+    assert all(record.attention_score == 0.9 for record in records)
+
+
 def test_frame_summary_updates_one_row_per_session(frame_context):
-    db, _, classroom, session = frame_context
+    db, user, classroom, session = frame_context
     first_time = datetime.now(timezone.utc)
     second_time = datetime.now(timezone.utc)
     first_detection = {
@@ -457,6 +577,7 @@ def test_frame_summary_updates_one_row_per_session(frame_context):
         frame_height=48,
         inference_duration_ms=12.5,
         detections=[first_detection],
+        unknown_detections=2,
     )
     assert persist_frame_summary(
         db,
@@ -468,11 +589,13 @@ def test_frame_summary_updates_one_row_per_session(frame_context):
         frame_height=48,
         inference_duration_ms=9.5,
         detections=[],
+        unknown_detections=1,
     )
 
     summaries = db.query(FrameInferenceSummary).all()
     assert len(summaries) == 1
     assert summaries[0].frames_processed == 2
+    assert summaries[0].unknown_detections == 3
     assert summaries[0].detection_count == 0
     assert summaries[0].inference_duration_ms == 9.5
     assert summaries[0].detections == []
@@ -480,6 +603,13 @@ def test_frame_summary_updates_one_row_per_session(frame_context):
     if stored_timestamp.tzinfo is None:
         stored_timestamp = stored_timestamp.replace(tzinfo=timezone.utc)
     assert stored_timestamp == second_time
+    response = frame_route.get_classroom_frame_summary(
+        classroom.id,
+        session.session_id,
+        user,
+        db,
+    )
+    assert response.unknown_detections == 3
 
 
 def test_http_frame_endpoint_requires_authentication_and_serializes_results(

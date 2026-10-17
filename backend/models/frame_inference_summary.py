@@ -44,6 +44,9 @@ class FrameInferenceSummary(Base):
         String(20), nullable=False, default="error"
     )
     frames_processed: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    unknown_detections: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

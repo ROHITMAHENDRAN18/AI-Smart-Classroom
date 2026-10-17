@@ -193,3 +193,23 @@ def test_clear_all_removes_every_track():
 
     assert smoother.get_history(1) == []
     assert smoother.get_history(2) == []
+
+
+def test_consecutive_unknown_observations_clear_stale_history():
+    smoother = AttentionTemporalSmoother(window_size=3, minimum_samples=2)
+    # Establish stable attentive state
+    for _ in range(3):
+        _update(smoother, 1, "ATTENTIVE")
+    assert smoother.update(1, "ATTENTIVE").attention_state == "ATTENTIVE"
+
+    # 1 unknown does not clear history
+    r1 = _update(smoother, 1, "UNKNOWN", score=None, confidence=0.0)
+    assert r1.attention_state == "ATTENTIVE"
+
+    # Repeated unknowns beyond window_size / max_consecutive_unknown clear stale history
+    _update(smoother, 1, "UNKNOWN", score=None, confidence=0.0)
+    r3 = _update(smoother, 1, "UNKNOWN", score=None, confidence=0.0)
+
+    assert r3.attention_state == "UNKNOWN"
+    assert smoother.get_history(1) == []
+    assert r3.stable is False

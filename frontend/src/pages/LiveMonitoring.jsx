@@ -75,6 +75,9 @@ const FEATURE_LABELS = {
   face_recognition: 'Student identity recognition',
   tracking: 'Tracking',
   attention_estimation: 'Attention estimation',
+  head_pose_estimation: 'Head pose estimation',
+  eye_state_estimation: 'Eye state estimation',
+  attention_persistence: 'Attention persistence',
   attendance: 'Attendance persistence',
 }
 
@@ -997,7 +1000,7 @@ export default function LiveMonitoring() {
             inferenceState === 'processing'
               ? 'Processing camera frame'
               : inferenceState === 'ready'
-                ? `${frameResult?.detection_count ?? 0} people detected`
+                ? `${frameResult?.detections?.length ?? 0} people detected`
                 : inferenceState === 'error'
                   ? 'Person detection unavailable'
                   : inferenceState === 'paused'
@@ -1106,22 +1109,94 @@ export default function LiveMonitoring() {
                     aria-label={`Up to ${detectionOverlay.boxes.length} people recently detected; boxes expire after a missed-detection grace period`}
                   >
                     {(frameResult?.face_detections || []).map((face, index) => {
-                      const scaleX = (videoRef.current?.videoWidth || 1) / frameResult.frame_width
-                      const scaleY = (videoRef.current?.videoHeight || 1) / frameResult.frame_height
-                      return (
-                        <rect
-                          key={`face-${index}-${face.x1}-${face.y1}`}
-                          x={face.x1 * scaleX}
-                          y={face.y1 * scaleY}
-                          width={(face.x2 - face.x1) * scaleX}
-                          height={(face.y2 - face.y1) * scaleY}
-                          fill="none"
-                          stroke="#facc15"
-                          strokeWidth="2"
-                          vectorEffect="non-scaling-stroke"
-                        />
-                      )
-                    })}
+  const frameWidth = frameResult?.frame_width || 1
+  const frameHeight = frameResult?.frame_height || 1
+  const videoWidth = videoRef.current?.videoWidth || 1
+  const videoHeight = videoRef.current?.videoHeight || 1
+
+  const scaleX = videoWidth / frameWidth
+  const scaleY = videoHeight / frameHeight
+
+  const x = face.x1 * scaleX
+  const y = face.y1 * scaleY
+  const width = Math.max(0, (face.x2 - face.x1) * scaleX)
+  const height = Math.max(0, (face.y2 - face.y1) * scaleY)
+
+  const identity =
+    face.recognition_status === 'recognized' && face.student_id
+      ? face.identity || 'Unknown'
+      : face.recognition_status === 'unavailable'
+        ? 'Unavailable'
+        : 'Unknown'
+
+  const isRecognized = identity !== 'Unknown' && identity !== 'Unavailable'
+
+  const label =
+    face.recognition_status === 'unavailable'
+      ? 'Face detected · Recognition unavailable'
+      : isRecognized
+        ? identity
+        : 'Unknown'
+
+  return (
+    <g key={`face-${index}-${face.x1}-${face.y1}`}>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill="none"
+        stroke={isRecognized ? '#4ade80' : '#facc15'}
+        strokeWidth="2"
+        vectorEffect="non-scaling-stroke"
+      />
+
+      <rect
+        x={x}
+        y={Math.max(0, y - 25)}
+        width={Math.min(
+          Math.max(label.length * 7 + 12, 100),
+          Math.max(100, videoWidth - x),
+        )}
+        height="23"
+        rx="4"
+        fill={isRecognized ? '#14532d' : '#713f12'}
+      />
+
+      <text
+        x={x + 6}
+        y={Math.max(16, y - 9)}
+        fill="#ffffff"
+        fontSize="14"
+        fontWeight="600"
+      >
+        {label}
+      </text>
+
+      {face.head_pose?.head_pose && (
+        <text
+          x={x + 4}
+          y={y + height + 18}
+          fill="#93c5fd"
+          fontSize="13"
+        >
+          Head: {face.head_pose.head_pose}
+        </text>
+      )}
+
+      {face.attention_state && (
+        <text
+          x={x + 4}
+          y={y + height + (face.head_pose?.head_pose ? 36 : 18)}
+          fill="#c4b5fd"
+          fontSize="13"
+        >
+          Attention: {face.attention_state}
+        </text>
+      )}
+    </g>
+  )
+})}
                     {detectionOverlay.boxes.map((box, index) => {
                       const detection = toVideoCoordinates(
                         box,
@@ -1402,11 +1477,40 @@ export default function LiveMonitoring() {
                     )}
                   </ul>
                 )}
-                {frameResult?.face_detections?.length > 0 && (
-                  <p className="mt-2 text-xs text-yellow-200">
-                    {frameResult.face_detections.length} face box(es) detected independently; identity is unavailable and Haar confidence is unscored.
-                  </p>
-                )}
+                {frameResult && (
+  <div className="mt-3 space-y-2 text-xs">
+    <p className="text-yellow-200">
+      Faces detected: {frameResult.face_detections?.length ?? 0}
+    </p>
+
+    {(frameResult.face_detections || []).length > 0 && (
+      <ul className="space-y-1 text-slate-300">
+        {frameResult.face_detections.map((face, index) => {
+          const recognized =
+            face.recognition_status === 'recognized' &&
+            Boolean(face.student_id)
+
+          const unavailable =
+            face.recognition_status === 'unavailable'
+
+          return (
+            <li key={`face-status-${index}`}>
+              Face {index + 1}: {recognized
+                ? face.identity || 'Verified student'
+                : unavailable
+                  ? 'Recognition unavailable'
+                  : 'Unknown'}
+              {` · Head: ${face.head_pose?.head_pose || 'UNKNOWN'}`}
+              {face.attention_state
+                ? ` · Attention: ${face.attention_state}`
+                : ' · Attention: UNKNOWN'}
+            </li>
+          )
+        })}
+      </ul>
+    )}
+  </div>
+)}
                 {detectionOverlay.boxes.length > 0 && (
                   <p className="mt-2 text-xs text-emerald-200/80">
                     Overlay boxes are from recent real detections and fade out

@@ -120,3 +120,63 @@ def test_invalid_weights_and_signal_values_are_rejected():
 
     with pytest.raises(ValueError):
         AttentionFusionEngine().fuse(phone_detected="false")
+
+
+def test_all_signals_unknown_yields_clean_unknown():
+    engine = AttentionFusionEngine()
+    result = engine.fuse(
+        eye_state="UNKNOWN",
+        head_pose="UNKNOWN",
+        emotion="UNKNOWN",
+        phone_detected=None,
+        hand_raised=None,
+    )
+    assert result.attention_state == "UNKNOWN"
+    assert result.attention_score is None
+    assert result.confidence == 0.0
+    assert result.signal_scores == {}
+
+
+def test_only_head_pose_available():
+    engine = AttentionFusionEngine()
+    result = engine.fuse(head_pose="FRONT")
+    assert result.attention_state == "ATTENTIVE"
+    assert result.attention_score == pytest.approx(1.0)
+    assert result.confidence == pytest.approx(0.30)
+    assert "head_pose" in result.signal_scores
+
+
+def test_only_eye_state_available():
+    engine = AttentionFusionEngine()
+    result = engine.fuse(eye_state="CLOSED")
+    assert result.attention_state == "NOT ATTENTIVE"
+    assert result.attention_score == pytest.approx(0.0)
+    assert result.confidence == pytest.approx(0.30)
+    assert "Eyes are closed." in result.reasons
+
+
+def test_notes_taking_eyes_open_head_down_is_partial():
+    # Student is reading notes: eyes are open, head is tilted down
+    engine = AttentionFusionEngine()
+    result = engine.fuse(
+        eye_state="OPEN",
+        head_pose="DOWN",
+        phone_detected=False,
+    )
+    # Eye (1.0 * 0.3) + Head Down (0.2 * 0.3) + Phone (1.0 * 0.2) = 0.3 + 0.06 + 0.2 = 0.56 / 0.8 = 0.70
+    assert result.attention_state == "ATTENTIVE"
+    assert result.confidence == pytest.approx(0.80)
+
+
+def test_sleeping_eyes_closed_head_down_is_not_attentive():
+    # Student is asleep: eyes are closed, head is down
+    engine = AttentionFusionEngine()
+    result = engine.fuse(
+        eye_state="CLOSED",
+        head_pose="DOWN",
+        phone_detected=False,
+    )
+    # Eye (0.0 * 0.3) + Head Down (0.2 * 0.3) + Phone (1.0 * 0.2) = 0.0 + 0.06 + 0.2 = 0.26 / 0.8 = 0.325
+    assert result.attention_state == "NOT ATTENTIVE"
+    assert "Eyes are closed." in result.reasons
+    assert "Head is not facing forward." in result.reasons

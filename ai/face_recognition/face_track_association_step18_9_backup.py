@@ -942,8 +942,9 @@ try:
 
     database_session_id = (
         classroom_database.start_session(
-            session_id=database_session_id
-        ).session_id
+    session_id=database_session_id,
+    classroom_id=2,
+)
     )
 
 except Exception as error:

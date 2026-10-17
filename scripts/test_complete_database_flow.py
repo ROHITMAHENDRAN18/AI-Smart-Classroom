@@ -32,8 +32,9 @@ def main():
     print("------------------------------------------------------------")
 
     session = database.start_session(
-        session_id=TEST_SESSION_ID,
-        started_at=datetime.now(timezone.utc),
+     session_id=TEST_SESSION_ID,
+     classroom_id=2,
+     started_at=datetime.now(timezone.utc),
     )
 
     print("")

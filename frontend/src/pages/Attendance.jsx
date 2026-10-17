@@ -23,6 +23,7 @@ import {
   getStudents,
   markSessionAttendance,
 } from '../services/attendanceService'
+import { getMonitoringSummary } from '../services/monitoringService'
 import {
   notifyClassroomDataChanged,
   subscribeToClassroomDataChanges,
@@ -37,6 +38,8 @@ export default function Attendance() {
 
   const [records, setRecords] = useState([])
   const [attendanceReport, setAttendanceReport] = useState(null)
+  const [unknownDetections, setUnknownDetections] = useState(null)
+  const [unknownDetectionsError, setUnknownDetectionsError] = useState(false)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [offset, setOffset] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -103,6 +106,8 @@ export default function Attendance() {
       if (!sessionId) {
         setRecords([])
         setAttendanceReport(null)
+        setUnknownDetections(0)
+        setUnknownDetectionsError(false)
         setLoadingAttendance(false)
         return
       }
@@ -113,16 +118,27 @@ export default function Attendance() {
         setManualStatuses({})
         setRecords([])
         setAttendanceReport(null)
+        setUnknownDetections(null)
+        setUnknownDetectionsError(false)
 
-        const data = await getClassroomAttendance({
-          sessionId,
-          date,
-          limit: PAGE_SIZE,
-          offset,
-          signal,
-        })
+        const [attendanceResult, summaryResult] = await Promise.allSettled([
+          getClassroomAttendance({
+            sessionId,
+            date,
+            limit: PAGE_SIZE,
+            offset,
+            signal,
+          }),
+          getMonitoringSummary({
+            classroomId: sessions.find((session) => session.session_id === sessionId)?.classroom_id,
+            sessionId,
+            signal,
+          }),
+        ])
 
         if (signal?.aborted) return
+        if (attendanceResult.status === 'rejected') throw attendanceResult.reason
+        const data = attendanceResult.value
         setAttendanceReport(data)
         setRecords(data.records.map((record) => ({
           ...record,
@@ -131,6 +147,15 @@ export default function Attendance() {
             : record.student_id,
           recordedAt: record.recorded_at,
         })))
+        if (summaryResult.status === 'fulfilled') {
+          setUnknownDetections(summaryResult.value.unknown_detections)
+        } else if (summaryResult.reason?.response?.status === 404) {
+          setUnknownDetections(0)
+        } else {
+          setUnknownDetections(null)
+          setUnknownDetectionsError(true)
+          console.error('Failed to load unknown face observations:', summaryResult.reason)
+        }
       } catch (requestError) {
         if (signal?.aborted) return
         console.error(
@@ -151,7 +176,7 @@ export default function Attendance() {
         if (!signal?.aborted) setLoadingAttendance(false)
       }
     },
-    [date, offset],
+    [date, offset, sessions],
   )
 
   useEffect(() => {
@@ -232,10 +257,11 @@ export default function Attendance() {
       present: attendanceReport?.present_count ?? null,
       absent: attendanceReport?.absent_count ?? null,
       unknown: attendanceReport?.unknown_count ?? null,
+      unknownDetections,
       total: attendanceReport?.total_records ?? null,
       percentage: attendanceReport?.attendance_rate ?? null,
     }
-  }, [attendanceReport])
+  }, [attendanceReport, unknownDetections])
 
   const selectedSession = useMemo(
     () =>
@@ -544,7 +570,7 @@ export default function Attendance() {
         </section>
       )}
 
-      <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <SummaryCard
           icon={<Users size={19} />}
           label="Total Records"
@@ -573,10 +599,24 @@ export default function Attendance() {
 
         <SummaryCard
           icon={<AlertCircle size={19} />}
-          label="Unknown"
+          label="Unknown Attendance Records"
           value={loadingAttendance ? '…' : summary.unknown ?? '—'}
           description="Persisted records with unknown status"
           iconClass="bg-slate-500/10 text-slate-400"
+        />
+
+        <SummaryCard
+          icon={<AlertCircle size={19} />}
+          label="Unknown Face Observations"
+          value={loadingAttendance
+            ? '…'
+            : unknownDetectionsError
+              ? '—'
+              : summary.unknownDetections ?? '—'}
+          description={unknownDetectionsError
+            ? 'Could not load this session’s frame summary'
+            : 'Unknown face detections across processed frames'}
+          iconClass="bg-amber-500/10 text-amber-400"
         />
 
         <SummaryCard

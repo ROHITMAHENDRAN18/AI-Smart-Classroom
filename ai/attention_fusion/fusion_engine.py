@@ -110,12 +110,22 @@ class AttentionFusionEngine:
 
     @staticmethod
     def _emotion_score(emotion: str) -> Optional[float]:
+        """Map coarse emotion category to an engagement/attention evidence score.
+
+        Pedagogical rationale:
+          - NEUTRAL (0.80): Baseline attentive listener in a lecture environment.
+          - SURPRISED (0.85): High engagement/reactivity to instruction.
+          - HAPPY (0.70): Positive affect; moderate attention proxy.
+          - SAD (0.50): Possible low engagement or emotional withdrawal.
+          - ANGRY (0.40): Disengagement, frustration, or negative affect.
+          - UNKNOWN (None): Excluded from weighted average without penalizing student.
+        """
         return {
-            "HAPPY": 1.0,
-            "NEUTRAL": 1.0,
-            "SURPRISED": 0.7,
-            "SAD": 0.5,
-            "ANGRY": 0.5,
+            "NEUTRAL": 0.80,
+            "SURPRISED": 0.85,
+            "HAPPY": 0.70,
+            "SAD": 0.50,
+            "ANGRY": 0.40,
             "UNKNOWN": None,
         }[emotion]
 

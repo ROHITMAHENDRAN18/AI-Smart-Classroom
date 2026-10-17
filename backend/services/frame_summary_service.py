@@ -21,6 +21,7 @@ def persist_frame_summary(
     detections: list[dict],
     face_detections: list[dict] | None = None,
     face_detection_status: str = "error",
+    unknown_detections: int = 0,
 ) -> bool:
     """Persist the latest boxes and a rolling frame count in one session row."""
     try:
@@ -63,6 +64,7 @@ def persist_frame_summary(
                 detections=detections,
                 face_detections=face_detections or [],
                 face_detection_status=face_detection_status,
+                unknown_detections=unknown_detections,
                 frames_processed=1,
             )
             db.add(summary)
@@ -76,6 +78,7 @@ def persist_frame_summary(
             summary.detections = detections
             summary.face_detections = face_detections or []
             summary.face_detection_status = face_detection_status
+            summary.unknown_detections += unknown_detections
             summary.frames_processed += 1
 
         db.commit()

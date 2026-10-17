@@ -59,7 +59,9 @@ class AttentionTemporalSmoother:
         self.minimum_samples = minimum_samples
         self.state_threshold = state_threshold
         self.score_decay = score_decay
+        self.max_consecutive_unknown = window_size
         self._history: dict[int, Deque[tuple[str, Optional[float], float]]] = {}
+        self._consecutive_unknown: dict[int, int] = {}
 
     @staticmethod
     def _finite_number(value: float, name: str) -> float:
@@ -111,7 +113,7 @@ class AttentionTemporalSmoother:
         attention_score: Optional[float] = None,
         confidence: float = 0.0,
     ) -> SmoothedAttentionResult:
-        """Add a known observation; UNKNOWN leaves existing history untouched."""
+        """Add an observation; consecutive UNKNOWNs beyond max_consecutive_unknown clear stale history."""
         track_id = self._normalize_track_id(track_id)
         state = self._normalize_state(attention_state)
         score = self._normalize_score(attention_score)
@@ -119,7 +121,13 @@ class AttentionTemporalSmoother:
         history = self._get_history(track_id)
 
         if state != "UNKNOWN":
+            self._consecutive_unknown[track_id] = 0
             history.append((state, score, normalized_confidence))
+        else:
+            unknown_count = self._consecutive_unknown.get(track_id, 0) + 1
+            self._consecutive_unknown[track_id] = unknown_count
+            if unknown_count >= self.max_consecutive_unknown:
+                history.clear()
 
         return self._result_for_history(history)
 
@@ -185,11 +193,14 @@ class AttentionTemporalSmoother:
 
     def clear_track(self, track_id: int) -> None:
         """Remove history for a single tracking ID."""
-        self._history.pop(self._normalize_track_id(track_id), None)
+        normalized_id = self._normalize_track_id(track_id)
+        self._history.pop(normalized_id, None)
+        self._consecutive_unknown.pop(normalized_id, None)
 
     def clear_all(self) -> None:
         """Remove history for every track."""
         self._history.clear()
+        self._consecutive_unknown.clear()
 
     def retain_tracks(self, active_track_ids) -> int:
         """Discard histories for tracks absent from the current tracker output."""
@@ -200,6 +211,7 @@ class AttentionTemporalSmoother:
         stale_tracks = self._history.keys() - active_tracks
         for track_id in stale_tracks:
             del self._history[track_id]
+            self._consecutive_unknown.pop(track_id, None)
         return len(stale_tracks)
 
     def get_history(

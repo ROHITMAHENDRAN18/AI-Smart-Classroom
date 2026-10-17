@@ -23,6 +23,7 @@ class ClassroomDatabase:
     def start_session(
         self,
         session_id: str,
+        classroom_id: int,
         started_at: datetime | None = None,
     ):
         db = self.get_session()
@@ -44,6 +45,7 @@ class ClassroomDatabase:
 
             classroom_session = ClassroomSession(
                 session_id=session_id,
+                classroom_id=classroom_id,
                 started_at=started_at,
                 status="ACTIVE",
             )
@@ -55,8 +57,9 @@ class ClassroomDatabase:
             print("============================================================")
             print("DATABASE CLASSROOM SESSION STARTED")
             print("============================================================")
-            print(f"Session ID : {classroom_session.session_id}")
-            print(f"Started At : {classroom_session.started_at.isoformat()}")
+            print(f"Session ID   : {classroom_session.session_id}")
+            print(f"Classroom ID : {classroom_session.classroom_id}")
+            print(f"Started At   : {classroom_session.started_at.isoformat()}")
             print("============================================================")
 
             return classroom_session
@@ -67,6 +70,7 @@ class ClassroomDatabase:
 
         finally:
             db.close()
+
 
     def record_attendance(
         self,

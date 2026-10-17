@@ -953,9 +953,10 @@ try:
     )
 
     database_session_id = (
-        classroom_database.start_session(
-            session_id=database_session_id
-        ).session_id
+       classroom_database.start_session(
+    session_id=database_session_id,
+    classroom_id=2,
+)
     )
 
 except Exception as error:
@@ -1515,7 +1516,11 @@ while True:
                         track_id=int(
                             track_id
                         ),
-                        attention_state=attention_state,
+                          attention_state=(
+                                                            smoothed_fusion_result.attention_state
+                                                            if smoothed_fusion_result is not None
+                                                              else attention_state
+                                                         ),
                         confidence=None,
                         attention_score=(
                             student_attention_result.attention_score

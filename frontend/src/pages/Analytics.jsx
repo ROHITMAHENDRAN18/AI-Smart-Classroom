@@ -40,6 +40,7 @@ import { subscribeToClassroomDataChanges } from '../utils/classroomDataEvents'
 
 const ATTENTION_COLORS = {
   attentive: '#10b981', // emerald-500
+  partial: '#f59e0b', // amber-500
   notAttentive: '#f43f5e', // rose-500
   unknown: '#64748b', // slate-500
 }
@@ -263,13 +264,25 @@ export default function Analytics() {
       return []
     }
 
-    return [
+    const items = [
       {
         name: 'Attentive',
         value: stats.attentive_count,
         percentage: stats.attentive_percentage,
         color: ATTENTION_COLORS.attentive,
       },
+    ]
+
+    if (stats.partial_count > 0) {
+      items.push({
+        name: 'Partial',
+        value: stats.partial_count,
+        percentage: stats.partial_percentage,
+        color: ATTENTION_COLORS.partial,
+      })
+    }
+
+    items.push(
       {
         name: 'Not Attentive',
         value: stats.not_attentive_count,
@@ -282,7 +295,9 @@ export default function Analytics() {
         percentage: stats.unknown_percentage,
         color: ATTENTION_COLORS.unknown,
       },
-    ]
+    )
+
+    return items
   }, [stats])
 
   const isInitialLoading = loadingSessions && sessions.length === 0
@@ -555,7 +570,7 @@ export default function Analytics() {
                       </div>
 
                       {/* Chart Legend */}
-                      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-800/80 pt-4">
+                      <div className={`mt-4 grid gap-2 border-t border-slate-800/80 pt-4 ${chartData.length >= 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
                         {chartData.map((item) => (
                           <div
                             key={item.name}

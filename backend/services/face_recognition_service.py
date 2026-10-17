@@ -175,6 +175,11 @@ class FaceRecognitionService:
                     "quality": "embedding_available" if query is not None else "embedding_unavailable",
                     "student_id": student_id,
                     "identity": student_id if student_id else "Unknown",
+                    "landmarks": (
+                                                  np.asarray(face.kps, dtype=np.float32).tolist()
+                                                  if getattr(face, "kps", None) is not None
+                                                    else None
+                                                    ),
                     "similarity": similarity,
                 }
             )

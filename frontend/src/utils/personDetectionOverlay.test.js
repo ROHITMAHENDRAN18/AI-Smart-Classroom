@@ -157,3 +157,39 @@ test('the expiry scheduler reports the nearest box deadline and stops when empty
     null,
   )
 })
+
+test('track IDs are preserved when the same person is detected again', () => {
+  const first = updatePersonDetectionOverlay(
+    EMPTY_DETECTION_OVERLAY,
+    result([{ ...person(64, 48, 192, 240), track_id: 7 }]),
+    1,
+    1000,
+    GRACE_PERIOD_MS,
+  )
+
+  const second = updatePersonDetectionOverlay(
+    first,
+    result([{ ...person(200, 80, 320, 300), track_id: 7 }]),
+    2,
+    1600,
+    GRACE_PERIOD_MS,
+  )
+
+  assert.equal(second.boxes.length, 1)
+  assert.equal(second.boxes[0].trackId, 7)
+  assert.ok(second.boxes[0].x1 > 0.1)
+})
+
+test('invalid input is treated as an empty overlay without crashing', () => {
+  const overlay = updatePersonDetectionOverlay(
+    undefined,
+    { detections: undefined, frame_width: 0, frame_height: 0 },
+    1,
+    1000,
+    GRACE_PERIOD_MS,
+  )
+
+  assert.deepEqual(overlay, { sequence: 1, boxes: [] })
+  assert.equal(getNextPersonDetectionExpiry(undefined, 1000, GRACE_PERIOD_MS), null)
+  assert.equal(toVideoCoordinates(null, 1280, 720), null)
+})

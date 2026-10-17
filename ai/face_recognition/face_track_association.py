@@ -19,7 +19,9 @@ from configs.settings import (
 from ai.attendance.attendance_manager import AttendanceManager
 from ai.attention_fusion import AttentionFusionEngine
 from ai.attention_smoothing import AttentionTemporalSmoother
+from ai.eye_detection.eye_detector import detect_eye_state_from_face
 from ai.head_pose.head_pose_detector import detect_head_pose
+from ai.phone_detection.phone_detector import find_phone_in_person
 from ai.student_attention import StudentAttentionScorer
 from ai.tracking.student_tracker import StudentTracker
 from dashboard.camera_stream import CameraStream
@@ -962,10 +964,10 @@ def main():
                 "%Y%m%d_%H%M%S_%f"
             )
         )
-
         database_session_id = (
             classroom_database.start_session(
-                session_id=database_session_id
+                session_id=database_session_id,
+                classroom_id=2,
             ).session_id
         )
 
@@ -1049,13 +1051,34 @@ def main():
 
             results = model(
                 frame,
-                classes=[0],
+                classes=[0, 67],
                 conf=PERSON_CONFIDENCE,
                 iou=PERSON_IOU,
                 imgsz=PERSON_IMAGE_SIZE,
                 max_det=MAX_PERSONS,
                 verbose=False
             )[0]
+
+            phone_boxes = []
+            if results.boxes is not None:
+                for b_idx in range(len(results.boxes)):
+                    try:
+                        cls_id = int(results.boxes.cls[b_idx].item())
+                        if cls_id == 67:  # cell phone
+                            p_conf = float(results.boxes.conf[b_idx].item())
+                            if p_conf >= 0.50:
+                                p_box = (
+                                    results.boxes.xyxy[b_idx]
+                                    .cpu()
+                                    .numpy()
+                                    .astype(int)
+                                    .tolist()
+                                )
+                                phone_boxes.append(
+                                    {"bbox": p_box, "confidence": p_conf}
+                                )
+                    except Exception:
+                        continue
 
             detections = (
                 sv.Detections.from_ultralytics(
@@ -1064,7 +1087,7 @@ def main():
             )
 
             # --------------------------------------------------------
-            # PERSON CLASS ONLY
+            # PERSON CLASS ONLY FOR TRACKING
             # --------------------------------------------------------
 
             if len(detections) > 0:
@@ -1422,11 +1445,82 @@ def main():
                             f"[FUSION] Head pose integration error: {error}"
                         )
 
+                # ----------------------------------------------------
+                # EYE STATE DETECTION (Genuine contour landmarks via FaceMesh)
+                # ----------------------------------------------------
+
+                eye_state = "UNKNOWN"
+
+                if (
+                    best_face is not None
+                    and
+                    hasattr(
+                        best_face,
+                        "bbox"
+                    )
+                ):
+
+                    try:
+
+                        bf_x1, bf_y1, bf_x2, bf_y2 = map(
+                            int,
+                            best_face.bbox
+                        )
+
+                        ph, pw = person_crop.shape[:2]
+
+                        face_crop = person_crop[
+                            max(0, bf_y1):min(ph, bf_y2),
+                            max(0, bf_x1):min(pw, bf_x2)
+                        ]
+
+                        if (
+                            face_crop.shape[0] >= MIN_FACE_HEIGHT
+                            and
+                            face_crop.shape[1] >= MIN_FACE_WIDTH
+                        ):
+
+                            eye_result = detect_eye_state_from_face(
+                                face_crop
+                            )
+
+                            eye_state = eye_result.get(
+                                "eye_state",
+                                "UNKNOWN"
+                            )
+
+                    except Exception as error:
+
+                        print(
+                            f"[FUSION] Eye detection error: {error}"
+                        )
+
+                # ----------------------------------------------------
+                # PHONE DETECTION (YOLO Class 67 associated to Person Box)
+                # ----------------------------------------------------
+
+                phone_detected = False
+
+                for phone in phone_boxes:
+
+                    if find_phone_in_person(
+                        [x1, y1, x2, y2],
+                        phone
+                    ):
+
+                        phone_detected = True
+
+                        break
+
+                # ----------------------------------------------------
+                # ATTENTION FUSION
+                # ----------------------------------------------------
+
                 fusion_result = fuse_student_attention(
-                    eye_state="UNKNOWN",
+                    eye_state=eye_state,
                     head_pose=head_pose,
                     emotion="UNKNOWN",
-                    phone_detected=None,
+                    phone_detected=phone_detected,
                     hand_raised=None
                 )
 
@@ -1528,8 +1622,20 @@ def main():
                                 track_id=int(
                                     track_id
                                 ),
-                                attention_state=attention_state,
-                                confidence=None,
+                                attention_state=(
+                                    smoothed_fusion_result.attention_state
+                                    if smoothed_fusion_result is not None
+                                      else attention_state
+                                 ),
+                                confidence=(
+                                    smoothed_fusion_result.confidence
+                                    if smoothed_fusion_result is not None
+                                    else (
+                                        fusion_result.confidence
+                                        if fusion_result is not None
+                                        else None
+                                    )
+                                ),
                                 attention_score=(
                                     student_attention_result.attention_score
                                     if student_attention_result is not None

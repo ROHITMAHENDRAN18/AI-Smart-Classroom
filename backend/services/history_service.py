@@ -108,22 +108,41 @@ def get_session_summary(
         }
     )
 
+    def get_effective_attention_state(record):
+        temporal_state = getattr(record, "temporal_state", None)
+
+        if temporal_state in (
+            "ATTENTIVE",
+            "NOT ATTENTIVE",
+            "PARTIAL",
+            "UNKNOWN",
+        ):
+            return temporal_state
+
+        return getattr(record, "attention_state", "UNKNOWN")
+
     attentive_count = sum(
         1
         for record in attention_records
-        if record.attention_state == "ATTENTIVE"
+        if get_effective_attention_state(record) == "ATTENTIVE"
     )
 
     not_attentive_count = sum(
         1
         for record in attention_records
-        if record.attention_state == "NOT ATTENTIVE"
+        if get_effective_attention_state(record) == "NOT ATTENTIVE"
+    )
+
+    partial_count = sum(
+        1
+        for record in attention_records
+        if get_effective_attention_state(record) == "PARTIAL"
     )
 
     unknown_count = sum(
         1
         for record in attention_records
-        if record.attention_state == "UNKNOWN"
+        if get_effective_attention_state(record) == "UNKNOWN"
     )
 
     total_attention_records = len(
@@ -143,6 +162,12 @@ def get_session_summary(
             * 100
         )
 
+        partial_percentage = (
+            partial_count
+            / total_attention_records
+            * 100
+        )
+
         unknown_percentage = (
             unknown_count
             / total_attention_records
@@ -151,6 +176,7 @@ def get_session_summary(
     else:
         attentive_percentage = 0.0
         not_attentive_percentage = 0.0
+        partial_percentage = 0.0
         unknown_percentage = 0.0
 
     return {
@@ -169,6 +195,7 @@ def get_session_summary(
             "attentive_count": attentive_count,
             "not_attentive_count": not_attentive_count,
             "unknown_count": unknown_count,
+            "partial_count": partial_count,
             "attentive_percentage": round(
                 attentive_percentage,
                 2,
@@ -179,6 +206,10 @@ def get_session_summary(
             ),
             "unknown_percentage": round(
                 unknown_percentage,
+                2,
+            ),
+            "partial_percentage": round(
+                partial_percentage,
                 2,
             ),
         },

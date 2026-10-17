@@ -1,3 +1,4 @@
+
 import math
 import threading
 from collections.abc import Callable
@@ -15,6 +16,27 @@ from configs.settings import (
     FRAME_MAX_WIDTH,
     YOLO_MODEL,
 )
+
+try:
+    from ai.head_pose.head_pose_detector import detect_head_pose
+except ImportError:
+    detect_head_pose = None
+
+try:
+    from ai.attention_fusion import AttentionFusionEngine
+    from ai.eye_detection.eye_detector import (
+        detect_eye_state_from_face,
+        get_face_mesh,
+    )
+except ImportError:
+    AttentionFusionEngine = None
+    detect_eye_state_from_face = None
+    get_face_mesh = None
+
+attention_fusion_engine = (
+    AttentionFusionEngine() if AttentionFusionEngine is not None else None
+)
+
 
 FACE_CASCADE_PATH = (
     Path(__file__).resolve().parents[2]
@@ -92,8 +114,129 @@ def _as_list(value: Any) -> list[Any]:
     return value
 
 
+def _sanitize_landmarks(
+    value: Any,
+    *,
+    frame_width: int | None = None,
+    frame_height: int | None = None,
+) -> list[list[float]] | None:
+    """Validate five in-frame global facial keypoints."""
+
+    if value is None:
+        return None
+
+    try:
+        landmarks = np.asarray(value, dtype=np.float32)
+    except (TypeError, ValueError):
+        return None
+
+    if landmarks.shape != (5, 2):
+        return None
+
+    if not np.isfinite(landmarks).all():
+        return None
+
+    if frame_width is not None and (
+        np.any(landmarks[:, 0] < 0) or np.any(landmarks[:, 0] >= frame_width)
+    ):
+        return None
+    if frame_height is not None and (
+        np.any(landmarks[:, 1] < 0) or np.any(landmarks[:, 1] >= frame_height)
+    ):
+        return None
+
+    return landmarks.tolist()
+
+
+def _estimate_head_pose(
+    landmarks: list[list[float]] | None,
+) -> dict[str, Any] | None:
+    """Estimate heuristic head direction from five facial keypoints."""
+
+    if landmarks is None or detect_head_pose is None:
+        return None
+
+    try:
+        result = detect_head_pose(landmarks)
+
+        if not isinstance(result, dict):
+            return None
+
+        head_pose = result.get("head_pose", "UNKNOWN")
+
+        if not isinstance(head_pose, str):
+            head_pose = "UNKNOWN"
+
+        safe_result: dict[str, Any] = {"head_pose": head_pose}
+
+        for key in ("yaw", "pitch", "yaw_ratio", "pitch_ratio"):
+            value = result.get(key)
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(value):
+                safe_result[key] = value
+        return safe_result
+    except Exception:
+        logger.exception("head_pose_estimation_failed")
+        return None
+
+
+def _estimate_attention(
+    image: np.ndarray,
+    face: dict[str, Any],
+    head_pose_result: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Fuse only eye and head-pose signals actually available for a face."""
+    head_pose = (
+        head_pose_result.get("head_pose", "UNKNOWN")
+        if head_pose_result
+        else "UNKNOWN"
+    )
+    eye_state = "UNKNOWN"
+    if detect_eye_state_from_face is not None:
+        try:
+            crop = image[
+                int(face["y1"]):int(face["y2"]),
+                int(face["x1"]):int(face["x2"]),
+            ]
+            eye_result = detect_eye_state_from_face(crop)
+            if isinstance(eye_result, dict):
+                candidate = eye_result.get("eye_state")
+                if candidate in {"OPEN", "CLOSED", "PARTIAL", "UNKNOWN"}:
+                    eye_state = candidate
+        except Exception:
+            logger.exception("eye_state_estimation_failed")
+
+    if attention_fusion_engine is None:
+        return {
+            "attention_state": "UNKNOWN", "attention_score": None,
+            "attention_confidence": 0.0, "eye_state": eye_state,
+        }
+    try:
+        result = attention_fusion_engine.fuse(
+            eye_state=eye_state,
+            head_pose=head_pose,
+            emotion=None,
+            phone_detected=None,
+            hand_raised=None,
+        )
+        return {
+            "attention_state": result.attention_state,
+            "attention_score": result.attention_score,
+            "attention_confidence": result.confidence,
+            "eye_state": result.eye_state,
+        }
+    except Exception:
+        logger.exception("attention_fusion_failed")
+        return {
+            "attention_state": "UNKNOWN", "attention_score": None,
+            "attention_confidence": 0.0, "eye_state": eye_state,
+        }
+
 class FrameInferenceService:
-    """Run person detection, tracking, and face recognition on a frame."""
+    """Run person detection, tracking, face recognition and head-pose estimation."""
 
     def __init__(
         self,
@@ -111,7 +254,7 @@ class FrameInferenceService:
         self._initialization_lock = threading.Lock()
         self._inference_lock = threading.Lock()
         self._face_cascade = None
-        self._trackers: dict[str, "IoUTrackManager"] = {}
+        self._trackers: dict[str, IoUTrackManager] = {}
 
     def _get_detector(self):
         """Initialize the person detector once, when first needed."""
@@ -171,7 +314,7 @@ class FrameInferenceService:
             self._trackers.pop(session_id, None)
 
     def _detect_faces(self, image: np.ndarray) -> list[dict[str, Any]]:
-        """Detect faces using Haar when recognition is unavailable."""
+        """Detect face boxes using Haar when recognition is unavailable."""
 
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.equalizeHist(gray)
@@ -195,8 +338,6 @@ class FrameInferenceService:
             if x2 <= x1 or y2 <= y1:
                 continue
 
-            # Keep this fallback response compatible with existing tests.
-            # Recognition metadata is added by analyze() when appropriate.
             faces.append(
                 {
                     "x1": x1,
@@ -205,6 +346,7 @@ class FrameInferenceService:
                     "y2": y2,
                     "confidence": None,
                     "quality": "detected_unscored",
+                    "landmarks": None,
                 }
             )
 
@@ -215,7 +357,7 @@ class FrameInferenceService:
         faces: list[dict[str, Any]],
         image: np.ndarray,
     ) -> list[dict[str, Any]]:
-        """Validate face boxes and normalize recognition output."""
+        """Validate face boxes, recognition output and facial landmarks."""
 
         height, width = image.shape[:2]
         sanitized_faces = []
@@ -308,6 +450,14 @@ class FrameInferenceService:
             ):
                 confidence = None
 
+            landmarks = _sanitize_landmarks(
+                face.get("landmarks"), frame_width=width, frame_height=height
+            )
+            head_pose_result = _estimate_head_pose(landmarks)
+            attention_result = _estimate_attention(image, {
+                "x1": x1, "y1": y1, "x2": x2, "y2": y2,
+            }, head_pose_result)
+
             sanitized_faces.append(
                 {
                     "x1": x1,
@@ -324,6 +474,9 @@ class FrameInferenceService:
                         if student_id is not None
                         else "unknown"
                     ),
+                    "landmarks": landmarks,
+                    "head_pose": head_pose_result,
+                    **attention_result,
                 }
             )
 
@@ -342,7 +495,7 @@ class FrameInferenceService:
             )
 
         try:
-            # 1. Person detection
+            # 1. Person detection.
             detector = self._get_detector()
             results = detector.detect(image)
             detections = []
@@ -413,14 +566,14 @@ class FrameInferenceService:
                         )
 
             # 2. Session-scoped tracking.
-            # Track IDs are temporary and are never used as student IDs.
+            # Track IDs are temporary and never used as student IDs.
             manager = self._trackers.setdefault(
                 session_id,
                 IoUTrackManager(),
             )
             detections = manager.update(detections)
 
-            # 3. Face recognition, with Haar fallback if recognition fails.
+            # 3. Face recognition and safe fallback.
             recognition_attempted = True
             recognition_error = None
             face_error = None
@@ -434,9 +587,7 @@ class FrameInferenceService:
                 )
 
             except Exception as error:
-                recognition_error = (
-                    f"{type(error).__name__}: {error}"
-                )
+                recognition_error = f"{type(error).__name__}: {error}"
 
                 logger.exception(
                     "face_recognition_failed session_id=%s",
@@ -451,12 +602,14 @@ class FrameInferenceService:
                         image,
                     )
 
-                    # Haar detects faces but cannot establish identity.
+                    # Haar detects face boxes but cannot identify students.
                     for face in faces:
                         face["student_id"] = None
                         face["identity"] = "Unknown"
                         face["similarity"] = None
                         face["recognition_status"] = "unavailable"
+                        face["landmarks"] = None
+                        face["head_pose"] = None
 
                 except Exception as fallback_error:
                     logger.exception(
@@ -479,6 +632,13 @@ class FrameInferenceService:
                 "face_error": face_error,
                 "recognition_error": recognition_error,
                 "recognition_attempted": recognition_attempted,
+                "head_pose_available": detect_head_pose is not None,
+                "eye_state_available": (
+                    detect_eye_state_from_face is not None
+                    and get_face_mesh is not None
+                    and get_face_mesh() is not None
+                ),
+                "attention_fusion_available": AttentionFusionEngine is not None,
             }
 
         finally:
@@ -567,10 +727,7 @@ class IoUTrackManager:
             if track_id not in matched_tracks:
                 self.tracks[track_id]["missed"] += 1
 
-                if (
-                    self.tracks[track_id]["missed"]
-                    > self.max_missed
-                ):
+                if self.tracks[track_id]["missed"] > self.max_missed:
                     del self.tracks[track_id]
 
         return detections

@@ -41,9 +41,11 @@ class HistoryStatisticsResponse(BaseModel):
     attentive_count: int
     not_attentive_count: int
     unknown_count: int
+    partial_count: int = 0
     attentive_percentage: float
     not_attentive_percentage: float
     unknown_percentage: float
+    partial_percentage: float = 0.0
 
 
 class SessionSummaryResponse(BaseModel):

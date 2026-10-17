@@ -13,6 +13,7 @@ from backend.auth.dependencies import get_current_user
 from backend.database.session import get_db
 from backend.models.classroom_member import ClassroomMember
 from backend.models.classroom_session import ClassroomSession
+from backend.models.attention_record import AttentionRecord
 from backend.models.frame_inference_summary import FrameInferenceSummary
 from backend.models.student import Student
 from backend.models.user import User
@@ -38,6 +39,7 @@ from configs.settings import (
     FRAME_INFERENCE_TIMEOUT_SECONDS,
     FRAME_MAX_PAYLOAD_BYTES,
     FRAME_MIN_INTERVAL_SECONDS,
+    DATABASE_ATTENTION_UPDATE_INTERVAL,
 )
 
 router = APIRouter(
@@ -52,6 +54,73 @@ _last_frame_at: dict[tuple[int, str], float] = {}
 _last_rate_limit_cleanup = 0.0
 
 frame_inference_service = FrameInferenceService()
+
+
+def persist_attention_observations(
+    db: Session,
+    session_id: str,
+    faces: list[dict],
+    recorded_at: datetime,
+) -> tuple[bool, int]:
+    """Persist verified-student observations at the configured cadence."""
+    writes = 0
+    try:
+        seen_students: set[str] = set()
+        for face in faces:
+            student_id = face.get("student_id")
+            if (
+                face.get("recognition_status") != "recognized"
+                or not student_id
+                or student_id in seen_students
+            ):
+                continue
+            seen_students.add(student_id)
+            latest = (
+                db.query(AttentionRecord)
+                .filter(
+                    AttentionRecord.session_id == session_id,
+                    AttentionRecord.student_id == student_id,
+                )
+                .order_by(AttentionRecord.recorded_at.desc())
+                .first()
+            )
+            if latest is not None and latest.recorded_at is not None:
+                last_recorded = latest.recorded_at
+                if last_recorded.tzinfo is None:
+                    last_recorded = last_recorded.replace(tzinfo=timezone.utc)
+                elapsed_seconds = (recorded_at - last_recorded).total_seconds()
+                if elapsed_seconds < DATABASE_ATTENTION_UPDATE_INTERVAL:
+                    continue
+            state = face.get("attention_state", "UNKNOWN")
+            score = face.get("attention_score")
+            record = AttentionRecord(
+                session_id=session_id,
+                student_id=student_id,
+                track_id=None,
+                attention_state=state,
+                attention_score=score,
+                fusion_state=state,
+                fusion_score=score,
+                fusion_confidence=face.get("attention_confidence", 0.0),
+                temporal_state=state,
+                temporal_score=score,
+                temporal_confidence=face.get("attention_confidence", 0.0),
+                temporal_stable=False,
+                confidence=face.get("attention_confidence", 0.0),
+                recorded_at=recorded_at,
+            )
+            db.add(record)
+            writes += 1
+        if writes:
+            db.commit()
+        return True, writes
+    except Exception:
+        db.rollback()
+        logger.exception(
+            "attention_observation_persistence_failed session_id=%s",
+            session_id,
+        )
+        return False, 0
 
 
 def check_frame_rate_limit(user_id: int, session_id: str) -> None:
@@ -371,6 +440,12 @@ async def analyze_classroom_frame(
         face_detections=raw_face_detections,
     )
 
+    unknown_detections = sum(
+        1
+        for face in face_detections
+        if face.get("recognition_status") == "unknown"
+    )
+
     # Automatic attendance is attempted only for verified identities.
     attendance_recorded = 0
     attendance_error = False
@@ -429,6 +504,7 @@ async def analyze_classroom_frame(
             face_detection_status=(
                 "error" if face_error else "available"
             ),
+            unknown_detections=unknown_detections,
         )
     except Exception:
         db.rollback()
@@ -440,6 +516,43 @@ async def analyze_classroom_frame(
             classroom_id,
             session_id,
         )
+
+    attention_persisted, attention_recorded = persist_attention_observations(
+        db, session_id, face_detections, processed_at
+    )
+
+    estimated_faces = [
+        face
+        for face in face_detections
+        if face.get("attention_state") != "UNKNOWN"
+    ]
+    if estimated_faces:
+        attention_inference = "available"
+    elif not face_detections:
+        attention_inference = "unknown"
+    elif any(
+        face.get("head_pose") or face.get("eye_state") != "UNKNOWN"
+        for face in face_detections
+    ):
+        attention_inference = "partial"
+    else:
+        attention_inference = "unknown"
+
+    primary_face = face_detections[0] if len(face_detections) == 1 else {}
+    primary_pose = primary_face.get("head_pose") or {}
+    attention_ready = inference_result.get("attention_fusion_available", False) and (
+        inference_result.get("head_pose_available", False)
+        or inference_result.get("eye_state_available", False)
+    )
+    attention_capability = FeatureAvailability(
+        status="available" if attention_ready else "not_connected",
+        detail=(
+            "Available facial signals are fused per detected face; missing "
+            "signals remain UNKNOWN."
+            if attention_ready
+            else "Attention models are unavailable in this backend environment."
+        ),
+    )
 
     face_detection_detail = (
         "The OpenCV Haar cascade processed the frame; it does not provide "
@@ -476,44 +589,32 @@ async def analyze_classroom_frame(
         )
 
     if attendance_error:
-     attendance_feature_status = "error"
-     attendance_detail = (
-        "An attendance database operation failed. Check backend logs."
-    )
+        attendance_feature_status = "error"
+        attendance_detail = (
+            "An attendance database operation failed. Check backend logs."
+        )
     elif not recognition_attempted or recognition_error:
-     attendance_feature_status = "not_connected"
-     attendance_detail = (
-        "Automatic attendance requires a working face-recognition "
-        "pipeline and verified student identities."
-    )
-    else:
-     attendance_feature_status = "available"
-
-    if attendance_recorded:
+        attendance_feature_status = "not_connected"
         attendance_detail = (
-            f"{attendance_recorded} new automatic attendance record(s) "
-            "were created for verified students in this frame."
+            "Automatic attendance requires working face recognition "
+            "and verified student identities."
         )
     else:
-        attendance_detail = (
-            "The attendance integration is running, but no new record "
-            "was created for this frame. No eligible identity may have "
-            "been recognized, or attendance may already exist."
-        )
+        attendance_feature_status = "available"
 
         if attendance_recorded:
             attendance_detail = (
                 f"{attendance_recorded} new automatic attendance record(s) "
-                "were created for verified students in this frame. Existing "
-                "records were preserved."
+                "were created for verified students. Existing records "
+                "were preserved."
             )
         else:
             attendance_detail = (
-                "Automatic attendance is connected. No new attendance "
-                "record was created for this frame. A verified student may "
-                "not have been recognized, or the student may already have "
-                "an attendance record for this session."
+                "Attendance integration is running. No new record was "
+                "created for this frame. A verified student may not have "
+                "been recognized, or attendance may already exist."
             )
+
 
     return FrameInferenceResponse(
         session_id=session_id,
@@ -525,7 +626,11 @@ async def analyze_classroom_frame(
         processing_status="completed",
         inference_duration_ms=inference_duration_ms,
         pipeline="person_detection",
-        attention_inference="not_connected",
+        attention_inference=attention_inference,
+        attention_state=primary_face.get("attention_state", "UNKNOWN"),
+        attention_score=primary_face.get("attention_score"),
+        attention_confidence=primary_face.get("attention_confidence", 0.0),
+        head_pose=primary_pose.get("head_pose", "UNKNOWN"),
         features=InferenceFeatureStatuses(
             person_detection=FeatureAvailability(
                 status="available",
@@ -562,9 +667,32 @@ async def analyze_classroom_frame(
                 ),
             ),
             attention_estimation=FeatureAvailability(
-                status="not_connected",
+                status=attention_capability.status,
+                detail=attention_capability.detail,
+            ),
+            head_pose_estimation=FeatureAvailability(
+                status=(
+                    "available"
+                    if inference_result.get("head_pose_available")
+                    else "not_connected"
+                ),
+                detail="Uses validated five-point facial keypoints when returned by face recognition.",
+            ),
+            eye_state_estimation=FeatureAvailability(
+                status=(
+                    "available"
+                    if inference_result.get("eye_state_available")
+                    else "not_connected"
+                ),
+                detail="Uses six-point eye contours from FaceMesh; no contours means UNKNOWN.",
+            ),
+            attention_persistence=FeatureAvailability(
+                status="available" if attention_persisted else "error",
                 detail=(
-                    "Attention estimation is not connected to this API."
+                    f"Persisted {attention_recorded} verified-student "
+                    "observation(s) with a per-student cadence limit."
+                    if attention_persisted
+                    else "Attention observations could not be saved."
                 ),
             ),
             attendance=FeatureAvailability(
@@ -679,6 +807,18 @@ def get_classroom_frame_summary(
             status="not_connected",
             detail="Attention estimation is not connected to this API.",
         ),
+        head_pose_estimation=FeatureAvailability(
+            status="not_connected",
+            detail="Head-pose observations are not part of the saved frame summary.",
+        ),
+        eye_state_estimation=FeatureAvailability(
+            status="not_connected",
+            detail="Eye-state observations are not part of the saved frame summary.",
+        ),
+        attention_persistence=FeatureAvailability(
+            status="available",
+            detail="Attention persistence is available through the session history service.",
+        ),
         attendance=FeatureAvailability(
             status="available",
             detail=(
@@ -700,11 +840,16 @@ def get_classroom_frame_summary(
         inference_duration_ms=summary.inference_duration_ms,
         pipeline="person_detection",
         attention_inference="not_connected",
+        attention_state="UNKNOWN",
+        attention_score=None,
+        attention_confidence=0.0,
+        head_pose="UNKNOWN",
         features=unavailable_features,
         detections=summary.detections,
         face_detections=summary.face_detections or [],
         detection_count=summary.detection_count,
         results_persisted=True,
         frames_processed=summary.frames_processed,
+        unknown_detections=summary.unknown_detections,
         updated_at=summary.updated_at,
     )

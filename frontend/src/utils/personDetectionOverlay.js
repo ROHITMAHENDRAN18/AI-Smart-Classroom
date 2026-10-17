@@ -7,11 +7,14 @@ export const EMPTY_DETECTION_OVERLAY = {
 }
 
 function normalizedDetection(detection, frameWidth, frameHeight, seenAt) {
+  const safeFrameWidth = Number.isFinite(frameWidth) && frameWidth > 0 ? frameWidth : 1
+  const safeFrameHeight = Number.isFinite(frameHeight) && frameHeight > 0 ? frameHeight : 1
+
   return {
-    x1: detection.x1 / frameWidth,
-    y1: detection.y1 / frameHeight,
-    x2: detection.x2 / frameWidth,
-    y2: detection.y2 / frameHeight,
+    x1: detection.x1 / safeFrameWidth,
+    y1: detection.y1 / safeFrameHeight,
+    x2: detection.x2 / safeFrameWidth,
+    y2: detection.y2 / safeFrameHeight,
     confidence: detection.confidence,
     trackId: detection.track_id ?? null,
     lastSeenAt: seenAt,
@@ -45,21 +48,32 @@ export function updatePersonDetectionOverlay(
   now,
   gracePeriodMs,
 ) {
-  if (sequence <= previousState.sequence) {
-    return previousState
+  const safePreviousState =
+    previousState && typeof previousState === 'object'
+      ? previousState
+      : EMPTY_DETECTION_OVERLAY
+
+  if (sequence <= safePreviousState.sequence) {
+    return safePreviousState
   }
 
-  const currentDetections = result.detections.map((detection) =>
-    normalizedDetection(
-      detection,
-      result.frame_width,
-      result.frame_height,
-      now,
-    ),
+  const frameWidth =
+    Number.isFinite(result?.frame_width) && result.frame_width > 0
+      ? result.frame_width
+      : 1
+  const frameHeight =
+    Number.isFinite(result?.frame_height) && result.frame_height > 0
+      ? result.frame_height
+      : 1
+  const detections = Array.isArray(result?.detections) ? result.detections : []
+  const currentDetections = detections.map((detection) =>
+    normalizedDetection(detection, frameWidth, frameHeight, now),
   )
-  const eligiblePrevious = previousState.boxes.filter(
-    (box) => now - box.lastSeenAt < gracePeriodMs,
-  )
+  const eligiblePrevious = Array.isArray(safePreviousState.boxes)
+    ? safePreviousState.boxes.filter(
+        (box) => Number.isFinite(box?.lastSeenAt) && now - box.lastSeenAt < gracePeriodMs,
+      )
+    : []
   const matchedPrevious = new Set()
 
   const boxes = currentDetections.map((detection) => {
@@ -70,7 +84,26 @@ export function updatePersonDetectionOverlay(
       if (matchedPrevious.has(index)) {
         return
       }
+
+      if (
+        detection.trackId !== null &&
+        previous.trackId !== null &&
+        detection.trackId !== previous.trackId
+      ) {
+        return
+      }
+
       const distance = centerDistance(detection, previous)
+      if (
+        detection.trackId !== null &&
+        previous.trackId !== null &&
+        detection.trackId === previous.trackId
+      ) {
+        matchIndex = index
+        nearestDistance = distance
+        return
+      }
+
       if (distance < nearestDistance) {
         nearestDistance = distance
         matchIndex = index
@@ -97,12 +130,13 @@ export function expirePersonDetectionOverlay(
   now,
   gracePeriodMs,
 ) {
-  const boxes = state.boxes.filter(
-    (box) => now - box.lastSeenAt < gracePeriodMs,
+  const safeState = state && typeof state === 'object' ? state : EMPTY_DETECTION_OVERLAY
+  const boxes = (safeState.boxes ?? []).filter(
+    (box) => Number.isFinite(box?.lastSeenAt) && now - box.lastSeenAt < gracePeriodMs,
   )
-  return boxes.length === state.boxes.length
-    ? state
-    : { ...state, boxes }
+  return boxes.length === (safeState.boxes ?? []).length
+    ? safeState
+    : { ...safeState, boxes }
 }
 
 export function getNextPersonDetectionExpiry(
@@ -110,26 +144,38 @@ export function getNextPersonDetectionExpiry(
   now,
   gracePeriodMs,
 ) {
-  if (state.boxes.length === 0) {
+  const boxes = Array.isArray(state?.boxes) ? state.boxes : []
+  if (boxes.length === 0) {
+    return null
+  }
+
+  const expiries = boxes
+    .filter((box) => Number.isFinite(box?.lastSeenAt))
+    .map((box) => box.lastSeenAt + gracePeriodMs - now)
+
+  if (expiries.length === 0) {
     return null
   }
 
   return Math.max(
     0,
-    Math.min(
-      ...state.boxes.map(
-        (box) => box.lastSeenAt + gracePeriodMs - now,
-      ),
-    ),
+    Math.min(...expiries),
   )
 }
 
 export function toVideoCoordinates(box, videoWidth, videoHeight) {
+  if (!box || typeof box !== 'object') {
+    return box
+  }
+
+  const safeWidth = Number.isFinite(videoWidth) && videoWidth > 0 ? videoWidth : 1
+  const safeHeight = Number.isFinite(videoHeight) && videoHeight > 0 ? videoHeight : 1
+
   return {
     ...box,
-    x1: box.x1 * videoWidth,
-    y1: box.y1 * videoHeight,
-    x2: box.x2 * videoWidth,
-    y2: box.y2 * videoHeight,
+    x1: box.x1 * safeWidth,
+    y1: box.y1 * safeHeight,
+    x2: box.x2 * safeWidth,
+    y2: box.y2 * safeHeight,
   }
 }
