@@ -533,12 +533,15 @@ def test_manual_attendance_is_authorized_upsert_and_active_session_only(
     )
     assert created_status == 200
     assert created[0]["status"] == "PRESENT"
+    assert created[0]["attendance_source"] == "MANUAL"
     assert updated_status == 200
     assert updated[0]["status"] == "UNKNOWN"
+    assert updated[0]["attendance_source"] == "MANUAL"
     assert forbidden_status == 403
     assert completed_status == 409
     assert len(records) == 1
     assert records[0].status == "UNKNOWN"
+    assert records[0].attendance_source == "MANUAL"
 
 
 def test_attendance_table_rejects_duplicate_session_student_pairs(

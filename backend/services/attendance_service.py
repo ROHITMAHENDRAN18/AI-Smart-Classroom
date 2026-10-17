@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 
 from backend.models.attendance_record import AttendanceRecord
 
+from sqlalchemy.exc import IntegrityError
+
 
 def record_attendance(
     db: Session,
@@ -60,6 +62,57 @@ def get_attendance_for_session(
         .all()
     )
 
+def record_automatic_attendance(
+    db: Session,
+    session_id: str,
+    student_id: str,
+    recorded_at: datetime | None = None,
+):
+    """Record verified student presence once per session."""
+    existing_record = (
+        db.query(AttendanceRecord)
+        .filter(
+            AttendanceRecord.session_id == session_id,
+            AttendanceRecord.student_id == student_id,
+        )
+        .first()
+    )
+
+    if existing_record is not None:
+        return existing_record, False
+
+    attendance_record = AttendanceRecord(
+        session_id=session_id,
+        student_id=student_id,
+        status="PRESENT",
+        attendance_source="AUTO",
+        recorded_at=recorded_at or datetime.now().astimezone(),
+    )
+
+    try:
+        with db.begin_nested():
+            db.add(attendance_record)
+            db.flush()
+
+        db.commit()
+        db.refresh(attendance_record)
+        return attendance_record, True
+
+    except IntegrityError:
+        # The savepoint protects the outer transaction.
+        existing_record = (
+            db.query(AttendanceRecord)
+            .filter(
+                AttendanceRecord.session_id == session_id,
+                AttendanceRecord.student_id == student_id,
+            )
+            .first()
+        )
+
+        if existing_record is not None:
+            return existing_record, False
+
+        raise
 
 def get_student_attendance(
     db: Session,

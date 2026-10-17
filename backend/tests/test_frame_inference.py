@@ -334,6 +334,30 @@ def test_face_detector_processes_no_face_frame_and_maps_multiple_boxes(monkeypat
     assert no_faces == []
 
 
+def test_face_detector_reports_opencv_build_without_cascade_api(monkeypatch):
+    monkeypatch.delattr(cv2, "CascadeClassifier", raising=False)
+    service = FrameInferenceService(detector_factory=FakeDetector)
+
+    with pytest.raises(RuntimeError, match="does not include the Haar cascade API"):
+        service._get_face_cascade()
+
+
+def test_face_detector_uses_installed_cascade_when_project_xml_is_empty(
+    monkeypatch, tmp_path
+):
+    empty_cascade = tmp_path / "empty.xml"
+    empty_cascade.write_bytes(b"")
+    monkeypatch.setattr(
+        "backend.services.frame_inference_service.FACE_CASCADE_PATH",
+        empty_cascade,
+    )
+    service = FrameInferenceService(detector_factory=FakeDetector)
+
+    cascade = service._get_face_cascade()
+    assert not cascade.empty()
+    assert service._detect_faces(np.zeros((96, 96, 3), dtype=np.uint8)) == []
+
+
 def test_jpeg_decoder_rejects_invalid_and_oversized_images():
     with pytest.raises(InvalidFrameError):
         decode_jpeg(b"not an image")

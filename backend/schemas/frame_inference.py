@@ -20,7 +20,19 @@ class FaceDetection(BaseModel):
     x2: int = Field(gt=0)
     y2: int = Field(gt=0)
     confidence: float | None = None
-    quality: Literal["detected_unscored"]
+    quality: Literal[
+        "detected_unscored",
+        "embedding_available",
+        "embedding_unavailable",
+    ]
+    student_id: str | None = None
+    identity: str = "Unknown"
+    similarity: float | None = Field(default=None, ge=-1, le=1)
+    recognition_status: Literal[
+        "recognized",
+        "unknown",
+        "unavailable",
+    ] = "unavailable"
 
 
 class FeatureAvailability(BaseModel):

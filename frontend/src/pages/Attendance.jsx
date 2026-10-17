@@ -720,6 +720,10 @@ function AttendanceTable({
             </th>
 
             <th className="px-5 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              Source
+            </th>
+
+            <th className="px-5 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               Confidence
             </th>
 
@@ -761,6 +765,14 @@ function AttendanceTable({
                   <AttendanceStatus
                     status={record.status}
                   />
+                </td>
+
+                <td className="px-5 py-4 text-xs text-slate-400">
+                  {record.attendance_source === 'MANUAL'
+                    ? 'Teacher entered'
+                    : record.attendance_source === 'AUTOMATIC'
+                      ? 'Verified automatic'
+                      : 'Not recorded'}
                 </td>
 
                 <td className="px-5 py-4">

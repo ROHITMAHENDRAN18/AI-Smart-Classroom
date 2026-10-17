@@ -34,11 +34,14 @@ the configured YOLO model for person detection and returns real bounding-box
 coordinates and detector confidence for the most recently processed frame. The
 latest person and face boxes and frame metadata are saved in one bounded
 summary row per session; raw images and face crops are not persisted. Face
-detection uses the repository Haar cascade and reports no calibrated
-confidence. It requires OpenCV 4.11 (`requirements.txt`); OpenCV 5 removed the
-legacy cascade API, and the service reports face detection as an error when it
-cannot process a frame. The session-local IoU tracker tolerates brief misses,
-but is not ByteTrack and may switch IDs during crossings or large motion.
+detection uses OpenCV's frontal-face Haar cascade and reports no calibrated
+confidence. The repository's cascade XML was empty (0 bytes), which caused
+OpenCV's XML parser to fail. The service now falls back to the cascade bundled
+with the installed OpenCV 4.11 package when the repository file is missing or
+empty. Face inference failures are logged server-side with a
+`face_detection_failed` event. The session-local IoU
+tracker tolerates brief misses, but is not ByteTrack and may switch IDs during
+crossings or large motion.
 Student identity recognition, attention scoring, AI attendance, alerts, and
 analytics are not connected to browser frame processing. A detected person,
 face, or track must not be treated as a student or an attention result.
@@ -109,11 +112,13 @@ implemented.
 
 For an existing PostgreSQL database, run
 `python -m scripts.migrations.migrate_frame_inference_summaries` and
-`python -m scripts.migrations.migrate_attendance_session_student_unique`.
+`python -m scripts.migrations.migrate_attendance_session_student_unique` and
+`python -m scripts.migrations.migrate_attendance_source`.
 The attendance migration lists duplicate `(session_id, student_id)` keys and
 stops without deleting records; review and resolve those records before
-rerunning it. New databases receive both schema changes through SQLAlchemy
-table creation.
+rerunning it. The source migration adds a nullable provenance column and keeps
+existing rows null when their source cannot be proven. New databases receive
+these schema changes through SQLAlchemy table creation.
 
 ---
 

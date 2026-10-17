@@ -24,6 +24,7 @@ class ClassroomAttendanceRecord(BaseModel):
     status: str
     confidence: float | None
     recorded_at: datetime
+    attendance_source: str | None = None
 
 
 class DailyAttendanceSummary(BaseModel):

@@ -1448,6 +1448,11 @@ export default function LiveMonitoring() {
                                   ? 'Failed for this response'
                                   : 'Not connected'}
                             </span>
+                            {result.status === 'error' && (
+                              <span className="text-xs text-rose-200/80 sm:max-w-[60%] sm:text-right">
+                                {result.detail}
+                              </span>
+                            )}
                           </li>
                         ),
                       )}

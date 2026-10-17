@@ -106,6 +106,7 @@ export function normalizeAttendanceRecord(record) {
     student_name: record.student_name ?? null,
     status: record.status.trim().toUpperCase(),
     confidence,
+    attendance_source: record.attendance_source ?? null,
     recorded_at: record.recorded_at,
   }
 }

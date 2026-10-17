@@ -115,6 +115,7 @@ def mark_manual_session_attendance(
             db.add(record)
         record.status = attendance_status
         record.confidence = None
+        record.attendance_source = "MANUAL"
         record.recorded_at = recorded_at
         updated_records.append(record)
 
@@ -242,6 +243,7 @@ def get_classroom_attendance(
             status=record.status,
             confidence=record.confidence,
             recorded_at=record.recorded_at,
+            attendance_source=record.attendance_source,
         )
         for record, student_name in rows
     ]
