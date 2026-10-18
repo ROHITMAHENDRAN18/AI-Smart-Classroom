@@ -1,151 +1,309 @@
-# AI Smart Classroom Attention Monitoring
+# AI Smart Classroom Attention Monitoring System
+
+**An AI-powered classroom monitoring platform for face-based student identification, attendance tracking, and attention-state analysis.**
 
 ## Overview
 
-AI Smart Classroom Attention Monitoring is a computer vision-based intelligent classroom monitoring system.
+The **AI Smart Classroom Attention Monitoring System** is a computer vision–based application designed to support classroom monitoring through automated student identification, attendance management, and attention-state analysis.
 
-The repository contains experimental and legacy modules for several vision
-tasks. The authenticated browser monitoring flow provides live YOLO person
-detection, session-scoped IoU track IDs, OpenCV Haar face boxes when the
-compatible OpenCV runtime is installed, persisted teacher-entered attendance,
-and API-backed classroom reporting. Where the optional recognition and eye
-landmark models are installed, the live frame API also verifies recognized
-students and reports conservative, temporally supported behavior estimates.
-Unavailable model signals remain UNKNOWN; person track IDs are not student
-identities.
+The system integrates a React frontend, FastAPI backend, PostgreSQL database, and computer vision components to provide a centralized interface for monitoring classroom sessions and reviewing attendance and attention analytics.
 
----
+It uses face enrollment and facial embeddings to identify registered students, while eye-state and head-pose signals help estimate observable attention states. A temporal validation mechanism helps reduce unstable classifications caused by individual frames.
+
+> **Important:** Attention labels are estimates based on observable visual signals. They do not establish a student's actual mental state, understanding, or learning outcome.
+
+## Key Features
+
+- **Student Registration** — Manage student information through the application.
+- **Face Enrollment** — Capture and store facial embeddings for registered students.
+- **Face Recognition** — Match detected faces against enrolled student representations.
+- **Attendance Management** — Record and review attendance associated with classroom sessions.
+- **Live Classroom Monitoring** — View recognized students and their current monitoring information.
+- **Attention-State Analysis** — Estimate observable states using eye-state and head-pose signals.
+- **Temporal Validation** — Use multiple observations over time to reduce unstable classifications.
+- **Analytics Dashboard** — Review attendance summaries and attention-state distributions.
+- **Historical Session Analysis** — Examine persisted records from completed or previous sessions.
+- **Unknown-State Handling** — Preserve insufficient or conflicting visual evidence as `UNKNOWN` rather than forcing a potentially incorrect classification.
 
 ## Technology Stack
 
-- Python
-- FastAPI
-- React
+| Component | Technologies |
+|---|---|
+| Frontend | React, Vite, Tailwind CSS, Axios |
+| Backend | Python, FastAPI |
+| Database | PostgreSQL |
+| ORM | SQLAlchemy |
+| Computer Vision | OpenCV |
+| Face Recognition | InsightFace |
+| Face Analysis Model | `buffalo_l` |
+| API Documentation | FastAPI / Swagger UI |
+| Development Environment | Python virtual environment, Node.js and npm |
+
+## System Architecture
+
+```mermaid
+flowchart TD
+    A[Classroom Camera] --> B[Video Frame Processing]
+    B --> C[Face Detection and Recognition]
+    C --> D{Registered Student?}
+    D -->|Yes| E[Student Identification]
+    D -->|No| F[Unknown Identity]
+    E --> G[Attention Signal Analysis]
+    G --> H[Temporal Validation]
+    H --> I[Attention-State Estimate]
+    E --> J[Attendance and Session Management]
+    I --> K[FastAPI Backend]
+    J --> K
+    K --> L[(PostgreSQL Database)]
+    L --> M[React Dashboard]
+    K --> M
+    M --> N[Live Monitoring and Analytics]
+```
+
+## Attention-State Classification
+
+The system uses available eye-state and head-pose information to estimate observable attention states.
+
+| State | Description |
+|---|---|
+| `LISTENING` | Visual signals are consistent with open eyes and a forward-facing head pose. |
+| `SLEEPING` | Sustained eye closure or a downward head pose meets the implemented validation conditions. |
+| `LOOKING_AWAY` | A valid head pose indicates that the student is looking away from the expected forward direction. |
+| `UNKNOWN` | Evidence is insufficient, unavailable, or conflicting for a reliable state estimate. |
+
+### Temporal Validation
+
+Attention states are not determined solely from a single frame. The implemented validation process uses multiple valid observations over time before assigning a stable state.
+
+This approach helps reduce short-lived classification changes caused by temporary detection errors or inconsistent visual signals.
+
+**Limitations:**
+- Camera position, lighting, occlusion, and face size can affect signal availability.
+- Looking forward does not prove that a student is mentally attentive.
+- Looking away does not necessarily mean that a student is distracted.
+- The system does not infer talking from a single mouth-motion Boolean signal.
+- `UNKNOWN` is a valid result and should not automatically be interpreted as inattentiveness.
+
+## Project Modules
+
+The application is organized into frontend, backend, database, and AI processing components.
+
+```text
+ai-smart-classroom/
+├── ai/
+│   ├── attendance/
+│   ├── attention_engine/
+│   ├── eye_detection/
+│   ├── face_recognition/
+│   ├── hand_detection/
+│   ├── head_pose/
+│   ├── person_detection/
+│   ├── phone_detection/
+│   ├── tracking/
+│   └── utils/
+├── backend/
+│   ├── app/
+│   ├── database/
+│   ├── models/
+│   ├── routes/
+│   ├── schemas/
+│   ├── services/
+│   └── utils/
+├── configs/
+├── datasets/
+├── embeddings/
+├── frontend/
+├── logs/
+├── models/
+├── scripts/
+├── tests/
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+*Note: This is a representative project structure. Keep only directories and files that actually exist in the published repository.*
+
+## Getting Started
+
+### Prerequisites
+
+Install the following before running the project:
+
+- Python 3.11
+- Node.js and npm
 - PostgreSQL
-- OpenCV
-- YOLO
-- MediaPipe
-- InsightFace
-- ByteTrack
+- Git
+- A supported webcam or video input for camera-based monitoring
 
-## Live Monitoring Frame Processing
+### 1. Clone the Repository
 
-The authenticated Live Monitoring page can send resized JPEG camera frames to
-the backend while an authorized classroom session is active. The backend uses
-the configured YOLO model for person detection and returns real bounding-box
-coordinates and detector confidence for the most recently processed frame. The
-latest person and face boxes and frame metadata are saved in one bounded
-summary row per session; raw images and face crops are not persisted. Face
-detection uses OpenCV's frontal-face Haar cascade and reports no calibrated
-confidence. The repository's cascade XML was empty (0 bytes), which caused
-OpenCV's XML parser to fail. The service now falls back to the cascade bundled
-with the installed OpenCV 4.11 package when the repository file is missing or
-empty. Face inference failures are logged server-side with a
-`face_detection_failed` event. The session-local IoU
-tracker tolerates brief misses, but is not ByteTrack and may switch IDs during
-crossings or large motion.
-Face recognition is loaded lazily and verified against active classroom
-membership before an identity is returned or attention observations are
-persisted. Eye state uses MediaPipe FaceMesh when available; head pose uses
-InsightFace's five keypoints. Recognized students receive a behavior estimate
-only after at least three consistent samples spanning four seconds by default.
-The labels describe visible posture: `LISTENING`, `SLEEPING` (sustained closed
-eyes or head down), or `LOOKING_AWAY`. Missing or conflicting evidence remains
-`UNKNOWN`. No mouth-motion detector is connected, so the system does not emit
-`POSSIBLY_TALKING`. These estimates are not measures of mental attention or
-intent. Raw frames are not persisted. Automatic attendance and reporting remain
-separate from these behavior estimates.
+```bash
+git clone https://github.com/ROHITMAHENDRAN18/ai-smart-classroom.git
+cd ai-smart-classroom
+```
 
-Analytics groups persisted observations consistently: `LISTENING` is Attentive;
-`SLEEPING` and `LOOKING_AWAY` are Not Attentive / Other Observable Behavior;
-and `UNKNOWN` remains Unknown. Percentages use all supported observations for
-the selected session, including `UNKNOWN`, as the denominator. Legacy, null,
-empty, and unsupported states are shown as data-quality records and excluded
-from those percentages. Confidence scores are displayed only when persisted;
-Analytics does not infer or fabricate them.
+Replace the repository URL if the project is published under a different GitHub repository name.
 
-Attention persistence cadence is controlled by
-`DATABASE_ATTENTION_UPDATE_INTERVAL` (default `1.0` second). Temporal behavior
-classification uses `ATTENTION_MINIMUM_SAMPLES` (default `3`, range `2`–`10`)
-and `ATTENTION_MINIMUM_DURATION_SECONDS` (default `4.0`, range `0`–`60`).
-Per-session temporal state is cleared when the classroom session stops.
+### 2. Set Up the Backend
 
-## Local startup
+Create and activate a Python virtual environment:
 
-Configure the backend environment with `DATABASE_URL` and `JWT_SECRET_KEY`,
-start PostgreSQL, then run `uvicorn backend.app.main:app --reload` from the
-project root. In another terminal, set `VITE_DEFAULT_CLASSROOM_ID` in
-`frontend/.env` to a classroom owned by the logged-in teacher and run
-`npm run dev` from `frontend/`. Install backend dependencies from the root
-`requirements.txt` and frontend dependencies with `npm install` first.
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+```
 
-Set `YOLO_MODEL` in the backend environment to an available Ultralytics model
-path. The default is `yolov8m.pt`, which is included in this repository.
-The frame service checks that the configured weight file exists before model
-initialization and does not download a replacement when it is missing.
-Install backend dependencies from the root `requirements.txt`. The frame API
-accepts authenticated `image/jpeg` uploads at
-`POST /api/v1/classrooms/{classroom_id}/sessions/{session_id}/frames` for active
-teacher-owned sessions. It returns person-class bounding boxes, detector
-confidence, frame and processing timestamps, measured inference latency, and
-per-feature connection status. It validates decoded image dimensions and
-rate-limits each user/session within a backend process. Backend settings use
-safe defaults and can be configured with
-`FRAME_MAX_PAYLOAD_BYTES` (2 MiB; 1 KiB–10 MiB),
-`FRAME_MAX_WIDTH` and `FRAME_MAX_HEIGHT` (1920; each 320–4096),
-`FRAME_MAX_PIXELS` (2,073,600; 102,400–16,777,216),
-`FRAME_MIN_INTERVAL_SECONDS` (1.5; 0.25–60), and
-`FRAME_INFERENCE_TIMEOUT_SECONDS` (30; 1–300). Multi-worker deployments need
-a shared rate-limit store to enforce the limit across workers.
-Authorized teachers can reload the latest persisted result with
-`GET /api/v1/classrooms/{classroom_id}/sessions/{session_id}/frame-summary`.
+Install the project's Python dependencies:
 
-Frontend frame capture can be tuned with these non-secret Vite settings:
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
 
-- `VITE_FRAME_CAPTURE_INTERVAL_MS` (default `2500`, minimum `2000`)
-- `VITE_FRAME_CAPTURE_MAX_EDGE` (default `960`, maximum `1280`)
-- `VITE_FRAME_JPEG_QUALITY` (default `0.75`, range `0.5`–`0.9`)
-- `VITE_DETECTION_GRACE_PERIOD_MS` (default `6000` at the default 2500 ms
-  capture interval; range `1000`–`30000`); real person boxes persist briefly
-  across missed samples, then expire. By default this spans one missed sample
-  and the following result with a small buffer.
+If the repository uses a different dependency-management file, follow the instructions for that file instead.
 
-Camera permission is requested only after the user enables the camera. HTTPS
-or localhost is generally required by the browser. During an active monitoring
-session, camera frames are transmitted to the configured backend for detection;
-the live video preview itself remains in the browser.
+### 3. Configure Environment Variables
 
-## Classroom data pages
+Create a local environment file using the project's example:
 
-Dashboard, Students, Attendance, Analytics, and Reports use the authenticated
-API client and `VITE_DEFAULT_CLASSROOM_ID`, which must be set in
-`frontend/.env` to a positive classroom ID owned by the logged-in teacher
-(discoverable through authenticated `GET /api/v1/classrooms`). Use only a
-classroom returned for the logged-in account and restart Vite after changing
-the value. Classroom session
-history and student records are scoped to the authorized classroom. Attendance
-history is served by
-`GET /api/v1/classrooms/{classroom_id}/attendance`, which supports UTC `date`
-or inclusive `from_date`/`to_date` filters and bounded `limit`/`offset`
-pagination. Its summary counts cover the full filtered dataset, independent of
-the current page. The attendance rate is present divided by known present plus
-absent records; it is unavailable when that denominator is zero. Person
-detections are not converted to student attendance. Reports display records
-for a selected session; a report file export endpoint is not currently
-implemented.
+```bash
+cp .env.example .env
+```
 
-For an existing PostgreSQL database, run
-`python -m scripts.migrations.migrate_frame_inference_summaries` and
-`python -m scripts.migrations.migrate_attendance_session_student_unique` and
-`python -m scripts.migrations.migrate_attendance_source`.
-The attendance migration lists duplicate `(session_id, student_id)` keys and
-stops without deleting records; review and resolve those records before
-rerunning it. The source migration adds a nullable provenance column and keeps
-existing rows null when their source cannot be proven. New databases receive
-these schema changes through SQLAlchemy table creation.
+Configure the database connection and other required application settings in `.env`.
+
+Example database URL format:
+
+```env
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@localhost:5432/DATABASE_NAME
+```
+
+Use the actual database name, credentials, and driver configured by the project. Never commit passwords, API keys, or private environment files.
+
+### 4. Initialize the Database
+
+Make sure PostgreSQL is running and the configured database exists.
+
+If the repository includes the table-creation script, run:
+
+```bash
+python -m scripts.create_tables
+```
+
+Use the project's actual database initialization or migration procedure if it differs.
+
+### 5. Start the Backend
+
+From the project root, run:
+
+```bash
+uvicorn backend.app.main:app --reload
+```
+
+The backend should be available at:
+
+- Application: `http://127.0.0.1:8000`
+- Interactive API documentation: `http://127.0.0.1:8000/docs`
+- OpenAPI schema: `http://127.0.0.1:8000/openapi.json`
+
+The exact endpoints depend on the routes enabled in the current version.
+
+### 6. Start the Frontend
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite, commonly:
+
+`http://localhost:5173`
+
+If the frontend uses an environment variable for its API base URL, configure it to point to the running backend.
+
+## Application Workflow
+
+1. Register student details.
+2. Enroll a student's face using the supported capture workflow.
+3. Start a classroom monitoring session.
+4. Process camera frames and identify enrolled students.
+5. Record eligible attendance and attention observations.
+6. Review live monitoring information in the dashboard.
+7. Examine attendance summaries and historical analytics.
+
+Only verified, enrolled identities should be associated with student-specific records. An unknown face or an ordinary person detection must not be treated as proof of student identity.
+
+## Database and Data Handling
+
+PostgreSQL stores application records such as student information, classroom sessions, attendance, and supported monitoring history.
+
+Facial embeddings are sensitive biometric data. Their collection and storage should be limited to authorized, consented use. Protect database access, restrict access to embedding files, and avoid publishing real student data or biometric information in the repository.
+
+Historical analytics can only explain the information actually persisted by the application. If the database does not store the original eye-state and head-pose signals or diagnostic reasons, those details cannot reliably be reconstructed later.
+
+## Testing and Validation
+
+Run the project's available backend tests from the repository root:
+
+```bash
+pytest
+```
+
+Run frontend checks from the frontend directory using the scripts configured in `package.json`. Common commands include:
+
+```bash
+npm test
+npm run build
+```
+
+These commands depend on the test runner and scripts included in the repository.
+
+Before deployment, verify database connectivity, student enrollment, recognition behavior, session lifecycle, attendance persistence, attention-state handling, and dashboard analytics.
+
+## Responsible Use and Limitations
+
+This project is intended as a classroom monitoring and decision-support tool, not an automated authority for judging students.
+
+- Obtain appropriate consent and institutional authorization before collecting classroom video or biometric data.
+- Follow applicable privacy, data-protection, and educational policies.
+- Restrict access to student records and stored facial embeddings.
+- Provide human review for consequential attendance decisions.
+- Do not equate visual attention estimates with learning, intelligence, or academic performance.
+- Evaluate the system under varied classroom conditions before relying on its results.
+- Do not publish confidential student data, camera recordings, credentials, or biometric embeddings.
+
+## Future Enhancements
+
+Potential areas for future development include:
+
+- Improved robustness under varied lighting and camera angles.
+- More comprehensive classroom session reporting.
+- Enhanced student and teacher dashboards.
+- Configurable monitoring and data-retention policies.
+- Better tracking of signal quality and classification uncertainty.
+- Evaluation of recognition and attention-state performance on appropriately consented datasets.
+- Deployment and scalability improvements.
+
+These items are possible extensions, not claims that every feature has already been implemented.
+
+## Author
+
+**Rohit M**  
+B.Tech. — Artificial Intelligence and Data Science  
+KPR Institute of Engineering and Technology  
+Arasur, Coimbatore, Tamil Nadu, India
+
+- GitHub: [ROHITMAHENDRAN18](https://github.com/ROHITMAHENDRAN18)
+- Portfolio: [rohitmahendran18.github.io/portfolio](https://rohitmahendran18.github.io/portfolio/)
+
+## License
+
+Choose and add a license that matches how you intend to distribute this project. Until a license is added to the repository, reuse and redistribution permissions may be limited.
 
 ---
 
-## Project Status
-
-Phase 0 – Project Setup
+*Built as an applied AI and computer vision project exploring student identification, attendance management, and visual attention-state analysis in classroom environments.*
