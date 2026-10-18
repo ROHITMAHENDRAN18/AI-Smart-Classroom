@@ -361,3 +361,26 @@ export async function getStudentAnalytics(
   )
   return response.data
 }
+
+export async function enrollStudentFace(studentId, jpegBlob, { signal } = {}) {
+  if (!studentId) {
+    throw new Error('Student ID is required.')
+  }
+
+  if (!(jpegBlob instanceof Blob) || jpegBlob.type !== 'image/jpeg') {
+    throw new Error('A JPEG image is required.')
+  }
+
+  const response = await api.post(
+    `/students/${encodeURIComponent(studentId)}/face`,
+    jpegBlob,
+    {
+      headers: {
+        'Content-Type': 'image/jpeg',
+      },
+      signal,
+    },
+  )
+
+  return response.data
+}
