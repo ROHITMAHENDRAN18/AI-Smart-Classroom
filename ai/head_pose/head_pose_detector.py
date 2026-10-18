@@ -11,6 +11,11 @@ import math
 import numpy as np
 
 
+# Calibration mapping from image-coordinate nose offset to pose direction.
+# -1 reverses the default image-coordinate convention (positive offset -> RIGHT).
+HORIZONTAL_DIRECTION_SIGN = -1.0
+
+
 def calculate_yaw_ratio(landmarks):
     """Compute the normalized horizontal head-turn ratio from 5 landmarks."""
     if landmarks is None:
@@ -188,7 +193,11 @@ def calculate_head_pose(landmarks):
             "pitch_ratio": 0.0,
         }
 
-    horizontal_offset = float(nose[0] - eye_center[0]) / eye_distance
+    horizontal_offset = (
+        float(nose[0] - eye_center[0])
+        / eye_distance
+        * HORIZONTAL_DIRECTION_SIGN
+    )
     vertical_offset = float(nose[1] - eye_center[1]) / face_vertical_distance
     yaw_ratio = abs(horizontal_offset)
     pitch_ratio = vertical_offset

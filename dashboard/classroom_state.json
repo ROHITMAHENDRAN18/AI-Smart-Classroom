@@ -1,36 +1,44 @@
 {
-    "timestamp": "2026-10-17 23:49:00",
+    "timestamp": "2026-10-18 10:21:36",
     "tracked_persons": 1,
     "present_students": 1,
     "students": [
         {
-            "track_id": 4,
+            "track_id": 2,
             "student_id": "24AD095",
             "recognized": true,
-            "similarity": 0.0,
+            "similarity": 0.813,
             "attention": "NOT ATTENTIVE",
             "fusion": {
-                "attention_state": "UNKNOWN",
-                "attention_score": null,
-                "confidence": 0.0,
-                "eye_state": "UNKNOWN",
-                "head_pose": "UNKNOWN",
+                "attention_state": "ATTENTIVE",
+                "attention_score": 1.0,
+                "confidence": 0.8,
+                "eye_state": "OPEN",
+                "head_pose": "FRONT",
                 "emotion": "UNKNOWN",
-                "phone_detected": null,
+                "phone_detected": false,
                 "hand_raised": null,
-                "signal_scores": {},
-                "signal_weights": {},
+                "signal_scores": {
+                    "eye": 1.0,
+                    "head_pose": 1.0,
+                    "phone": 1.0
+                },
+                "signal_weights": {
+                    "eye": 0.3,
+                    "head_pose": 0.3,
+                    "phone": 0.2
+                },
                 "reasons": []
             },
             "temporal": {
-                "attention_state": "NOT ATTENTIVE",
-                "attention_score": 0.2,
-                "confidence": 0.3,
+                "attention_state": "ATTENTIVE",
+                "attention_score": 0.8956,
+                "confidence": 0.8,
                 "sample_count": 5,
                 "stable": true
             },
-            "yaw_ratio": 0.474,
-            "pitch_ratio": 0.44
+            "yaw_ratio": 0.127,
+            "pitch_ratio": 0.57
         }
     ]
 }

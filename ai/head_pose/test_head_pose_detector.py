@@ -98,8 +98,9 @@ def test_detect_head_pose_for_front_left_right_and_up_down():
     down_result = calculate_head_pose(build_down_face())
 
     assert front_result["head_pose"] == "FRONT"
-    assert left_result["head_pose"] == "LEFT"
-    assert right_result["head_pose"] == "RIGHT"
+    # The configured calibration sign reverses image-coordinate direction.
+    assert left_result["head_pose"] == "RIGHT"
+    assert right_result["head_pose"] == "LEFT"
     assert up_result["head_pose"] == "UP"
     assert down_result["head_pose"] == "DOWN"
 

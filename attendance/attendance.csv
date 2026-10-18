@@ -48,3 +48,4 @@ student_id,track_id,similarity,date,time,status
 24AD095,1,0.734,2026-09-27,21:31:59,Present
 24AD095,1,0.612,2026-10-17,22:44:42,Present
 24AD095,1,0.650,2026-10-17,23:48:16,Present
+24AD095,2,0.681,2026-10-18,10:21:17,Present
