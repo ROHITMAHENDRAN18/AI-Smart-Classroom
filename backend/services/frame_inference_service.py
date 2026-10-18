@@ -195,24 +195,37 @@ def _estimate_attention(
         else "UNKNOWN"
     )
     eye_state = "UNKNOWN"
+    diagnostic_reasons: list[str] = []
     if detect_eye_state_from_face is not None:
         try:
             crop = image[
                 int(face["y1"]):int(face["y2"]),
                 int(face["x1"]):int(face["x2"]),
             ]
+            if crop.shape[0] < 35 or crop.shape[1] < 35:
+                diagnostic_reasons.append("FACE_CROP_TOO_SMALL")
             eye_result = detect_eye_state_from_face(crop)
             if isinstance(eye_result, dict):
                 candidate = eye_result.get("eye_state")
                 if candidate in {"OPEN", "CLOSED", "PARTIAL", "UNKNOWN"}:
                     eye_state = candidate
+                if eye_state == "UNKNOWN" and "FACE_CROP_TOO_SMALL" not in diagnostic_reasons:
+                    detail = str(eye_result.get("reason", "")).lower()
+                    if "unavailable" in detail:
+                        diagnostic_reasons.append("MODEL_UNAVAILABLE")
+                    else:
+                        diagnostic_reasons.append("EYE_SIGNAL_UNAVAILABLE")
         except Exception:
             logger.exception("eye_state_estimation_failed")
+            diagnostic_reasons.append("EYE_SIGNAL_UNAVAILABLE")
+    else:
+        diagnostic_reasons.append("MODEL_UNAVAILABLE")
 
     if attention_fusion_engine is None:
         return {
             "attention_state": "UNKNOWN", "attention_score": None,
             "attention_confidence": 0.0, "eye_state": eye_state,
+            "attention_diagnostic_reasons": diagnostic_reasons,
         }
     try:
         result = attention_fusion_engine.fuse(
@@ -227,12 +240,14 @@ def _estimate_attention(
             "attention_score": result.attention_score,
             "attention_confidence": result.confidence,
             "eye_state": result.eye_state,
+            "attention_diagnostic_reasons": diagnostic_reasons,
         }
     except Exception:
         logger.exception("attention_fusion_failed")
         return {
             "attention_state": "UNKNOWN", "attention_score": None,
             "attention_confidence": 0.0, "eye_state": eye_state,
+            "attention_diagnostic_reasons": diagnostic_reasons,
         }
 
 class FrameInferenceService:
@@ -454,9 +469,24 @@ class FrameInferenceService:
                 face.get("landmarks"), frame_width=width, frame_height=height
             )
             head_pose_result = _estimate_head_pose(landmarks)
+            pose_diagnostic_reasons = []
+            if landmarks is None:
+                pose_diagnostic_reasons.append("INVALID_LANDMARKS")
+            elif detect_head_pose is None:
+                pose_diagnostic_reasons.append("MODEL_UNAVAILABLE")
+            elif head_pose_result is None:
+                pose_diagnostic_reasons.append("HEAD_POSE_UNAVAILABLE")
+            elif head_pose_result.get("head_pose") == "UNKNOWN":
+                pose_diagnostic_reasons.append("LOW_SIGNAL_QUALITY")
             attention_result = _estimate_attention(image, {
                 "x1": x1, "y1": y1, "x2": x2, "y2": y2,
             }, head_pose_result)
+            attention_result["attention_diagnostic_reasons"] = list(dict.fromkeys(
+                [
+                    *pose_diagnostic_reasons,
+                    *attention_result.get("attention_diagnostic_reasons", []),
+                ]
+            ))
 
             sanitized_faces.append(
                 {

@@ -36,8 +36,13 @@ import { subscribeToClassroomDataChanges } from '../utils/classroomDataEvents'
 
 const ATTENTION_COLORS = {
   attentive: '#10b981', // emerald-500
+  partial: '#f59e0b',
   notAttentive: '#f43f5e', // rose-500
   unknown: '#64748b', // slate-500
+  listening: '#38bdf8',
+  sleeping: '#a78bfa',
+  talking: '#fbbf24',
+  lookingAway: '#fb7185',
 }
 
 function getStatusBadge(status) {
@@ -291,8 +296,28 @@ export default function Reports() {
   // Attention metrics
   const attentionStats = useMemo(() => {
     const total = filteredAttention.length
+    const behaviorStates = [
+      'LISTENING',
+      'SLEEPING',
+      'POSSIBLY_TALKING',
+      'LOOKING_AWAY',
+    ]
+    const behaviorCounts = Object.fromEntries(
+      behaviorStates.map((state) => [
+        state,
+        filteredAttention.filter((record) => record.attention_state === state).length,
+      ]),
+    )
+    const legacyTotal = filteredAttention.filter((record) =>
+      ['ATTENTIVE', 'PARTIAL', 'NOT ATTENTIVE', 'UNKNOWN'].includes(
+        record.attention_state,
+      ),
+    ).length
     const attentiveCount = filteredAttention.filter(
       (r) => r.attention_state === 'ATTENTIVE',
+    ).length
+    const partialCount = filteredAttention.filter(
+      (r) => r.attention_state === 'PARTIAL',
     ).length
     const notAttentiveCount = filteredAttention.filter(
       (r) => r.attention_state === 'NOT ATTENTIVE',
@@ -301,17 +326,22 @@ export default function Reports() {
       (r) => r.attention_state === 'UNKNOWN',
     ).length
 
-    const attentivePct = total > 0 ? Number(((attentiveCount / total) * 100).toFixed(1)) : 0
+    const attentivePct = legacyTotal > 0 ? Number(((attentiveCount / legacyTotal) * 100).toFixed(1)) : 0
+    const partialPct = legacyTotal > 0 ? Number(((partialCount / legacyTotal) * 100).toFixed(1)) : 0
     const notAttentivePct =
-      total > 0 ? Number(((notAttentiveCount / total) * 100).toFixed(1)) : 0
-    const unknownPct = total > 0 ? Number(((unknownCount / total) * 100).toFixed(1)) : 0
+      legacyTotal > 0 ? Number(((notAttentiveCount / legacyTotal) * 100).toFixed(1)) : 0
+    const unknownPct = legacyTotal > 0 ? Number(((unknownCount / legacyTotal) * 100).toFixed(1)) : 0
 
     return {
       total,
+      legacyTotal,
+      behaviorCounts,
       attentiveCount,
+      partialCount,
       notAttentiveCount,
       unknownCount,
       attentivePct,
+      partialPct,
       notAttentivePct,
       unknownPct,
     }
@@ -325,22 +355,68 @@ export default function Reports() {
 
     return [
       {
-        name: 'Attentive',
+        name: 'Legacy attentive score',
         value: attentionStats.attentiveCount,
-        percentage: attentionStats.attentivePct,
+        percentage: attentionStats.total > 0
+          ? Number(((attentionStats.attentiveCount / attentionStats.total) * 100).toFixed(1))
+          : 0,
         color: ATTENTION_COLORS.attentive,
       },
       {
-        name: 'Not Attentive',
+        name: 'Legacy partial score',
+        value: attentionStats.partialCount,
+        percentage: attentionStats.total > 0
+          ? Number(((attentionStats.partialCount / attentionStats.total) * 100).toFixed(1))
+          : 0,
+        color: ATTENTION_COLORS.partial,
+      },
+      {
+        name: 'Legacy not attentive score',
         value: attentionStats.notAttentiveCount,
-        percentage: attentionStats.notAttentivePct,
+        percentage: attentionStats.total > 0
+          ? Number(((attentionStats.notAttentiveCount / attentionStats.total) * 100).toFixed(1))
+          : 0,
         color: ATTENTION_COLORS.notAttentive,
       },
       {
         name: 'Unknown',
         value: attentionStats.unknownCount,
-        percentage: attentionStats.unknownPct,
+        percentage: attentionStats.total > 0
+          ? Number(((attentionStats.unknownCount / attentionStats.total) * 100).toFixed(1))
+          : 0,
         color: ATTENTION_COLORS.unknown,
+      },
+      {
+        name: 'Listening posture',
+        value: attentionStats.behaviorCounts.LISTENING,
+        percentage: attentionStats.total > 0
+          ? Number(((attentionStats.behaviorCounts.LISTENING / attentionStats.total) * 100).toFixed(1))
+          : 0,
+        color: ATTENTION_COLORS.listening,
+      },
+      {
+        name: 'Head down / eyes closed',
+        value: attentionStats.behaviorCounts.SLEEPING,
+        percentage: attentionStats.total > 0
+          ? Number(((attentionStats.behaviorCounts.SLEEPING / attentionStats.total) * 100).toFixed(1))
+          : 0,
+        color: ATTENTION_COLORS.sleeping,
+      },
+      {
+        name: 'Possibly talking',
+        value: attentionStats.behaviorCounts.POSSIBLY_TALKING,
+        percentage: attentionStats.total > 0
+          ? Number(((attentionStats.behaviorCounts.POSSIBLY_TALKING / attentionStats.total) * 100).toFixed(1))
+          : 0,
+        color: ATTENTION_COLORS.talking,
+      },
+      {
+        name: 'Looking away',
+        value: attentionStats.behaviorCounts.LOOKING_AWAY,
+        percentage: attentionStats.total > 0
+          ? Number(((attentionStats.behaviorCounts.LOOKING_AWAY / attentionStats.total) * 100).toFixed(1))
+          : 0,
+        color: ATTENTION_COLORS.lookingAway,
       },
     ]
   }, [attentionStats])
@@ -365,7 +441,7 @@ export default function Reports() {
             Reports
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-400">
-            Review persisted attendance and available attention records by
+              Review persisted attendance and observable behavior records by
             classroom session. Browser YOLO detections are ephemeral, do not
             identify students, and are not report records. File export is not
             implemented.
@@ -719,28 +795,28 @@ export default function Reports() {
             {/* Attention Records */}
             <ReportMetricCard
               icon={<Activity size={18} />}
-              label="Attention Records"
+              label="Behavior Observations"
               value={loadingData ? null : error ? '—' : attentionStats.total}
-              description={error ? 'Report data unavailable' : `Attentive records: ${attentionStats.attentiveCount}`}
+              description={error ? 'Report data unavailable' : 'Visible posture estimates; not a measure of mental attention'}
               iconClass="bg-purple-500/10 text-purple-400"
             />
 
             {/* Attentive Percentage */}
             <ReportMetricCard
               icon={<CheckCircle2 size={18} />}
-              label="Attentive Rate"
+              label="Legacy Attentive Rate"
               value={
                 loadingData
                   ? null
                   : error
                     ? '—'
-                  : attentionStats.total > 0
+                  : attentionStats.legacyTotal > 0
                     ? `${attentionStats.attentivePct}%`
                     : '—'
               }
               description={error
                 ? 'Report data unavailable'
-                : `Not Attentive: ${attentionStats.notAttentivePct}% | Unknown: ${attentionStats.unknownPct}%`}
+                : 'Based only on older attention-score records; new behavior labels are reported separately.'}
               iconClass="bg-emerald-500/10 text-emerald-400"
             />
           </section>
@@ -848,7 +924,7 @@ export default function Reports() {
               <div>
                 <h2 className="text-base font-semibold text-white">Report Insights</h2>
                 <p className="mt-1 text-xs text-slate-400">
-                  Verified counts and attendance performance breakdown.
+              Attendance records and estimated visible behavior states.
                 </p>
 
                 <div className="mt-5 space-y-3 text-xs">
@@ -872,7 +948,7 @@ export default function Reports() {
 
                   <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Attentive Detections</span>
+                      <span className="text-slate-400">Legacy Attentive Scores</span>
                       <span className="font-mono font-bold text-emerald-400">
                         {attentionStats.attentiveCount} ({attentionStats.attentivePct}%)
                       </span>
@@ -881,7 +957,16 @@ export default function Reports() {
 
                   <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Inattentive Detections</span>
+                      <span className="text-slate-400">Legacy Partial Scores</span>
+                      <span className="font-mono font-bold text-rose-400">
+                        {attentionStats.partialCount} ({attentionStats.partialPct}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Legacy Not Attentive Scores</span>
                       <span className="font-mono font-bold text-rose-400">
                         {attentionStats.notAttentiveCount} ({attentionStats.notAttentivePct}%)
                       </span>
@@ -896,6 +981,15 @@ export default function Reports() {
                       </span>
                     </div>
                   </div>
+
+                  {Object.entries(attentionStats.behaviorCounts).map(([state, count]) => (
+                    <div key={state} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">{state.replaceAll('_', ' ')}</span>
+                        <span className="font-mono font-bold text-slate-200">{count}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -936,7 +1030,7 @@ export default function Reports() {
                   }`}
                 >
                   <Activity size={14} />
-                  <span>Attention ({filteredAttention.length})</span>
+                  <span>Behavior ({filteredAttention.length})</span>
                 </button>
               </div>
             </div>
@@ -1009,7 +1103,7 @@ export default function Reports() {
                         <th className="py-3 px-3">Date / Time</th>
                         <th className="py-3 px-3">Student ID</th>
                         <th className="py-3 px-3">Track ID</th>
-                        <th className="py-3 px-3">Attention State</th>
+                        <th className="py-3 px-3">Behavior State</th>
                         <th className="py-3 px-3">Confidence</th>
                       </tr>
                     </thead>

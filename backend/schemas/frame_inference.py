@@ -35,9 +35,32 @@ class FaceDetection(BaseModel):
     ] = "unavailable"
     head_pose: dict | None = None
     eye_state: Literal["OPEN", "CLOSED", "PARTIAL", "UNKNOWN"] = "UNKNOWN"
-    attention_state: Literal["ATTENTIVE", "PARTIAL", "NOT ATTENTIVE", "UNKNOWN"] = "UNKNOWN"
+    attention_state: Literal[
+        "LISTENING",
+        "SLEEPING",
+        "POSSIBLY_TALKING",
+        "LOOKING_AWAY",
+        "UNKNOWN",
+        "ATTENTIVE",
+        "PARTIAL",
+        "NOT ATTENTIVE",
+    ] = "UNKNOWN"
     attention_score: float | None = Field(default=None, ge=0, le=1)
     attention_confidence: float = Field(default=0, ge=0, le=1)
+    attention_stable: bool = False
+    attention_samples: int = Field(default=0, ge=0)
+    attention_diagnostic_reasons: list[Literal[
+        "IDENTITY_UNVERIFIED",
+        "AMBIGUOUS_IDENTITY",
+        "CONFLICTING_SIGNALS",
+        "FACE_CROP_TOO_SMALL",
+        "EYE_SIGNAL_UNAVAILABLE",
+        "HEAD_POSE_UNAVAILABLE",
+        "INVALID_LANDMARKS",
+        "LOW_SIGNAL_QUALITY",
+        "INSUFFICIENT_TEMPORAL_EVIDENCE",
+        "MODEL_UNAVAILABLE",
+    ]] = Field(default_factory=list)
 
 
 class FeatureAvailability(BaseModel):
@@ -70,8 +93,19 @@ class FrameInferenceResponse(BaseModel):
     processing_status: Literal["completed"]
     inference_duration_ms: float = Field(ge=0)
     pipeline: Literal["person_detection"]
-    attention_inference: Literal["available", "partial", "unknown", "not_connected", "error"]
-    attention_state: Literal["ATTENTIVE", "PARTIAL", "NOT ATTENTIVE", "UNKNOWN"] = "UNKNOWN"
+    attention_inference: Literal[
+        "available", "partial", "unknown", "not_connected", "error"
+    ]
+    attention_state: Literal[
+        "LISTENING",
+        "SLEEPING",
+        "POSSIBLY_TALKING",
+        "LOOKING_AWAY",
+        "UNKNOWN",
+        "ATTENTIVE",
+        "PARTIAL",
+        "NOT ATTENTIVE",
+    ] = "UNKNOWN"
     attention_score: float | None = Field(default=None, ge=0, le=1)
     attention_confidence: float = Field(default=0, ge=0, le=1)
     head_pose: Literal["FRONT", "LEFT", "RIGHT", "UP", "DOWN", "UNKNOWN"] = "UNKNOWN"

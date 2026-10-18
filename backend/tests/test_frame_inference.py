@@ -281,6 +281,20 @@ def test_frame_service_returns_only_valid_person_boxes():
     assert detections["faces"] == []
 
 
+def test_landmark_validation_rejects_missing_nonfinite_and_out_of_frame_points():
+    from backend.services.frame_inference_service import _sanitize_landmarks
+
+    assert _sanitize_landmarks(None) is None
+    valid_points = [[30, 30], [70, 30], [50, 45], [38, 65], [62, 65]]
+    assert _sanitize_landmarks(valid_points) == [
+        [30.0, 30.0], [70.0, 30.0], [50.0, 45.0], [38.0, 65.0], [62.0, 65.0]
+    ]
+    assert _sanitize_landmarks([[float("nan"), 0]] * 5) is None
+    assert _sanitize_landmarks(
+        [[101, 10]] * 5, frame_width=100, frame_height=100
+    ) is None
+
+
 def test_attention_requires_real_signals_and_returns_unknown_when_missing(monkeypatch):
     from backend.services import frame_inference_service as module
 
@@ -293,6 +307,25 @@ def test_attention_requires_real_signals_and_returns_unknown_when_missing(monkey
     assert result["attention_state"] == "UNKNOWN"
     assert result["attention_score"] is None
     assert result["attention_confidence"] == 0
+    assert result["attention_diagnostic_reasons"] == ["EYE_SIGNAL_UNAVAILABLE"]
+
+
+def test_small_face_crop_is_reported_as_eye_signal_quality_issue(monkeypatch):
+    from backend.services import frame_inference_service as module
+
+    monkeypatch.setattr(
+        module,
+        "detect_eye_state_from_face",
+        lambda _crop: {"eye_state": "UNKNOWN", "reason": "crop too small"},
+    )
+    result = module._estimate_attention(
+        np.zeros((20, 20, 3), dtype=np.uint8),
+        {"x1": 0, "y1": 0, "x2": 20, "y2": 20},
+        None,
+    )
+
+    assert result["eye_state"] == "UNKNOWN"
+    assert result["attention_diagnostic_reasons"] == ["FACE_CROP_TOO_SMALL"]
 
 
 def test_attention_fuses_only_an_available_eye_signal(monkeypatch):
@@ -552,6 +585,121 @@ def test_attention_persistence_is_verified_student_scoped_and_rate_limited(
     assert len(records) == 2
     assert all(record.student_id == "S_ATTENTION" for record in records)
     assert all(record.attention_score == 0.9 for record in records)
+
+
+def test_verified_open_eye_forward_pose_reaches_temporal_classifier(
+    frame_context, monkeypatch
+):
+    db, user, classroom, session = frame_context
+    face = {
+        "x1": 10,
+        "y1": 10,
+        "x2": 50,
+        "y2": 50,
+        "quality": "embedding_available",
+        "recognition_status": "recognized",
+        "student_id": "S_VALID",
+        "identity": "Student Valid",
+        "eye_state": "OPEN",
+        "head_pose": {"head_pose": "FRONT"},
+    }
+
+    class RecognizedInferenceService(StubInferenceService):
+        def analyze(self, _image, _session_id="default"):
+            result = super().analyze(_image, _session_id)
+            result["faces"] = [face]
+            return result
+
+    class RecordingClassifier:
+        def __init__(self):
+            self.args = None
+
+        def update(self, *args):
+            self.args = args
+            return {
+                "attention_state": "LISTENING",
+                "stable": True,
+                "sample_count": 3,
+            }
+
+    classifier = RecordingClassifier()
+    monkeypatch.setattr(frame_route, "frame_inference_service", RecognizedInferenceService())
+    monkeypatch.setattr(
+        frame_route,
+        "verify_face_identities",
+        lambda **kwargs: kwargs["face_detections"],
+    )
+    monkeypatch.setattr(frame_route, "_attention_classifier", classifier)
+
+    response = post_frame(db, user, classroom, session)
+
+    assert classifier.args[0:3] == (session.session_id, "S_VALID", "LISTENING")
+    assert response.face_detections[0].attention_state == "LISTENING"
+    assert response.face_detections[0].attention_diagnostic_reasons == []
+    stored = db.query(AttentionRecord).one()
+    assert stored.student_id == "S_VALID"
+    assert stored.attention_state == "LISTENING"
+
+
+def test_unverified_face_remains_unknown_with_diagnostic(frame_context, monkeypatch):
+    db, user, classroom, session = frame_context
+    face = {
+        "x1": 10,
+        "y1": 10,
+        "x2": 50,
+        "y2": 50,
+        "quality": "embedding_available",
+        "recognition_status": "unknown",
+        "student_id": None,
+        "identity": "Unknown",
+        "eye_state": "OPEN",
+        "head_pose": {"head_pose": "FRONT"},
+    }
+
+    class UnknownInferenceService(StubInferenceService):
+        def analyze(self, _image, _session_id="default"):
+            result = super().analyze(_image, _session_id)
+            result["faces"] = [face]
+            return result
+
+    monkeypatch.setattr(frame_route, "frame_inference_service", UnknownInferenceService())
+    monkeypatch.setattr(
+        frame_route,
+        "verify_face_identities",
+        lambda **kwargs: kwargs["face_detections"],
+    )
+
+    response = post_frame(db, user, classroom, session)
+
+    assert response.face_detections[0].attention_state == "UNKNOWN"
+    assert response.face_detections[0].attention_diagnostic_reasons == [
+        "IDENTITY_UNVERIFIED"
+    ]
+    assert db.query(AttentionRecord).count() == 0
+
+
+def test_frame_finishing_after_session_stop_does_not_persist_records(
+    frame_context, monkeypatch
+):
+    db, user, classroom, session = frame_context
+
+    class StopDuringInference(StubInferenceService):
+        def analyze(self, _image, _session_id="default"):
+            session.status = "COMPLETED"
+            db.commit()
+            return super().analyze(_image, _session_id)
+
+    monkeypatch.setattr(
+        frame_route, "frame_inference_service", StopDuringInference()
+    )
+
+    with pytest.raises(HTTPException) as error:
+        post_frame(db, user, classroom, session)
+
+    assert error.value.status_code == 409
+    assert db.query(AttendanceRecord).count() == 0
+    assert db.query(AttentionRecord).count() == 0
+    assert db.query(FrameInferenceSummary).count() == 0
 
 
 def test_frame_summary_updates_one_row_per_session(frame_context):

@@ -7,26 +7,18 @@ from backend.analytics.student_analytics import (
 
 def test_calculate_percentage():
 
-    assert calculate_percentage(
-        5,
-        10
-    ) == 50.0
+    assert calculate_percentage(5, 10) == 50.0
 
 
 def test_zero_percentage():
 
-    assert calculate_percentage(
-        0,
-        0
-    ) == 0.0
+    assert calculate_percentage(0, 0) == 0.0
 
 
 def test_attendance_analytics():
 
     result = calculate_attendance_analytics(
-        student_id="24AD095",
-        total_sessions=10,
-        attended_sessions=8
+        student_id="24AD095", total_sessions=10, attended_sessions=8
     )
 
     assert result.student_id == "24AD095"
@@ -56,10 +48,7 @@ def test_attention_analytics():
         },
     ]
 
-    result = calculate_attention_analytics(
-        student_id="24AD095",
-        records=records
-    )
+    result = calculate_attention_analytics(student_id="24AD095", records=records)
 
     assert result.total_records == 4
     assert result.attentive_records == 1
@@ -69,3 +58,25 @@ def test_attention_analytics():
 
     assert result.average_attention_score == 0.5333
     assert result.attention_percentage == 53.33
+
+
+def test_behavior_states_are_reported_without_fabricating_attention_scores():
+    result = calculate_attention_analytics(
+        student_id="24AD095",
+        records=[
+            {"attention_state": "LISTENING", "attention_score": None},
+            {"attention_state": "SLEEPING", "attention_score": None},
+            {"attention_state": "LOOKING_AWAY", "attention_score": None},
+            {"attention_state": "POSSIBLY_TALKING", "attention_score": None},
+        ],
+    )
+
+    assert result.unknown_records == 0
+    assert result.behavior_state_counts == {
+        "LISTENING": 1,
+        "SLEEPING": 1,
+        "POSSIBLY_TALKING": 1,
+        "LOOKING_AWAY": 1,
+    }
+    assert result.average_attention_score is None
+    assert result.attention_percentage is None

@@ -151,6 +151,33 @@ function getCameraStatus(cameraState, playbackState) {
   return 'Camera access not requested'
 }
 
+function formatBehaviorState(state) {
+  const labels = {
+    LISTENING: 'Listening posture estimate',
+    SLEEPING: 'Sustained closed eyes or head down',
+    POSSIBLY_TALKING: 'Possible mouth movement',
+    LOOKING_AWAY: 'Head turned or raised',
+    UNKNOWN: 'Insufficient stable evidence',
+  }
+  return labels[state] || 'Insufficient stable evidence'
+}
+
+function formatAttentionDiagnosticReasons(reasons = []) {
+  const labels = {
+    IDENTITY_UNVERIFIED: 'Student identity not verified',
+    AMBIGUOUS_IDENTITY: 'Multiple face detections share this identity',
+    CONFLICTING_SIGNALS: 'Eye and head-pose cues disagree',
+    FACE_CROP_TOO_SMALL: 'Face crop is too small for eye analysis',
+    EYE_SIGNAL_UNAVAILABLE: 'Eye-state signal unavailable',
+    HEAD_POSE_UNAVAILABLE: 'Head-pose signal unavailable',
+    INVALID_LANDMARKS: 'Face landmarks are invalid or missing',
+    LOW_SIGNAL_QUALITY: 'Visual signal quality is too low',
+    INSUFFICIENT_TEMPORAL_EVIDENCE: 'Waiting for stable observations',
+    MODEL_UNAVAILABLE: 'An attention model is unavailable',
+  }
+  return reasons.map((reason) => labels[reason] || reason).join(', ')
+}
+
 function StatusPill({
   connected,
   pending,
@@ -1191,7 +1218,7 @@ export default function LiveMonitoring() {
           fill="#c4b5fd"
           fontSize="13"
         >
-          Attention: {face.attention_state}
+          Behavior: {formatBehaviorState(face.attention_state)}
         </text>
       )}
     </g>
@@ -1501,9 +1528,9 @@ export default function LiveMonitoring() {
                   ? 'Recognition unavailable'
                   : 'Unknown'}
               {` · Head: ${face.head_pose?.head_pose || 'UNKNOWN'}`}
-              {face.attention_state
-                ? ` · Attention: ${face.attention_state}`
-                : ' · Attention: UNKNOWN'}
+              {` · Behavior: ${formatBehaviorState(face.attention_state)}`}
+              {face.attention_diagnostic_reasons?.length > 0 &&
+                ` · Evidence: ${formatAttentionDiagnosticReasons(face.attention_diagnostic_reasons)}`}
             </li>
           )
         })}

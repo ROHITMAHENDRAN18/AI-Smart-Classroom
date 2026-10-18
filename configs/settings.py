@@ -2,7 +2,6 @@ import os
 
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 
@@ -10,9 +9,7 @@ def get_required(name: str) -> str:
     value = os.getenv(name)
 
     if not value:
-        raise RuntimeError(
-            f"Required environment variable '{name}' is not set."
-        )
+        raise RuntimeError(f"Required environment variable '{name}' is not set.")
 
     return value
 
@@ -146,6 +143,20 @@ DASHBOARD_UPDATE_INTERVAL = get_float(
 DATABASE_ATTENTION_UPDATE_INTERVAL = get_float(
     "DATABASE_ATTENTION_UPDATE_INTERVAL",
     1.0,
+)
+
+ATTENTION_MINIMUM_SAMPLES = get_bounded_int(
+    "ATTENTION_MINIMUM_SAMPLES",
+    3,
+    2,
+    10,
+)
+
+ATTENTION_MINIMUM_DURATION_SECONDS = get_bounded_float(
+    "ATTENTION_MINIMUM_DURATION_SECONDS",
+    4.0,
+    0.0,
+    60.0,
 )
 
 FRAME_MAX_PAYLOAD_BYTES = get_bounded_int(

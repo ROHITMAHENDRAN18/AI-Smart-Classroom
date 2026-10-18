@@ -37,10 +37,10 @@ import {
   formatDuration,
 } from '../utils/formatters'
 import { subscribeToClassroomDataChanges } from '../utils/classroomDataEvents'
+import { summarizeAttentionRecords } from '../utils/attentionAnalytics'
 
 const ATTENTION_COLORS = {
   attentive: '#10b981', // emerald-500
-  partial: '#f59e0b', // amber-500
   notAttentive: '#f43f5e', // rose-500
   unknown: '#64748b', // slate-500
 }
@@ -252,7 +252,11 @@ export default function Analytics() {
   }, [sessions, selectedSessionId, summaryData])
 
   const stats = useMemo(() => {
-    return summaryData?.statistics || null
+    if (!summaryData?.statistics) return null
+    return {
+      ...summaryData.statistics,
+      ...summarizeAttentionRecords(summaryData.attention),
+    }
   }, [summaryData])
 
   const statusBadge = useMemo(() => {
@@ -260,31 +264,19 @@ export default function Analytics() {
   }, [selectedSession])
 
   const chartData = useMemo(() => {
-    if (!stats || stats.attention_records === 0) {
+    if (!stats || stats.valid_attention_records === 0) {
       return []
     }
 
-    const items = [
+    return [
       {
-        name: 'Attentive',
+        name: 'Attentive (Listening)',
         value: stats.attentive_count,
         percentage: stats.attentive_percentage,
         color: ATTENTION_COLORS.attentive,
       },
-    ]
-
-    if (stats.partial_count > 0) {
-      items.push({
-        name: 'Partial',
-        value: stats.partial_count,
-        percentage: stats.partial_percentage,
-        color: ATTENTION_COLORS.partial,
-      })
-    }
-
-    items.push(
       {
-        name: 'Not Attentive',
+        name: 'Not Attentive / Other Observable Behavior',
         value: stats.not_attentive_count,
         percentage: stats.not_attentive_percentage,
         color: ATTENTION_COLORS.notAttentive,
@@ -295,9 +287,7 @@ export default function Analytics() {
         percentage: stats.unknown_percentage,
         color: ATTENTION_COLORS.unknown,
       },
-    )
-
-    return items
+    ]
   }, [stats])
 
   const isInitialLoading = loadingSessions && sessions.length === 0
@@ -456,23 +446,44 @@ export default function Analytics() {
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <SummaryCard
               icon={<Users size={18} />}
-              label="Total Students"
-              value={loadingSummary ? null : stats ? stats.unique_students : '—'}
-              description="Unique students identified"
+              label="Active Roster"
+              value={loadingSummary ? null : stats ? stats.enrolled_students : '—'}
+              description="Active members now; session roster is not snapshotted"
               iconClass="bg-blue-500/10 text-blue-400"
+            />
+            <SummaryCard
+              icon={<ClipboardCheck size={18} />}
+              label="Present"
+              value={loadingSummary ? null : stats ? stats.present_students : '—'}
+              description="Persisted PRESENT attendance"
+              iconClass="bg-emerald-500/10 text-emerald-400"
+            />
+            <SummaryCard
+              icon={<AlertTriangle size={18} />}
+              label="Absent"
+              value={loadingSummary ? null : stats ? stats.absent_students : '—'}
+              description="Explicit persisted ABSENT status"
+              iconClass="bg-rose-500/10 text-rose-400"
+            />
+            <SummaryCard
+              icon={<Clock size={18} />}
+              label="Unmarked"
+              value={loadingSummary ? null : stats ? stats.unmarked_students : '—'}
+              description="Active members without a session record"
+              iconClass="bg-amber-500/10 text-amber-400"
             />
             <SummaryCard
               icon={<ClipboardCheck size={18} />}
               label="Attendance Records"
               value={loadingSummary ? null : stats ? stats.attendance_records : '—'}
-              description="Session attendance logs"
+              description="Persisted rows for this session"
               iconClass="bg-indigo-500/10 text-indigo-400"
             />
             <SummaryCard
               icon={<Activity size={18} />}
               label="Attention Records"
               value={loadingSummary ? null : stats ? stats.attention_records : '—'}
-              description="Captured frame detections"
+              description="Persisted observations for verified students"
               iconClass="bg-purple-500/10 text-purple-400"
             />
             <SummaryCard
@@ -481,20 +492,32 @@ export default function Analytics() {
               value={
                 loadingSummary
                   ? null
-                  : stats ? `${stats.attentive_percentage}%` : '—'
+                  : stats && stats.valid_attention_records > 0
+                    ? `${stats.attentive_percentage}%`
+                    : '—'
               }
-              description={stats ? `${stats.attentive_count} attentive records` : 'No summary available'}
+              description={
+                stats
+                  ? `${stats.attentive_count} LISTENING / ${stats.valid_attention_records} valid observations`
+                  : 'No summary available'
+              }
               iconClass="bg-emerald-500/10 text-emerald-400"
             />
             <SummaryCard
               icon={<AlertTriangle size={18} />}
-              label="Not Attentive %"
+              label="Not Attentive / Other Behavior %"
               value={
                 loadingSummary
                   ? null
-                  : stats ? `${stats.not_attentive_percentage}%` : '—'
+                  : stats && stats.valid_attention_records > 0
+                    ? `${stats.not_attentive_percentage}%`
+                    : '—'
               }
-              description={stats ? `${stats.not_attentive_count} inattentive records` : 'No summary available'}
+              description={
+                stats
+                  ? `${stats.not_attentive_count} SLEEPING or LOOKING_AWAY observations`
+                  : 'No summary available'
+              }
               iconClass="bg-rose-500/10 text-rose-400"
             />
             <SummaryCard
@@ -503,12 +526,57 @@ export default function Analytics() {
               value={
                 loadingSummary
                   ? null
-                  : stats ? `${stats.unknown_percentage}%` : '—'
+                  : stats && stats.valid_attention_records > 0
+                    ? `${stats.unknown_percentage}%`
+                    : '—'
               }
-              description={stats ? `${stats.unknown_count} unclassified records` : 'No summary available'}
+              description={stats ? `${stats.unknown_count} UNKNOWN observations` : 'No summary available'}
               iconClass="bg-slate-500/10 text-slate-400"
             />
           </section>
+
+          {stats?.unassigned_attention_records > 0 && (
+            <div
+              className="flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-amber-100"
+              role="status"
+            >
+              <AlertCircle size={18} className="mt-0.5 shrink-0 text-amber-300" />
+              <p>
+                {stats.unassigned_attention_records} persisted attention row(s) are excluded because their student is missing, not face-registered, or has no membership in this session’s classroom at session start. They are not assigned to another student.
+              </p>
+            </div>
+          )}
+
+          {stats?.attendance_data_quality_students > 0 && (
+            <div
+              className="flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-amber-100"
+              role="status"
+            >
+              <AlertCircle size={18} className="mt-0.5 shrink-0 text-amber-300" />
+              <p>
+                {stats.attendance_data_quality_students} active roster member(s) have a persisted attendance status outside PRESENT, ABSENT, or UNKNOWN. They are shown separately in the attendance totals.
+              </p>
+            </div>
+          )}
+
+          {stats?.data_quality_records > 0 && (
+            <div
+              className="flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-amber-100"
+              role="status"
+            >
+              <AlertCircle size={18} className="mt-0.5 shrink-0 text-amber-300" />
+              <div>
+                <p className="font-medium">
+                  {stats.data_quality_records} of {stats.attention_records} records have null, legacy, or unsupported states and are excluded from percentages.
+                </p>
+                <p className="mt-1 text-xs text-amber-100/70">
+                  {Object.entries(stats.data_quality_state_counts)
+                    .map(([state, count]) => `${state}: ${count}`)
+                    .join(' · ')}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Middle Row: Attention Distribution Chart + Selected Session Details */}
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -518,10 +586,12 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-semibold text-white">
-                      Attention Distribution
+                      Observable Behavior Distribution
                     </h2>
                     <p className="mt-1 text-xs text-slate-400">
-                      Distribution of student attentiveness states during this session.
+                  Percentages use {stats?.valid_attention_records ?? 0} supported
+                  observations. LISTENING is Attentive; SLEEPING and LOOKING_AWAY
+                  are Not Attentive / Other Observable Behavior.
                     </p>
                   </div>
                   <span className="rounded-lg border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[11px] font-medium text-slate-400">
@@ -561,16 +631,18 @@ export default function Analytics() {
                         {/* Center donut label */}
                         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                           <span className="text-2xl font-bold tracking-tight text-white">
-                            {stats?.attentive_percentage ?? '—'}{stats ? '%' : ''}
+                            {stats?.valid_attention_records > 0
+                              ? `${stats.attentive_percentage}%`
+                              : '—'}
                           </span>
                           <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
-                            Attentive
+                            Listening
                           </span>
                         </div>
                       </div>
 
                       {/* Chart Legend */}
-                      <div className={`mt-4 grid gap-2 border-t border-slate-800/80 pt-4 ${chartData.length >= 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
+                      <div className="mt-4 grid grid-cols-1 gap-2 border-t border-slate-800/80 pt-4 sm:grid-cols-3">
                         {chartData.map((item) => (
                           <div
                             key={item.name}
@@ -592,6 +664,9 @@ export default function Analytics() {
                           </div>
                         ))}
                       </div>
+                      <p className="mt-3 text-center text-xs text-slate-500">
+                        SLEEPING: {stats.attention_state_counts.SLEEPING} · LOOKING_AWAY: {stats.attention_state_counts.LOOKING_AWAY} · UNKNOWN: {stats.unknown_count}
+                      </p>
                     </div>
                   ) : (
                     <div className="flex h-[240px] flex-col items-center justify-center text-center p-4">
@@ -599,10 +674,10 @@ export default function Analytics() {
                         <Activity size={22} />
                       </div>
                       <p className="text-sm font-medium text-slate-300">
-                        No attention records captured
+                        No valid attention observations captured
                       </p>
                       <p className="mt-1 max-w-xs text-xs text-slate-500">
-                        This session does not have attention records logged yet.
+                        This session has no supported state observations to chart.
                       </p>
                     </div>
                   )}
@@ -627,7 +702,7 @@ export default function Analytics() {
                   )}
                 </div>
                 <p className="mt-1 text-xs text-slate-400">
-                  Metadata and breakdown for the currently selected session.
+                  Attendance statuses come from persisted session records. The roster reflects current active membership because historical roster snapshots are not stored.
                 </p>
 
                 {/* Session Attributes List */}
@@ -681,10 +756,10 @@ export default function Analytics() {
                   <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
                     <div className="flex items-center justify-between">
                       <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-                        Student Check-ins
+                        Student Attendance IDs
                       </p>
                       <span className="text-[11px] font-medium text-slate-400">
-                        {stats?.student_ids?.length || 0} enrolled
+                        {stats?.student_ids?.length || 0} recorded
                       </span>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1.5">

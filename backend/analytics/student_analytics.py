@@ -18,8 +18,9 @@ class AttentionAnalytics:
     partial_records: int
     not_attentive_records: int
     unknown_records: int
-    average_attention_score: float
-    attention_percentage: float
+    average_attention_score: Optional[float]
+    attention_percentage: Optional[float]
+    behavior_state_counts: dict[str, int]
 
 
 @dataclass
@@ -34,34 +35,23 @@ def calculate_percentage(value: int, total: int) -> float:
     if total <= 0:
         return 0.0
 
-    return round(
-        (value / total) * 100,
-        2
-    )
+    return round((value / total) * 100, 2)
 
 
 def calculate_attendance_analytics(
-    student_id: str,
-    total_sessions: int,
-    attended_sessions: int
+    student_id: str, total_sessions: int, attended_sessions: int
 ):
-    attendance_percentage = calculate_percentage(
-        attended_sessions,
-        total_sessions
-    )
+    attendance_percentage = calculate_percentage(attended_sessions, total_sessions)
 
     return AttendanceAnalytics(
         student_id=student_id,
         total_sessions=total_sessions,
         attended_sessions=attended_sessions,
-        attendance_percentage=attendance_percentage
+        attendance_percentage=attendance_percentage,
     )
 
 
-def calculate_attention_analytics(
-    student_id: str,
-    records
-):
+def calculate_attention_analytics(student_id: str, records):
     total_records = len(records)
 
     attentive_records = 0
@@ -70,13 +60,20 @@ def calculate_attention_analytics(
     unknown_records = 0
 
     raw_scores = []
+    behavior_state_counts = {
+        "LISTENING": 0,
+        "SLEEPING": 0,
+        "POSSIBLY_TALKING": 0,
+        "LOOKING_AWAY": 0,
+    }
 
     for record in records:
 
-        state = (
-            record.get("attention_state")
-            or "UNKNOWN"
-        ).strip().upper()
+        state = (record.get("attention_state") or "UNKNOWN").strip().upper()
+
+        if state in behavior_state_counts:
+            behavior_state_counts[state] += 1
+            continue
 
         state = state.replace("_", " ")
 
@@ -114,22 +111,17 @@ def calculate_attention_analytics(
             normalized_scores = raw_scores
 
         else:
-            normalized_scores = [
-                score / 100.0
-                for score in raw_scores
-            ]
+            normalized_scores = [score / 100.0 for score in raw_scores]
 
-        average_attention_score = (
-            sum(normalized_scores)
-            / len(normalized_scores)
-        )
+        average_attention_score = sum(normalized_scores) / len(normalized_scores)
 
     else:
-        average_attention_score = 0.0
+        average_attention_score = None
 
-    attention_percentage = round(
-        average_attention_score * 100,
-        2
+    attention_percentage = (
+        round(average_attention_score * 100, 2)
+        if average_attention_score is not None
+        else None
     )
 
     return AttentionAnalytics(
@@ -139,9 +131,11 @@ def calculate_attention_analytics(
         partial_records=partial_records,
         not_attentive_records=not_attentive_records,
         unknown_records=unknown_records,
-        average_attention_score=round(
-            average_attention_score,
-            4
+        average_attention_score=(
+            round(average_attention_score, 4)
+            if average_attention_score is not None
+            else None
         ),
-        attention_percentage=attention_percentage
+        attention_percentage=attention_percentage,
+        behavior_state_counts=behavior_state_counts,
     )

@@ -340,9 +340,13 @@ def stop_classroom_session(
 
         db.commit()
         db.refresh(session)
-        from backend.routes.frame_inference import frame_inference_service
+        from backend.routes.frame_inference import (
+            clear_attention_session,
+            frame_inference_service,
+        )
 
         frame_inference_service.clear_session(session_id)
+        clear_attention_session(session_id)
 
         return {
             "session": session,

@@ -8,9 +8,11 @@ The repository contains experimental and legacy modules for several vision
 tasks. The authenticated browser monitoring flow provides live YOLO person
 detection, session-scoped IoU track IDs, OpenCV Haar face boxes when the
 compatible OpenCV runtime is installed, persisted teacher-entered attendance,
-and API-backed classroom reporting. Tracking IDs are not student identities.
-Student recognition, attention estimation, and AI attendance remain
-unavailable in the live API.
+and API-backed classroom reporting. Where the optional recognition and eye
+landmark models are installed, the live frame API also verifies recognized
+students and reports conservative, temporally supported behavior estimates.
+Unavailable model signals remain UNKNOWN; person track IDs are not student
+identities.
 
 ---
 
@@ -42,9 +44,31 @@ empty. Face inference failures are logged server-side with a
 `face_detection_failed` event. The session-local IoU
 tracker tolerates brief misses, but is not ByteTrack and may switch IDs during
 crossings or large motion.
-Student identity recognition, attention scoring, AI attendance, alerts, and
-analytics are not connected to browser frame processing. A detected person,
-face, or track must not be treated as a student or an attention result.
+Face recognition is loaded lazily and verified against active classroom
+membership before an identity is returned or attention observations are
+persisted. Eye state uses MediaPipe FaceMesh when available; head pose uses
+InsightFace's five keypoints. Recognized students receive a behavior estimate
+only after at least three consistent samples spanning four seconds by default.
+The labels describe visible posture: `LISTENING`, `SLEEPING` (sustained closed
+eyes or head down), or `LOOKING_AWAY`. Missing or conflicting evidence remains
+`UNKNOWN`. No mouth-motion detector is connected, so the system does not emit
+`POSSIBLY_TALKING`. These estimates are not measures of mental attention or
+intent. Raw frames are not persisted. Automatic attendance and reporting remain
+separate from these behavior estimates.
+
+Analytics groups persisted observations consistently: `LISTENING` is Attentive;
+`SLEEPING` and `LOOKING_AWAY` are Not Attentive / Other Observable Behavior;
+and `UNKNOWN` remains Unknown. Percentages use all supported observations for
+the selected session, including `UNKNOWN`, as the denominator. Legacy, null,
+empty, and unsupported states are shown as data-quality records and excluded
+from those percentages. Confidence scores are displayed only when persisted;
+Analytics does not infer or fabricate them.
+
+Attention persistence cadence is controlled by
+`DATABASE_ATTENTION_UPDATE_INTERVAL` (default `1.0` second). Temporal behavior
+classification uses `ATTENTION_MINIMUM_SAMPLES` (default `3`, range `2`–`10`)
+and `ATTENTION_MINIMUM_DURATION_SECONDS` (default `4.0`, range `0`–`60`).
+Per-session temporal state is cleared when the classroom session stops.
 
 ## Local startup
 

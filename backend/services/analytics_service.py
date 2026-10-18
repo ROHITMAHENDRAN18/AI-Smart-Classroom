@@ -34,13 +34,10 @@ def get_student_attended_sessions(
     student_id: str,
     classroom_ids: list[int] | None = None,
 ) -> int:
-    query = (
-        db.query(func.count(func.distinct(AttendanceRecord.session_id)))
-        .filter(
-            AttendanceRecord.student_id == student_id,
-            func.lower(AttendanceRecord.status) == "present",
-            AttendanceRecord.session_id.in_(_session_ids(db, classroom_ids)),
-        )
+    query = db.query(func.count(func.distinct(AttendanceRecord.session_id))).filter(
+        AttendanceRecord.student_id == student_id,
+        func.lower(AttendanceRecord.status) == "present",
+        AttendanceRecord.session_id.in_(_session_ids(db, classroom_ids)),
     )
     return int(query.scalar() or 0)
 
@@ -209,4 +206,5 @@ def get_classroom_analytics(
         "partial_records": summary.partial_records,
         "not_attentive_records": summary.not_attentive_records,
         "unknown_records": summary.unknown_records,
+        "behavior_state_counts": summary.behavior_state_counts,
     }

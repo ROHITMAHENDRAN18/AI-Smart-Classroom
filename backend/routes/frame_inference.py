@@ -1,4 +1,3 @@
-
 import asyncio
 import time
 from datetime import datetime, timezone
@@ -34,12 +33,18 @@ from backend.services.frame_inference_service import (
     decode_jpeg,
 )
 from backend.services.frame_summary_service import persist_frame_summary
+from ai.attention_engine.attention_classifier import (
+    TemporalAttentionClassifier,
+    classify_attention_observation,
+)
 from backend.utils.logger import logger
 from configs.settings import (
     FRAME_INFERENCE_TIMEOUT_SECONDS,
     FRAME_MAX_PAYLOAD_BYTES,
     FRAME_MIN_INTERVAL_SECONDS,
     DATABASE_ATTENTION_UPDATE_INTERVAL,
+    ATTENTION_MINIMUM_SAMPLES,
+    ATTENTION_MINIMUM_DURATION_SECONDS,
 )
 
 router = APIRouter(
@@ -52,8 +57,18 @@ _frame_size_limit_mb = FRAME_MAX_PAYLOAD_BYTES / (1024 * 1024)
 _rate_limit_lock = Lock()
 _last_frame_at: dict[tuple[int, str], float] = {}
 _last_rate_limit_cleanup = 0.0
+_attention_state_lock = Lock()
+_attention_classifier = TemporalAttentionClassifier(
+    minimum_samples=ATTENTION_MINIMUM_SAMPLES,
+    minimum_duration_seconds=ATTENTION_MINIMUM_DURATION_SECONDS,
+)
 
 frame_inference_service = FrameInferenceService()
+
+
+def clear_attention_session(session_id: str) -> None:
+    with _attention_state_lock:
+        _attention_classifier.clear_session(session_id)
 
 
 def persist_attention_observations(
@@ -99,14 +114,14 @@ def persist_attention_observations(
                 track_id=None,
                 attention_state=state,
                 attention_score=score,
-                fusion_state=state,
-                fusion_score=score,
-                fusion_confidence=face.get("attention_confidence", 0.0),
+                fusion_state=None,
+                fusion_score=None,
+                fusion_confidence=None,
                 temporal_state=state,
-                temporal_score=score,
-                temporal_confidence=face.get("attention_confidence", 0.0),
-                temporal_stable=False,
-                confidence=face.get("attention_confidence", 0.0),
+                temporal_score=None,
+                temporal_confidence=None,
+                temporal_stable=face.get("attention_stable", False),
+                confidence=None,
                 recorded_at=recorded_at,
             )
             db.add(record)
@@ -133,9 +148,7 @@ def check_frame_rate_limit(user_id: int, session_id: str) -> None:
         if now - _last_rate_limit_cleanup >= 60:
             expired_before = now - 60
 
-            for previous_key, previous_time in list(
-                _last_frame_at.items()
-            ):
+            for previous_key, previous_time in list(_last_frame_at.items()):
                 if previous_time < expired_before:
                     _last_frame_at.pop(previous_key, None)
 
@@ -154,10 +167,7 @@ def check_frame_rate_limit(user_id: int, session_id: str) -> None:
                     "Retry-After": str(
                         max(
                             1,
-                            int(
-                                FRAME_MIN_INTERVAL_SECONDS
-                                - (now - last_request_at)
-                            ),
+                            int(FRAME_MIN_INTERVAL_SECONDS - (now - last_request_at)),
                         )
                     )
                 },
@@ -192,9 +202,7 @@ def verify_face_identities(
         face["similarity"] = None
 
         face["recognition_status"] = (
-            "unavailable"
-            if original_status == "unavailable"
-            else "unknown"
+            "unavailable" if original_status == "unavailable" else "unknown"
         )
 
         if not candidate_id or original_status != "recognized":
@@ -257,11 +265,7 @@ def build_safe_face_summaries(
     )
 
     return [
-        {
-            key: face[key]
-            for key in allowed_keys
-            if key in face
-        }
+        {key: face[key] for key in allowed_keys if key in face}
         for face in face_detections
     ]
 
@@ -269,10 +273,7 @@ def build_safe_face_summaries(
 async def read_frame_payload(request: Request) -> bytes:
     content_type = request.headers.get("content-type", "")
 
-    if (
-        content_type.split(";", maxsplit=1)[0].strip().lower()
-        != "image/jpeg"
-    ):
+    if content_type.split(";", maxsplit=1)[0].strip().lower() != "image/jpeg":
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Frames must be uploaded as image/jpeg.",
@@ -416,8 +417,7 @@ async def analyze_classroom_frame(
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail=(
-                "Person detection timed out. Retry with a lower "
-                "camera resolution."
+                "Person detection timed out. Retry with a lower " "camera resolution."
             ),
         ) from error
 
@@ -432,6 +432,24 @@ async def analyze_classroom_frame(
             ),
         ) from error
 
+    # The session can be stopped while model inference runs in a worker thread.
+    # Recheck before any attendance or attention writes so a late frame cannot
+    # append observations to a completed session.
+    still_active = (
+        db.query(ClassroomSession.session_id)
+        .filter(
+            ClassroomSession.session_id == session_id,
+            ClassroomSession.classroom_id == classroom_id,
+            ClassroomSession.status == "ACTIVE",
+        )
+        .first()
+    )
+    if still_active is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="The classroom session ended while the frame was processing.",
+        )
+
     # Verify all identities against the student database and
     # active membership in this classroom.
     face_detections = verify_face_identities(
@@ -440,10 +458,63 @@ async def analyze_classroom_frame(
         face_detections=raw_face_detections,
     )
 
+    # Smooth behavior estimates only for verified students. Unrecognized faces
+    # have no stable identity key, so their state remains explicitly UNKNOWN.
+    seen_students: set[str] = set()
+    for face in face_detections:
+        student_id = face.get("student_id")
+        if face.get("recognition_status") != "recognized" or not student_id:
+            face["attention_state"] = "UNKNOWN"
+            face["attention_score"] = None
+            face["attention_confidence"] = 0.0
+            face["attention_stable"] = False
+            face["attention_samples"] = 0
+            face["attention_diagnostic_reasons"] = ["IDENTITY_UNVERIFIED"]
+            continue
+        if student_id in seen_students:
+            face["attention_state"] = "UNKNOWN"
+            face["attention_score"] = None
+            face["attention_confidence"] = 0.0
+            face["attention_stable"] = False
+            face["attention_samples"] = 0
+            face["attention_diagnostic_reasons"] = ["AMBIGUOUS_IDENTITY"]
+            continue
+        seen_students.add(student_id)
+        pose = (face.get("head_pose") or {}).get("head_pose", "UNKNOWN")
+        classification = classify_attention_observation(
+            eye_state=face.get("eye_state", "UNKNOWN"),
+            head_pose=pose,
+            # No mouth-motion detector exists in this frame-sampling pipeline.
+            mouth_motion=None,
+        )
+        observation = classification["attention_state"]
+        with _attention_state_lock:
+            temporal = _attention_classifier.update(
+                session_id,
+                student_id,
+                observation,
+                datetime.now(timezone.utc),
+            )
+        face["attention_state"] = temporal["attention_state"]
+        face["attention_score"] = None
+        face["attention_confidence"] = 0.0
+        face["attention_stable"] = temporal["stable"]
+        face["attention_samples"] = temporal["sample_count"]
+        if temporal["stable"]:
+            diagnostic_reasons = []
+        elif observation == "UNKNOWN":
+            diagnostic_reasons = [
+                *face.get("attention_diagnostic_reasons", []),
+                *classification["diagnostic_reasons"],
+            ]
+        else:
+            diagnostic_reasons = ["INSUFFICIENT_TEMPORAL_EVIDENCE"]
+        face["attention_diagnostic_reasons"] = list(
+            dict.fromkeys(diagnostic_reasons)
+        )
+
     unknown_detections = sum(
-        1
-        for face in face_detections
-        if face.get("recognition_status") == "unknown"
+        1 for face in face_detections if face.get("recognition_status") == "unknown"
     )
 
     # Automatic attendance is attempted only for verified identities.
@@ -454,10 +525,7 @@ async def analyze_classroom_frame(
         for face in face_detections:
             student_id = face.get("student_id")
 
-            if (
-                face.get("recognition_status") != "recognized"
-                or not student_id
-            ):
+            if face.get("recognition_status") != "recognized" or not student_id:
                 continue
 
             _, was_created = record_automatic_attendance(
@@ -482,9 +550,7 @@ async def analyze_classroom_frame(
         )
 
     # Never persist identities or recognition scores in frame summaries.
-    safe_face_detections = build_safe_face_summaries(
-        face_detections
-    )
+    safe_face_detections = build_safe_face_summaries(face_detections)
 
     height, width = image.shape[:2]
     processed_at = datetime.now(timezone.utc)
@@ -501,9 +567,7 @@ async def analyze_classroom_frame(
             inference_duration_ms=inference_duration_ms,
             detections=detections,
             face_detections=safe_face_detections,
-            face_detection_status=(
-                "error" if face_error else "available"
-            ),
+            face_detection_status=("error" if face_error else "available"),
             unknown_detections=unknown_detections,
         )
     except Exception:
@@ -511,8 +575,7 @@ async def analyze_classroom_frame(
         results_persisted = False
 
         logger.exception(
-            "Frame summary persistence failed for "
-            "classroom_id=%s session_id=%s",
+            "Frame summary persistence failed for " "classroom_id=%s session_id=%s",
             classroom_id,
             session_id,
         )
@@ -522,9 +585,7 @@ async def analyze_classroom_frame(
     )
 
     estimated_faces = [
-        face
-        for face in face_detections
-        if face.get("attention_state") != "UNKNOWN"
+        face for face in face_detections if face.get("attention_state") != "UNKNOWN"
     ]
     if estimated_faces:
         attention_inference = "available"
@@ -547,8 +608,8 @@ async def analyze_classroom_frame(
     attention_capability = FeatureAvailability(
         status="available" if attention_ready else "not_connected",
         detail=(
-            "Available facial signals are fused per detected face; missing "
-            "signals remain UNKNOWN."
+            "Verified students are classified from repeated eye and head-pose "
+            "observations; missing or conflicting evidence remains UNKNOWN."
             if attention_ready
             else "Attention models are unavailable in this backend environment."
         ),
@@ -561,8 +622,7 @@ async def analyze_classroom_frame(
         else (
             "Face detection is unavailable in this frame. Install the "
             "project-pinned backend dependencies and restart the backend."
-            if "OpenCV build does not include the Haar cascade API"
-            in str(face_error)
+            if "OpenCV build does not include the Haar cascade API" in str(face_error)
             else (
                 "Face detection failed for this frame. Check the backend "
                 "log entry tagged face_detection_failed and retry."
@@ -615,7 +675,6 @@ async def analyze_classroom_frame(
                 "been recognized, or attendance may already exist."
             )
 
-
     return FrameInferenceResponse(
         session_id=session_id,
         classroom_id=classroom_id,
@@ -634,9 +693,7 @@ async def analyze_classroom_frame(
         features=InferenceFeatureStatuses(
             person_detection=FeatureAvailability(
                 status="available",
-                detail=(
-                    "The configured YOLO person detector processed this frame."
-                ),
+                detail=("The configured YOLO person detector processed this frame."),
             ),
             result_persistence=FeatureAvailability(
                 status="available" if results_persisted else "error",
@@ -737,9 +794,7 @@ def get_classroom_frame_summary(
     try:
         summary = (
             db.query(FrameInferenceSummary)
-            .filter(
-                FrameInferenceSummary.session_id == session_id
-            )
+            .filter(FrameInferenceSummary.session_id == session_id)
             .first()
         )
 
@@ -769,8 +824,7 @@ def get_classroom_frame_summary(
     available = FeatureAvailability(
         status="available",
         detail=(
-            "The latest structured detections were loaded from "
-            "the session summary."
+            "The latest structured detections were loaded from " "the session summary."
         ),
     )
 

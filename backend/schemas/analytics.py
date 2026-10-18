@@ -16,8 +16,9 @@ class AttentionAnalyticsResponse(BaseModel):
     partial_records: int
     not_attentive_records: int
     unknown_records: int
-    average_attention_score: float
-    attention_percentage: float
+    average_attention_score: Optional[float]
+    attention_percentage: Optional[float]
+    behavior_state_counts: dict[str, int]
 
 
 class StudentAnalyticsResponse(BaseModel):
