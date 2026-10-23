@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 
 import {
-  detectSessionAbsentees,
   getAttendanceSessions,
   getClassroomAttendance,
   getSessionAttendance,
@@ -47,7 +46,27 @@ export default function Attendance() {
   const [students, setStudents] = useState([])
   const [manualStatuses, setManualStatuses] = useState({})
   const [savingManual, setSavingManual] = useState(false)
-  const [detectingAbsentees, setDetectingAbsentees] = useState(false)
+
+  const activeStudents = useMemo(
+    () =>
+      students.filter(
+        (student) => student.classroom_is_active === true,
+      ),
+    [students],
+  )
+
+  const selectedSession = useMemo(
+    () =>
+      sessions.find(
+        (session) =>
+          session.session_id ===
+          selectedSessionId,
+      ) || null,
+    [
+      sessions,
+      selectedSessionId,
+    ],
+  )
 
   const [loadingSessions, setLoadingSessions] =
     useState(true)
@@ -226,20 +245,28 @@ export default function Attendance() {
 
   useEffect(() => {
     const controller = new AbortController()
-    setManualStatuses({})
-    if (!selectedSessionId) return () => controller.abort()
+    if (!selectedSessionId) {
+      setManualStatuses({})
+      return () => controller.abort()
+    }
 
     getSessionAttendance(selectedSessionId, { signal: controller.signal })
       .then((existingRecords) => {
         if (controller.signal.aborted) return
-        setManualStatuses(
-          Object.fromEntries(
-            existingRecords.map((record) => [
-              record.student_id,
-              record.status,
-            ]),
-          ),
+        const existingMap = Object.fromEntries(
+          existingRecords.map((record) => [
+            record.student_id,
+            record.status,
+          ]),
         )
+        // Auto-detect: if student was captured by face recognition, use that status;
+        // otherwise, uncaptured enrolled students are automatically detected as ABSENT.
+        const statuses = {}
+        activeStudents.forEach((student) => {
+          statuses[student.student_id] =
+            existingMap[student.student_id] || 'ABSENT'
+        })
+        setManualStatuses(statuses)
       })
       .catch((requestError) => {
         if (!controller.signal.aborted) {
@@ -252,41 +279,69 @@ export default function Attendance() {
         }
       })
     return () => controller.abort()
-  }, [selectedSessionId, refreshKey])
+  }, [selectedSessionId, activeStudents, refreshKey])
+
+  const displayedRecords = useMemo(() => {
+    if (!selectedSessionId || !activeStudents.length) {
+      return records
+    }
+
+    const recordedStudentIds = new Set(records.map((r) => r.student_id))
+    const combined = [...records]
+
+    // Automatically display uncaptured active enrolled students as ABSENT
+    activeStudents.forEach((student) => {
+      if (!recordedStudentIds.has(student.student_id)) {
+        combined.push({
+          id: `auto-absent-${student.student_id}`,
+          session_id: selectedSessionId,
+          student_id: student.student_id,
+          student_name: student.name,
+          studentId: `${student.name} (${student.student_id})`,
+          status: 'ABSENT',
+          attendance_source: 'AUTOMATIC',
+          confidence: null,
+          recorded_at: selectedSession?.started_at ?? null,
+          recordedAt: selectedSession?.started_at ?? null,
+        })
+      }
+    })
+
+    return combined
+  }, [records, activeStudents, selectedSessionId, selectedSession])
 
   const summary = useMemo(() => {
-    return {
-      present: attendanceReport?.present_count ?? null,
-      absent: attendanceReport?.absent_count ?? null,
-      unknown: attendanceReport?.unknown_count ?? null,
-      unknownDetections,
-      total: attendanceReport?.total_records ?? null,
-      percentage: attendanceReport?.attendance_rate ?? null,
+    if (!selectedSessionId || !activeStudents.length) {
+      return {
+        present: attendanceReport?.present_count ?? null,
+        absent: attendanceReport?.absent_count ?? null,
+        unknown: attendanceReport?.unknown_count ?? null,
+        unknownDetections,
+        total: attendanceReport?.total_records ?? null,
+        percentage: attendanceReport?.attendance_rate ?? null,
+      }
     }
-  }, [attendanceReport, unknownDetections])
 
-  const selectedSession = useMemo(
-    () =>
-      sessions.find(
-        (session) =>
-          session.session_id ===
-          selectedSessionId,
-      ) || null,
-    [
-      sessions,
-      selectedSessionId,
-    ],
-  )
-  const activeStudents = useMemo(
-    () =>
-      students.filter(
-        (student) => student.classroom_is_active === true,
-      ),
-    [students],
-  )
-  const hasCompleteManualStatuses = activeStudents.every((student) =>
+    const present = displayedRecords.filter((r) => r.status === 'PRESENT').length
+    const absent = displayedRecords.filter((r) => r.status === 'ABSENT').length
+    const unknown = displayedRecords.filter((r) => r.status === 'UNKNOWN').length
+    const total = displayedRecords.length
+    const denominator = present + absent
+    const percentage = denominator > 0 ? (present / denominator) * 100 : null
+
+    return {
+      present,
+      absent,
+      unknown,
+      unknownDetections,
+      total,
+      percentage,
+    }
+  }, [displayedRecords, selectedSessionId, activeStudents, attendanceReport, unknownDetections])
+
+  const hasCompleteManualStatuses = activeStudents.length > 0 && activeStudents.every((student) =>
     ['PRESENT', 'ABSENT', 'UNKNOWN'].includes(
-      manualStatuses[student.student_id],
+      manualStatuses[student.student_id] || 'ABSENT',
     ),
   )
 
@@ -310,18 +365,16 @@ export default function Attendance() {
         setError('No active enrolled students are available to mark.')
         return
       }
-      if (!hasCompleteManualStatuses) {
-        setError('Choose a status for every active enrolled student.')
-        return
-      }
+
       await markSessionAttendance(
         selectedSessionId,
         activeStudents.map((student) => ({
           student_id: student.student_id,
-          status: manualStatuses[student.student_id],
+          status: manualStatuses[student.student_id] || 'ABSENT',
         })),
       )
       notifyClassroomDataChanged()
+      setRefreshKey((current) => current + 1)
     } catch (requestError) {
       console.error('Failed to save manual attendance:', requestError)
       setError(
@@ -332,38 +385,6 @@ export default function Attendance() {
     } finally {
       setSavingManual(false)
     }
-  }
-
-  async function handleDetectAbsentees() {
-    if (detectingAbsentees || !selectedSessionId) return
-    setDetectingAbsentees(true)
-    setError('')
-    try {
-      await detectSessionAbsentees(selectedSessionId)
-      notifyClassroomDataChanged()
-      setRefreshKey((current) => current + 1)
-    } catch (requestError) {
-      console.error('Failed to auto-detect absentees:', requestError)
-      setError(
-        requestError?.response?.data?.detail ||
-          requestError?.message ||
-          'Unable to auto-detect absentees.',
-      )
-    } finally {
-      setDetectingAbsentees(false)
-    }
-  }
-
-  function handleFillUnmarkedAsAbsent() {
-    setManualStatuses((current) => {
-      const updated = { ...current }
-      activeStudents.forEach((student) => {
-        if (!updated[student.student_id]) {
-          updated[student.student_id] = 'ABSENT'
-        }
-      })
-      return updated
-    })
   }
 
   return (
@@ -542,40 +563,20 @@ export default function Attendance() {
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-base font-semibold text-white">
-                Manual attendance
+                Session attendance
               </h2>
               <p className="mt-1 text-xs text-slate-400">
-                YOLO detections do not identify students. Review each enrolled
-                student and explicitly choose PRESENT, ABSENT, or UNKNOWN.
+                Face detection marks captured students as Present and automatically detects uncaptured students as Absent. Review or adjust statuses below, then click Save attendance.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={handleFillUnmarkedAsAbsent}
-                disabled={savingManual || activeStudents.length === 0}
-                className="rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Pre-fill any unselected student dropdowns as Absent"
-              >
-                Fill unmarked as Absent
-              </button>
-              <button
-                type="button"
-                onClick={handleDetectAbsentees}
-                disabled={detectingAbsentees || loadingAttendance || !selectedSessionId}
-                className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Automatically mark all active enrolled students not detected in this session as ABSENT"
-              >
-                {detectingAbsentees ? 'Detecting…' : 'Auto-detect absentees'}
-              </button>
               <button
                 type="button"
                 onClick={handleSaveManualAttendance}
                 disabled={
                   savingManual ||
                   loadingAttendance ||
-                  activeStudents.length === 0 ||
-                  !hasCompleteManualStatuses
+                  activeStudents.length === 0
                 }
                 className="rounded-lg border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-200 hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -599,20 +600,17 @@ export default function Attendance() {
                   </span>
                   <select
                     aria-label={`Attendance status for ${student.name}`}
-                    value={manualStatuses[student.student_id] || ''}
-                    onChange={(event) =>
-                      {
-                        setError('')
-                        setManualStatuses((current) => ({
-                          ...current,
-                          [student.student_id]: event.target.value,
-                        }))
-                      }
-                    }
+                    value={manualStatuses[student.student_id] || 'ABSENT'}
+                    onChange={(event) => {
+                      setError('')
+                      setManualStatuses((current) => ({
+                        ...current,
+                        [student.student_id]: event.target.value,
+                      }))
+                    }}
                     disabled={savingManual}
                     className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-200"
                   >
-                    <option value="">Choose status</option>
                     <option value="PRESENT">Present</option>
                     <option value="ABSENT">Absent</option>
                     <option value="UNKNOWN">Unknown</option>
@@ -710,14 +708,14 @@ export default function Attendance() {
 
         {loadingAttendance ? (
           <LoadingState />
-        ) : records.length === 0 ? (
+        ) : displayedRecords.length === 0 ? (
           <EmptyState />
         ) : (
           <>
-            <AttendanceTable records={records} />
+            <AttendanceTable records={displayedRecords} />
             <div className="flex items-center justify-between border-t border-slate-800 px-5 py-4">
               <p className="text-xs text-slate-500">
-                {attendanceReport?.total_records ?? 0} records for {attendanceReport?.from_date ?? date} (UTC)
+                {displayedRecords.length} records for {attendanceReport?.from_date ?? date} (UTC)
               </p>
               <div className="flex gap-2">
                 <button
@@ -731,7 +729,7 @@ export default function Attendance() {
                 <button
                   type="button"
                   onClick={() => setOffset((value) => value + PAGE_SIZE)}
-                  disabled={offset + records.length >= (attendanceReport?.total_records ?? 0) || loadingAttendance}
+                  disabled={offset + displayedRecords.length >= (attendanceReport?.total_records ?? displayedRecords.length) || loadingAttendance}
                   className="rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 disabled:opacity-40"
                 >
                   Next
@@ -865,7 +863,9 @@ function AttendanceTable({
                   {record.attendance_source === 'MANUAL'
                     ? 'Teacher entered'
                     : record.attendance_source === 'AUTOMATIC'
-                      ? 'Verified automatic'
+                      ? record.status === 'ABSENT'
+                        ? 'Auto-detected'
+                        : 'Verified automatic'
                       : 'Not recorded'}
                 </td>
 
