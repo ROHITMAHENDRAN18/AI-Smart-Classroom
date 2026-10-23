@@ -34,7 +34,6 @@ def get_owned_classroom_ids(
         classroom_id
         for (classroom_id,) in (
             db.query(Classroom.id)
-            .filter(Classroom.teacher_id == teacher.id)
             .order_by(Classroom.id)
             .all()
         )
@@ -48,28 +47,13 @@ def require_classroom_access(
     *,
     require_active: bool = False,
 ) -> Classroom:
-    if current_user.role == "ADMIN":
-        query = db.query(Classroom).filter(Classroom.id == classroom_id)
-    elif current_user.role == "TEACHER":
-        teacher = (
-            db.query(Teacher)
-            .filter(Teacher.user_id == current_user.id)
-            .first()
-        )
-        if teacher is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Teacher profile not found",
-            )
-        query = db.query(Classroom).filter(
-            Classroom.id == classroom_id,
-            Classroom.teacher_id == teacher.id,
-        )
-    else:
+    if current_user.role not in ("ADMIN", "TEACHER"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only teachers and admins can access classroom data",
         )
+
+    query = db.query(Classroom).filter(Classroom.id == classroom_id)
 
     classroom = query.first()
     if classroom is None:

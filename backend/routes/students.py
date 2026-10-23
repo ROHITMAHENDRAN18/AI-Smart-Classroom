@@ -301,9 +301,10 @@ async def enroll_student_face(
             detail=str(error),
         ) from error
     except RuntimeError as error:
+        logger.exception("Face enrollment RuntimeError: %s", error)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Face enrollment is temporarily unavailable.",
+            detail=f"Face enrollment is temporarily unavailable: {error}",
         ) from error
     except OSError as error:
         raise HTTPException(

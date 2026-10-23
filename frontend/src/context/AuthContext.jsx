@@ -13,6 +13,7 @@ import {
   getCurrentUser,
   getStoredUser,
   login as loginRequest,
+  register as registerRequest,
   saveAuthSession,
 } from '../services/authService'
 
@@ -81,6 +82,18 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
+  const register = useCallback(async (username, email, password, role = 'TEACHER') => {
+    await registerRequest(username, email, password, role)
+    const data = await loginRequest(username, password)
+
+    saveAuthSession(data)
+
+    setToken(data.access_token)
+    setUser(data.user)
+
+    return data
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -88,9 +101,10 @@ export function AuthProvider({ children }) {
       loading,
       isAuthenticated: Boolean(token && user),
       login,
+      register,
       logout,
     }),
-    [user, token, loading, login, logout],
+    [user, token, loading, login, register, logout],
   )
 
   return (

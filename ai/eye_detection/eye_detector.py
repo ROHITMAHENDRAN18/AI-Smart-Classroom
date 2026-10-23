@@ -30,8 +30,63 @@ RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380]
 _face_mesh_instance = None
 
 
+class _InsightFaceMeshAdapter:
+    """Robust 6-point eye contour extractor using InsightFace's landmark detector."""
+
+    def __init__(self):
+        from insightface.app import FaceAnalysis
+
+        self._app = FaceAnalysis(
+            name="buffalo_l",
+            providers=["CPUExecutionProvider"],
+        )
+        self._app.prepare(ctx_id=-1, det_size=(320, 320))
+
+    def extract_eyes(
+        self, face_image: np.ndarray
+    ) -> Tuple[Optional[np.ndarray], Optional[str]]:
+        if face_image is None or not isinstance(face_image, np.ndarray) or face_image.size == 0:
+            return None, "Face image is missing or empty."
+        faces = self._app.get(face_image)
+        if not faces:
+            return None, "No face detected in crop."
+        l68 = getattr(faces[0], "landmark_3d_68", None)
+        if l68 is None or len(l68) < 68:
+            return None, "No 68-point landmarks in face."
+        eye1 = l68[36:42, :2]
+        eye2 = l68[42:48, :2]
+        return np.array([eye1, eye2], dtype=np.float32), None
+
+
+def extract_eye_landmarks_from_68_points(
+    landmarks_68: Any,
+) -> Tuple[Optional[np.ndarray], Optional[str]]:
+    """Extract left and right 6-point eye contours from standard 68-point facial landmarks.
+
+    In standard 68-point facial landmarks:
+        Eye 1: indices 36 to 41
+        Eye 2: indices 42 to 47
+    """
+    if landmarks_68 is None:
+        return None, "Landmarks are None."
+    try:
+        pts = np.asarray(landmarks_68, dtype=np.float32)
+    except (TypeError, ValueError):
+        return None, "Invalid landmark points array."
+
+    if pts.ndim != 2 or pts.shape[0] < 68 or pts.shape[1] < 2:
+        return None, f"Expected at least 68 2D landmark points, got shape {pts.shape}."
+
+    if not np.isfinite(pts[:68, :2]).all():
+        return None, "Landmarks contain non-finite values."
+
+    eye1 = pts[36:42, :2]
+    eye2 = pts[42:48, :2]
+    return np.array([eye1, eye2], dtype=np.float32), None
+
+
 def get_face_mesh():
-    """Lazily initialize MediaPipe FaceMesh for eye contour extraction."""
+    """Lazily initialize MediaPipe FaceMesh or InsightFace adapter for eye contour extraction."""
     global _face_mesh_instance
     if _face_mesh_instance is None:
         try:
@@ -44,7 +99,10 @@ def get_face_mesh():
                 min_detection_confidence=0.5,
             )
         except Exception:
-            _face_mesh_instance = False
+            try:
+                _face_mesh_instance = _InsightFaceMeshAdapter()
+            except Exception:
+                _face_mesh_instance = False
     return _face_mesh_instance if _face_mesh_instance is not False else None
 
 
@@ -210,7 +268,10 @@ def extract_eye_landmarks_from_face(
 
     mesh = get_face_mesh()
     if mesh is None:
-        return None, "MediaPipe FaceMesh detector is unavailable in this environment."
+        return None, "Eye contour detector is unavailable in this environment."
+
+    if isinstance(mesh, _InsightFaceMeshAdapter):
+        return mesh.extract_eyes(face_image)
 
     try:
         import cv2
@@ -244,15 +305,19 @@ def extract_eye_landmarks_from_face(
 
 
 def detect_eye_state_from_face(
-    face_image: np.ndarray,
+    face_image: np.ndarray | None = None,
     open_threshold: float = 0.22,
     closed_threshold: float = 0.18,
+    landmarks_68: Any = None,
 ) -> Dict[str, Any]:
-    """Extract eye landmarks from a face crop and classify eye state.
+    """Extract eye landmarks from a face crop or 68-point landmarks and classify eye state.
 
     Safely returns UNKNOWN if landmarks are unavailable without throwing.
     """
-    landmarks, reason = extract_eye_landmarks_from_face(face_image)
+    if landmarks_68 is not None:
+        landmarks, reason = extract_eye_landmarks_from_68_points(landmarks_68)
+    else:
+        landmarks, reason = extract_eye_landmarks_from_face(face_image)
 
     if landmarks is None:
         return {

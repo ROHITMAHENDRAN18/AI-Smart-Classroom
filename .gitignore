@@ -1,38 +1,58 @@
-# Python
+# Python bytecode & cache
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
 
-# Virtual Environment
+# Virtual Environments
 .venv/
 venv/
 env/
+ENV/
+env.bak/
+venv.bak/
 
-# macOS
-.DS_Store
-
-# VS Code
-.vscode/
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Environment Variables
+# Environment Variables & Secrets (never push secrets to Git)
 .env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
-# Logs
-*.log
+# Frontend Dependencies & Build Outputs
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+build/
+build-log.txt
 
-# Models
+# Large Model Weights (if downloaded locally)
 models/trained/
 models/yolo/
 models/insightface/
+*.onnx
 
-# Dataset
+# Dataset Videos (large binary data)
 datasets/videos/
 datasets/test_videos/
 
-# Build
-dist/
-build/
+# Temporary Files, Uploads & Local Media
+temp/
+uploads/
+logs/
+*.log
+WhatsApp Image*
+
+# Test & Coverage Caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE & OS Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.ipynb_checkpoints/

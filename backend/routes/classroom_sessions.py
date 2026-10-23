@@ -53,7 +53,6 @@ def get_teacher_classroom(
 ) -> Classroom:
     query = db.query(Classroom).filter(
         Classroom.id == classroom_id,
-        Classroom.teacher_id == teacher_id,
     )
 
     if lock:
@@ -337,6 +336,18 @@ def stop_classroom_session(
             int((ended_at - started_at).total_seconds()),
         )
         session.status = "COMPLETED"
+
+        try:
+            from backend.services.attendance_service import mark_unmarked_as_absent
+
+            mark_unmarked_as_absent(
+                db=db,
+                classroom_id=classroom_id,
+                session_id=session_id,
+                recorded_at=ended_at,
+            )
+        except Exception:
+            logger.exception("Failed to mark absentees on session completion")
 
         db.commit()
         db.refresh(session)

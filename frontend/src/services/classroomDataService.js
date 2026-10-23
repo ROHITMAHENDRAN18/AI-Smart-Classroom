@@ -286,6 +286,23 @@ export async function markSessionAttendance(
   )
 }
 
+export async function detectSessionAbsentees(
+  sessionId,
+  { classroomId = CLASSROOM_ID, signal } = {},
+) {
+  if (!sessionId || typeof sessionId !== 'string') {
+    throw new Error('A session ID is required to detect absentees.')
+  }
+  const response = await api.post(
+    `/classrooms/${requireClassroomId(classroomId)}/sessions/${encodeURIComponent(sessionId)}/attendance/detect-absentees`,
+    {},
+    { signal },
+  )
+  return requireArray(response.data, 'detect absentees').map(
+    normalizeAttendanceRecord,
+  )
+}
+
 export async function getSessionSummary(sessionId, { signal } = {}) {
   if (!sessionId || typeof sessionId !== 'string') {
     throw new Error('A session ID is required.')

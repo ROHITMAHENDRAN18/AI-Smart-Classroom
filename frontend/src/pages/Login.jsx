@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Activity, Eye, EyeOff, LockKeyhole, UserRound } from 'lucide-react'
+import { Activity, Eye, EyeOff, LockKeyhole, Mail, UserPlus, UserRound } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext'
@@ -8,30 +8,69 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { login } = useAuth()
+  const { login, register } = useAuth()
 
+  const [isRegister, setIsRegister] = useState(false)
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [role, setRole] = useState('TEACHER')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const from = location.state?.from || '/dashboard'
 
+  function switchMode(registerMode) {
+    setIsRegister(registerMode)
+    setError('')
+    setPassword('')
+    setConfirmPassword('')
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
-
     setError('')
 
-    if (!username.trim() || !password) {
-      setError('Please enter your username and password.')
+    const trimmedUsername = username.trim()
+    const trimmedEmail = email.trim()
+
+    if (!trimmedUsername || !password) {
+      setError('Please fill in all required fields.')
       return
+    }
+
+    if (isRegister) {
+      if (!trimmedEmail) {
+        setError('Please enter your email address.')
+        return
+      }
+
+      if (trimmedUsername.length < 3) {
+        setError('Username must be at least 3 characters.')
+        return
+      }
+
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters.')
+        return
+      }
+
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.')
+        return
+      }
     }
 
     try {
       setSubmitting(true)
 
-      await login(username.trim(), password)
+      if (isRegister) {
+        await register(trimmedUsername, trimmedEmail, password, role)
+      } else {
+        await login(trimmedUsername, password)
+      }
 
       navigate(from, { replace: true })
     } catch (requestError) {
@@ -39,8 +78,14 @@ export default function Login() {
 
       if (typeof detail === 'string') {
         setError(detail)
+      } else if (Array.isArray(detail)) {
+        setError(detail.map((d) => d.msg || d).join(', '))
       } else {
-        setError('Login failed. Please check your credentials.')
+        setError(
+          isRegister
+            ? 'Registration failed. Please check your information.'
+            : 'Invalid username or password.'
+        )
       }
     } finally {
       setSubmitting(false)
@@ -99,7 +144,7 @@ export default function Login() {
 
           <section className="flex items-center justify-center p-6 sm:p-10">
             <div className="w-full max-w-md">
-              <div className="mb-8 lg:hidden">
+              <div className="mb-6 lg:hidden">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
                     <Activity size={23} />
@@ -117,25 +162,52 @@ export default function Login() {
                 </div>
               </div>
 
+              <div className="mb-6 flex rounded-xl border border-slate-800 bg-slate-900/60 p-1">
+                <button
+                  type="button"
+                  onClick={() => switchMode(false)}
+                  className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${
+                    !isRegister
+                      ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/20'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode(true)}
+                  className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${
+                    isRegister
+                      ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/20'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Create account
+                </button>
+              </div>
+
               <div>
                 <p className="text-sm font-medium text-blue-400">
-                  Welcome back
+                  {isRegister ? 'Get started' : 'Welcome back'}
                 </p>
 
                 <h2 className="mt-2 text-3xl font-bold tracking-tight text-white">
-                  Sign in
+                  {isRegister ? 'Create an account' : 'Sign in'}
                 </h2>
 
                 <p className="mt-2 text-sm text-slate-400">
-                  Sign in to access your classroom dashboard.
+                  {isRegister
+                    ? 'Register your account to manage your classroom.'
+                    : 'Sign in to access your classroom dashboard.'}
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                 <div>
                   <label
                     htmlFor="username"
-                    className="mb-2 block text-sm font-medium text-slate-300"
+                    className="mb-1.5 block text-xs font-medium text-slate-300"
                   >
                     Username
                   </label>
@@ -152,16 +224,44 @@ export default function Login() {
                       autoComplete="username"
                       value={username}
                       onChange={(event) => setUsername(event.target.value)}
-                      placeholder="Enter your username"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      placeholder="e.g. teacher_john"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                 </div>
 
+                {isRegister && (
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="mb-1.5 block text-xs font-medium text-slate-300"
+                    >
+                      Email address
+                    </label>
+
+                    <div className="relative">
+                      <Mail
+                        size={18}
+                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                      />
+
+                      <input
+                        id="email"
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="teacher@school.edu"
+                        className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label
                     htmlFor="password"
-                    className="mb-2 block text-sm font-medium text-slate-300"
+                    className="mb-1.5 block text-xs font-medium text-slate-300"
                   >
                     Password
                   </label>
@@ -175,34 +275,75 @@ export default function Login() {
                     <input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
+                      autoComplete={isRegister ? 'new-password' : 'current-password'}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      placeholder="Enter your password"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-3 pl-10 pr-11 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      placeholder={isRegister ? 'At least 6 characters' : 'Enter your password'}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-2.5 pl-10 pr-11 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     />
 
                     <button
                       type="button"
                       onClick={() => setShowPassword((value) => !value)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-300"
-                      aria-label={
-                        showPassword
-                          ? 'Hide password'
-                          : 'Show password'
-                      }
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showPassword ? (
-                        <EyeOff size={18} />
-                      ) : (
-                        <Eye size={18} />
-                      )}
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
 
+                {isRegister && (
+                  <div>
+                    <label
+                      htmlFor="confirmPassword"
+                      className="mb-1.5 block text-xs font-medium text-slate-300"
+                    >
+                      Confirm password
+                    </label>
+
+                    <div className="relative">
+                      <LockKeyhole
+                        size={18}
+                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                      />
+
+                      <input
+                        id="confirmPassword"
+                        type={showPassword ? 'text' : 'password'}
+                        autoComplete="new-password"
+                        value={confirmPassword}
+                        onChange={(event) => setConfirmPassword(event.target.value)}
+                        placeholder="Re-enter your password"
+                        className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {isRegister && (
+                  <div>
+                    <label
+                      htmlFor="role"
+                      className="mb-1.5 block text-xs font-medium text-slate-300"
+                    >
+                      Account Role
+                    </label>
+
+                    <select
+                      id="role"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-2.5 px-3 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    >
+                      <option value="TEACHER">Teacher</option>
+                      <option value="ADMIN">Admin</option>
+                    </select>
+                  </div>
+                )}
+
                 {error && (
-                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">
                     {error}
                   </div>
                 )}
@@ -210,11 +351,44 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex w-full items-center justify-center rounded-xl bg-blue-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? 'Signing in...' : 'Sign in'}
+                  {submitting ? (
+                    isRegister ? 'Creating account...' : 'Signing in...'
+                  ) : isRegister ? (
+                    <>
+                      <UserPlus size={17} />
+                      Create Account
+                    </>
+                  ) : (
+                    'Sign in'
+                  )}
                 </button>
               </form>
+
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  onClick={() => switchMode(!isRegister)}
+                  className="text-xs text-slate-400 hover:text-blue-400 transition"
+                >
+                  {isRegister ? (
+                    <>
+                      Already have an account?{' '}
+                      <span className="font-semibold text-blue-400 underline underline-offset-4">
+                        Sign in
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Don't have an account?{' '}
+                      <span className="font-semibold text-blue-400 underline underline-offset-4">
+                        Create an account
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
 
               <p className="mt-8 text-center text-xs text-slate-600">
                 Secure access to the classroom monitoring platform

@@ -20,6 +20,17 @@ export async function login(username, password) {
   return response.data
 }
 
+export async function register(username, email, password, role = 'TEACHER') {
+  const response = await authApi.post('/auth/register', {
+    username,
+    email,
+    password,
+    role,
+  })
+
+  return response.data
+}
+
 export async function getCurrentUser(token) {
   const response = await authApi.get('/auth/me', {
     headers: {

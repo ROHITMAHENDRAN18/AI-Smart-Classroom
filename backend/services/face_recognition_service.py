@@ -224,12 +224,10 @@ class FaceRecognitionService:
 
         if not self._embeddings:
             try:
-                self._refresh_embeddings()
+                self._refresh_embeddings(allow_empty=True)
             except Exception as error:
-                logger.exception("face_embeddings_load_failed")
-                raise RuntimeError(
-                    "Face recognition embeddings are unavailable."
-                ) from error
+                logger.warning("face_embeddings_refresh_failed: %s", error)
+                self._embeddings = {}
 
         with self._inference_lock:
             faces = self._model.get(image)
@@ -278,6 +276,7 @@ class FaceRecognitionService:
                         student_id = best_id
 
             landmarks = getattr(face, "kps", None)
+            landmarks_68 = getattr(face, "landmark_3d_68", None)
 
             output.append(
                 {
@@ -296,6 +295,11 @@ class FaceRecognitionService:
                     "landmarks": (
                         np.asarray(landmarks, dtype=np.float32).tolist()
                         if landmarks is not None
+                        else None
+                    ),
+                    "landmarks_68": (
+                        np.asarray(landmarks_68, dtype=np.float32).tolist()
+                        if landmarks_68 is not None
                         else None
                     ),
                     "similarity": similarity,

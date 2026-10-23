@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 
 import {
+  detectSessionAbsentees,
   getAttendanceSessions,
   getClassroomAttendance,
   getSessionAttendance,
@@ -46,6 +47,7 @@ export default function Attendance() {
   const [students, setStudents] = useState([])
   const [manualStatuses, setManualStatuses] = useState({})
   const [savingManual, setSavingManual] = useState(false)
+  const [detectingAbsentees, setDetectingAbsentees] = useState(false)
 
   const [loadingSessions, setLoadingSessions] =
     useState(true)
@@ -332,6 +334,38 @@ export default function Attendance() {
     }
   }
 
+  async function handleDetectAbsentees() {
+    if (detectingAbsentees || !selectedSessionId) return
+    setDetectingAbsentees(true)
+    setError('')
+    try {
+      await detectSessionAbsentees(selectedSessionId)
+      notifyClassroomDataChanged()
+      setRefreshKey((current) => current + 1)
+    } catch (requestError) {
+      console.error('Failed to auto-detect absentees:', requestError)
+      setError(
+        requestError?.response?.data?.detail ||
+          requestError?.message ||
+          'Unable to auto-detect absentees.',
+      )
+    } finally {
+      setDetectingAbsentees(false)
+    }
+  }
+
+  function handleFillUnmarkedAsAbsent() {
+    setManualStatuses((current) => {
+      const updated = { ...current }
+      activeStudents.forEach((student) => {
+        if (!updated[student.student_id]) {
+          updated[student.student_id] = 'ABSENT'
+        }
+      })
+      return updated
+    })
+  }
+
   return (
     <div className="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
       <header className="mb-6">
@@ -515,19 +549,39 @@ export default function Attendance() {
                 student and explicitly choose PRESENT, ABSENT, or UNKNOWN.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleSaveManualAttendance}
-              disabled={
-                savingManual ||
-                loadingAttendance ||
-                activeStudents.length === 0 ||
-                !hasCompleteManualStatuses
-              }
-              className="rounded-lg border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-200 hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {savingManual ? 'Saving…' : 'Save attendance'}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleFillUnmarkedAsAbsent}
+                disabled={savingManual || activeStudents.length === 0}
+                className="rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Pre-fill any unselected student dropdowns as Absent"
+              >
+                Fill unmarked as Absent
+              </button>
+              <button
+                type="button"
+                onClick={handleDetectAbsentees}
+                disabled={detectingAbsentees || loadingAttendance || !selectedSessionId}
+                className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Automatically mark all active enrolled students not detected in this session as ABSENT"
+              >
+                {detectingAbsentees ? 'Detecting…' : 'Auto-detect absentees'}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveManualAttendance}
+                disabled={
+                  savingManual ||
+                  loadingAttendance ||
+                  activeStudents.length === 0 ||
+                  !hasCompleteManualStatuses
+                }
+                className="rounded-lg border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-200 hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {savingManual ? 'Saving…' : 'Save attendance'}
+              </button>
+            </div>
           </div>
           {activeStudents.length === 0 ? (
             <p className="text-sm text-slate-500">

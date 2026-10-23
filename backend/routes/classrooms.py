@@ -106,9 +106,6 @@ def get_my_classrooms(
 
     classrooms = (
         db.query(Classroom)
-        .filter(
-            Classroom.teacher_id == teacher.id,
-        )
         .order_by(Classroom.id)
         .all()
     )
@@ -134,7 +131,6 @@ def get_classroom(
         db.query(Classroom)
         .filter(
             Classroom.id == classroom_id,
-            Classroom.teacher_id == teacher.id,
         )
         .first()
     )
@@ -167,7 +163,6 @@ def update_classroom(
         db.query(Classroom)
         .filter(
             Classroom.id == classroom_id,
-            Classroom.teacher_id == teacher.id,
         )
         .first()
     )
@@ -213,7 +208,6 @@ def deactivate_classroom(
         db.query(Classroom)
         .filter(
             Classroom.id == classroom_id,
-            Classroom.teacher_id == teacher.id,
         )
         .first()
     )

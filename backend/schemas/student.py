@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class StudentCreateRequest(BaseModel):
@@ -29,6 +29,16 @@ class StudentCreateRequest(BaseModel):
 
     email: EmailStr | None = None
 
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v = v.strip()
+            return v if v else None
+        return v
+
 
 class StudentUpdateRequest(BaseModel):
     name: str | None = Field(
@@ -56,6 +66,16 @@ class StudentUpdateRequest(BaseModel):
     )
 
     email: EmailStr | None = None
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v = v.strip()
+            return v if v else None
+        return v
 
 
 class StudentResponse(BaseModel):

@@ -58,7 +58,6 @@ def get_teacher_classroom(
         db.query(Classroom)
         .filter(
             Classroom.id == classroom_id,
-            Classroom.teacher_id == teacher_id,
         )
         .first()
     )

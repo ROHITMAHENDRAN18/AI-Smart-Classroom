@@ -69,6 +69,45 @@ def mark_manual_attendance(
         ) from error
 
 
+@router.post(
+    "/{classroom_id}/sessions/{session_id}/attendance/detect-absentees",
+    response_model=list[AttendanceHistoryResponse],
+)
+def auto_detect_absentees(
+    classroom_id: int,
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "TEACHER":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only teachers can mark classroom attendance.",
+        )
+    require_classroom_access(
+        classroom_id,
+        current_user,
+        db,
+        require_active=True,
+    )
+
+    try:
+        from backend.services.attendance_service import mark_unmarked_as_absent
+
+        return mark_unmarked_as_absent(
+            db,
+            classroom_id=classroom_id,
+            session_id=session_id,
+        )
+    except SQLAlchemyError as error:
+        db.rollback()
+        logger.exception("Database failure while detecting absentees")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Attendance data is temporarily unavailable.",
+        ) from error
+
+
 @router.get(
     "/{classroom_id}/attendance",
     response_model=ClassroomAttendanceResponse,

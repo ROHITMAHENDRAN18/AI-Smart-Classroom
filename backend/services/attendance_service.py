@@ -145,3 +145,65 @@ def delete_attendance_for_session(
     db.commit()
 
     return len(records)
+
+
+def mark_unmarked_as_absent(
+    db: Session,
+    classroom_id: int,
+    session_id: str,
+    recorded_at: datetime | None = None,
+) -> list[AttendanceRecord]:
+    """Mark all active enrolled classroom members who have no attendance record as ABSENT."""
+    from datetime import timezone
+    from backend.models.classroom_member import ClassroomMember
+
+    enrolled_student_ids = [
+        row[0]
+        for row in (
+            db.query(ClassroomMember.student_id)
+            .filter(
+                ClassroomMember.classroom_id == classroom_id,
+                ClassroomMember.is_active.is_(True),
+            )
+            .all()
+        )
+    ]
+
+    if not enrolled_student_ids:
+        return []
+
+    existing_student_ids = set(
+        row[0]
+        for row in (
+            db.query(AttendanceRecord.student_id)
+            .filter(
+                AttendanceRecord.session_id == session_id,
+                AttendanceRecord.student_id.in_(enrolled_student_ids),
+            )
+            .all()
+        )
+    )
+
+    absent_ids = [sid for sid in enrolled_student_ids if sid not in existing_student_ids]
+    if not absent_ids:
+        return []
+
+    now = recorded_at or datetime.now(timezone.utc)
+    new_records = []
+    for student_id in absent_ids:
+        record = AttendanceRecord(
+            session_id=session_id,
+            student_id=student_id,
+            status="ABSENT",
+            attendance_source="AUTO",
+            confidence=None,
+            recorded_at=now,
+        )
+        db.add(record)
+        new_records.append(record)
+
+    db.commit()
+    for record in new_records:
+        db.refresh(record)
+
+    return new_records

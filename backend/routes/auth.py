@@ -82,6 +82,18 @@ def register(
     db.commit()
     db.refresh(user)
 
+    if role == "TEACHER":
+        from backend.models.teacher import Teacher
+        teacher = Teacher(
+            user_id=user.id,
+            teacher_id=f"TCH_{user.id:04d}",
+            name=request.username,
+            department="General",
+            designation="Teacher",
+        )
+        db.add(teacher)
+        db.commit()
+
     return user
 
 

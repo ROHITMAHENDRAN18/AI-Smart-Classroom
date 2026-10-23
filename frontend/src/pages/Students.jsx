@@ -204,7 +204,7 @@ export default function Students() {
       await createClassroomStudent({
         ...newStudent,
         year: Number(newStudent.year),
-        email: newStudent.email.trim() || null,
+        email: newStudent.email ? newStudent.email.trim() || null : null,
       })
       setNewStudent(EMPTY_STUDENT_FORM)
       notifyClassroomDataChanged()
@@ -241,7 +241,7 @@ export default function Students() {
         department: editStudent.department,
         year: Number(editStudent.year),
         section: editStudent.section,
-        email: editStudent.email.trim() || null,
+        email: editStudent.email ? editStudent.email.trim() || null : null,
       })
       setEditingStudentId('')
       notifyClassroomDataChanged()

@@ -4,4 +4,5 @@ export {
   getSessionAttendance,
   getStudents,
   markSessionAttendance,
+  detectSessionAbsentees,
 } from './classroomDataService'
